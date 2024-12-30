@@ -69,7 +69,7 @@ const AddAdminUser = (props) => {
                 <CFormLabel htmlFor="staticEmail2" className="col-sm-2 col-form-label">
                 Email
                 </CFormLabel>
-                <CCol sm={10}>
+                <CCol sm={10} md={6} lg={4}>
                 <CFormInput
                     type="text"
                     id="staticEmail2"
@@ -81,7 +81,7 @@ const AddAdminUser = (props) => {
                     <CFormLabel htmlFor="inputPassword2" className="col-sm-2 col-form-label">
                     Password:
                     </CFormLabel>
-                    <CCol sm={10}>
+                    <CCol sm={10} md={6} lg={4}>
                         <CFormInput type="password" id="inputPassword2" />
                     </CCol>
                 </CRow>
@@ -89,7 +89,7 @@ const AddAdminUser = (props) => {
                     <CFormLabel htmlFor="inputPassword2" className="col-sm-2 col-form-label">
                     Confirm Password:
                     </CFormLabel>
-                    <CCol sm={10}>
+                    <CCol sm={10} md={6} lg={4}>
                         <CFormInput type="password" id="inputPassword2" />
                     </CCol>
                 </CRow>
@@ -97,7 +97,7 @@ const AddAdminUser = (props) => {
                     <CFormLabel htmlFor="inputPassword2" className="col-sm-2 col-form-label">
                     Mobile:
                     </CFormLabel>
-                    <CCol sm={10}>
+                    <CCol sm={10} md={6} lg={4}>
                         <CFormInput type="password" id="inputPassword2" />
                     </CCol>
                 </CRow>
@@ -105,7 +105,7 @@ const AddAdminUser = (props) => {
                     <CFormLabel htmlFor="inputPassword2" className="col-sm-2 col-form-label">
                     Adhaar:
                     </CFormLabel>
-                    <CCol sm={10}>
+                    <CCol sm={10} md={6} lg={4}>
                         <CFormInput type="password" id="inputPassword2" />
                     </CCol>
                 </CRow>
@@ -113,7 +113,7 @@ const AddAdminUser = (props) => {
                     <CFormLabel htmlFor="inputPassword2" className="col-sm-2 col-form-label">
                     Pan No:
                     </CFormLabel>
-                    <CCol sm={10}>
+                    <CCol sm={10} md={6} lg={4}>
                         <CFormInput type="password" id="inputPassword2" />
                     </CCol>
                 </CRow>
@@ -122,7 +122,7 @@ const AddAdminUser = (props) => {
                     <CFormLabel htmlFor="roles" className="col-sm-2 col-form-label">
                     Role:
                     </CFormLabel>
-                    <CCol sm={10}>
+                    <CCol sm={10} md={6} lg={4}>
                         <CFormSelect id="roles"  >
                             <option value={-1}>Select Role</option>
                             { roles.length > 0 && roles.map((role) => (
@@ -132,9 +132,11 @@ const AddAdminUser = (props) => {
                     </CCol>
                 </CRow>
                 <CRow className="mb-3">
-                    <CButton 
+                    <CCol sm={12} md={12} lg={6}>
+                    <CButton style={{ width: '100%'}}
                         color='primary'
                         onClick={(e) => handleSubmit(e)}> Submit </CButton>
+                    </CCol>
                 </CRow>
 
                 </CCardBody>

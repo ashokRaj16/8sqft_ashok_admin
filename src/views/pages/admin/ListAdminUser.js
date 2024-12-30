@@ -29,10 +29,10 @@ import {
 // import { jsPDF } from 'jspdf';
 // import 'jspdf-autotable';
 // import * as XLSX from 'xlsx';
-import { FaSort, FaSortUp, FaSortDown, FaFileExcel, FaFilePdf, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaSort, FaSortUp, FaSortDown, FaFileExcel, FaFilePdf, FaEdit, FaTrash, FaEye, FaAngleDoubleLeft, FaAngleLeft, FaAngleDoubleRight, FaAngleRight } from 'react-icons/fa';
 import { CIcon } from '@coreui/icons-react';
 import { cilSortAscending, cilSortDescending, cilBell, cilDelete, cilEyedropper, cilPencil, cilScrubber, cilTrash, cilSortAlphaUp, cilClearAll } from '@coreui/icons'
-import { getAdminUser } from '../../../models/usersModel';
+import { deleteAdminUser, getAdminUser } from '../../../models/usersModel';
 import { ToastMessage } from '../../../components/ToastMessage';
 
 const usersData = [
@@ -64,15 +64,24 @@ const ListAdminUser = () => {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [currentUsers, setCurrentUsers] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [actionValue, setActionValue] = useState('');
 
+  
+  const [toast, addToast] = useState(0);
   const navigate = useNavigate();
+  const toaster = useRef();
+
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
+    console.log(event.target)
   };
 
-  const handleItemsPerPageChange = (event) => {
-    setItemsPerPage(parseInt(event.target.value));
+  const handleItemsPerPageChange = async (event) => {
+    setItemsPerPage(() => parseInt(event.target.value));
     setCurrentPage(1); // Reset to first page on items per page change
+    // await loadAdminUser()
   };
 
   const sortedUsers = [...usersData].sort((a, b) => {
@@ -90,28 +99,52 @@ const ListAdminUser = () => {
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  // const indexOfLastItem = currentPage * itemsPerPage;
+  // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // Pagination section
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const getPageNumbers = () => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const pageNumbers = [];
+    let startPage = Math.max(currentPage - 2, 1);
+    let endPage = Math.min(currentPage + 2, totalPages);
+
+    if (currentPage === 1) {
+      endPage = Math.min(startPage + 4, totalPages);
+    }
+
+    if (currentPage === totalPages) {
+      startPage = Math.max(endPage - 4, 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return pageNumbers;
+  };
 
   const requestSort = (key) => {
-    let direction = 'ascending';
+    let direction = 'asc';
     if (
       sortConfig.key === key &&
-      sortConfig.direction === 'ascending'
+      sortConfig.direction === 'asc'
     ) {
-      direction = 'descending';
+      direction = 'desc';
     }
     setSortConfig({ key, direction });
   };
 
   const getSortIcon = (key) => {
     if (sortConfig.key === key) {
-      if (sortConfig.direction === 'ascending') {
+      if (sortConfig.direction === 'asc') {
         return <FaSortUp />;
-      } else if (sortConfig.direction === 'descending') {
+      } else if (sortConfig.direction === 'desc') {
         return <FaSortDown />;
       }
     }
@@ -137,30 +170,63 @@ const ListAdminUser = () => {
   };
 
   const actionOptions = [
+    { value: '', label: 'With selected...' },
     { value: 'delete', label: 'Delete' },
     // Add more actions as needed
   ];
   
-  const [toast, addToast] = useState(0)
-  const toaster = useRef()
-  const handleAction = (action) => {
-    const toastContent = (
+
+  const handleAction = async (action) => {
+    console.log(action, actionValue)
+    if(selectedUsers.length <= 0){
+      const toastContent = (
         <ToastMessage
-            type="success"
-            message="Thanks!" />
-    )
-    addToast(toastContent)
-      if (action === 'delete') {
-          // Implement delete functionality
-          alert('Delete action on selected users');
+        type="error"
+        message="Atleast select one row!" />
+      )
+      addToast(toastContent)
+      return;
     }
+    if (action === 'delete') {
+      // Implement delete functionality
+      try{
+        const ids = selectedUsers.map((data) => ( data?.book_id ));
+
+        console.log("ids:",ids)
+        const result= { message: 'Deleted successfully!', affectedRow : 1};
+      // const result = await deleteMultipleAdminUsers();
+      if(result.affectedRow > 0) {
+        const toastContent = (
+          <ToastMessage
+          type="success"
+          message={result.message} />
+        )
+        addToast(toastContent)
+        loadAdminUser();
+        setSelectedUsers([]);
+      }
+      // alert('Delete action on selected users');
+    } catch (error) {
+      const toastContent = (
+        <ToastMessage
+        type="error"
+        message={ error.message } />
+      )
+      addToast(toastContent)
+      console.error('Error:', error.message);
+    }
+  }
   };
 
 
-  const CallToAPI = async () => {
+  const loadAdminUser = async (offset = 0, per_page = 20, sortOrder = 'asc', sortColumn = '', searchFilter = '' ) => {
     try{
-        const result = await getAdminUser();
-        addToast(ToastMessage)
+
+        const offset = (currentPage - 1);
+        const result = await getAdminUser(offset, itemsPerPage, sortConfig.direction, sortConfig.key, searchTerm);
+        console.log(result);
+        setCurrentUsers(() => result.payload.book_list)
+        setTotalItems(result.payload.total_count);
     }
     catch (error) {
         console.log("Error: ",error);
@@ -170,15 +236,17 @@ const ListAdminUser = () => {
                 message={error.message}
                 onClick="close" />
         )
-        // addToast(toastContent)
+        addToast(toastContent)
     }
 }
 
   useEffect(() => {
-    CallToAPI();
+
+    loadAdminUser(currentPage, itemsPerPage, sortConfig.direction, sortConfig.key, searchTerm);
 
     return () => {}
-  }, []);
+  }, [itemsPerPage, currentPage, sortConfig, searchTerm]);
+
   const exportPDF = () => {}
   const exportExcel = () => {}
   
@@ -213,37 +281,54 @@ const ListAdminUser = () => {
     </CCardHeader>
     <CCardBody>
     
-      <CRow className="mb-3">
+        <CRow className="mb-3">
         <CCol sm={6} md={4} lg={3} className="d-flex align-items-center justify-content-center mb-2" >
             <CFormLabel htmlFor="inputPassword" className="me-2 col-form-label">
                 Search:
             </CFormLabel>
-          <CFormInput placeholder="Search" type="password" id="inputPassword" />
+          <CFormInput 
+            placeholder="Search" 
+            type="text"
+            name='search' 
+            id="search"
+            value={searchTerm}
+            onChange={handleSearch}
+              />
         </CCol>
-        <CCol sm={6} md={4} lg={3} className="d-flex align-items-center justify-content-center mb-2" >
-            <CFormLabel className="me-2" htmlFor="inputPassword" >
-                Status: 
-            </CFormLabel>
-            <CFormInput
-                type="text"
-                placeholder="Status..."
-                value={searchTerm}
-                onChange={handleSearch}
-                />
-        </CCol>
+          <CCol sm={6} md={4} lg={3} className="d-flex align-items-center justify-content-center mb-2" >
+            <CButton 
+                color="primary" 
+                // size="sm"
+                className='me-2' 
+                onClick={() => loadAdminUser()}
+                >
+                Refresh
+            </CButton>
+            <CButton 
+                color="primary" 
+                onClick={() => setSearchTerm('')}
+                >
+                Clear
+            </CButton>
+          </CCol>
         </CRow>
         <CRow>
         <CCol md="4" className="d-flex mb-3 justify-content-end">
-          <CFormSelect
-            className="me-3"
-            options={actionOptions}
-            placeholder="With selected..."
-            onChange={(selectedOption) => handleAction(selectedOption.value)}
-            />
+        <CFormSelect
+          className="me-3"
+          value={actionValue}
+          onChange={(e) => setActionValue(e.target.value)}
+        >
+          {actionOptions.map((option, index) => (
+            <option key={index} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+      </CFormSelect>
             <CButton 
                 color="primary" 
                 size="sm" 
-                onClick={() => handleAction(1)}
+                onClick={() => handleAction(actionValue)}
                 >
                 Submit
             </CButton>
@@ -275,6 +360,9 @@ const ListAdminUser = () => {
                 onChange={handleSelectAll}
               />
             </CTableHeaderCell>
+            <CTableHeaderCell onClick={() => requestSort('book_id')}>
+              Id {getSortIcon('book_id')}
+            </CTableHeaderCell>
             <CTableHeaderCell onClick={() => requestSort('name')}>
               Name {getSortIcon('name')}
             </CTableHeaderCell>
@@ -300,9 +388,10 @@ const ListAdminUser = () => {
                   onChange={() => handleSelectUser(user)}
                 />
               </CTableDataCell>
-              <CTableDataCell>{user.name}</CTableDataCell>
-              <CTableDataCell>{user.registered}</CTableDataCell>
-              <CTableDataCell>{user.role}</CTableDataCell>
+              <CTableDataCell>{user.book_id}</CTableDataCell>
+              <CTableDataCell>{user.book_series}</CTableDataCell>
+              <CTableDataCell>{user.book_author}</CTableDataCell>
+              <CTableDataCell>{user.book_price}</CTableDataCell>
               <CTableDataCell>
                 <CBadge color={getStatusBadge(user.status)}>
                   {user.status}
@@ -325,11 +414,11 @@ const ListAdminUser = () => {
       </CTable>
       <CRow className="mt-3">
         <CCol md="6">
-          <CPagination align="start">
+          {/* <CPagination align="start">
             <CPaginationItem disabled={currentPage === 1} onClick={() => paginate(currentPage - 1)}>
               Previous
             </CPaginationItem>
-            {Array.from({ length: Math.ceil(filteredUsers.length / itemsPerPage) }, (_, index) => (
+            {Array.from({ length: Math.ceil(totalItems / itemsPerPage) }, (_, index) => (
               <CPaginationItem
                 key={index + 1}
                 active={currentPage === index + 1}
@@ -339,12 +428,45 @@ const ListAdminUser = () => {
               </CPaginationItem>
             ))}
             <CPaginationItem
-              disabled={currentPage === Math.ceil(filteredUsers.length / itemsPerPage)}
+              disabled={currentPage === Math.ceil(totalItems / itemsPerPage)}
               onClick={() => paginate(currentPage + 1)}
             >
               Next
             </CPaginationItem>
-          </CPagination>
+          </CPagination> */}
+          <CPagination align="start">
+        <CPaginationItem 
+          disabled={currentPage === 1} 
+          onClick={() => paginate(1)}>
+          <FaAngleDoubleLeft />
+        </CPaginationItem>
+        <CPaginationItem 
+          disabled={currentPage === 1} 
+          onClick={() => paginate(currentPage - 1)}>
+          <FaAngleLeft />
+        </CPaginationItem>
+        {getPageNumbers().map((pageNumber) => (
+          <CPaginationItem
+            key={pageNumber}
+            active={currentPage === pageNumber}
+            onClick={() => paginate(pageNumber)}
+          >
+            {pageNumber}
+          </CPaginationItem>
+        ))}
+        <CPaginationItem
+          disabled={currentPage === Math.ceil(totalItems / itemsPerPage)}
+          onClick={() => paginate(currentPage + 1)}
+        >
+          <FaAngleRight />
+        </CPaginationItem>
+        <CPaginationItem
+          disabled={currentPage === Math.ceil(totalItems / itemsPerPage)}
+          onClick={() => paginate(Math.ceil(totalItems / itemsPerPage))}
+        >
+          <FaAngleDoubleRight />
+        </CPaginationItem>
+      </CPagination>
         </CCol>
         <CCol md="6" className="d-flex align-items-center justify-content-end">
             <CFormLabel className="me-2">
@@ -352,7 +474,7 @@ const ListAdminUser = () => {
             </CFormLabel>
           <CFormSelect
             value={itemsPerPage}
-            onChange={handleItemsPerPageChange}
+            onChange={(e) => handleItemsPerPageChange(e)}
             style={{ width: 'auto' }}
           >
             <option value={5}>5</option>
