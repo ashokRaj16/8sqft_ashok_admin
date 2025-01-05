@@ -5,6 +5,11 @@ import EditAdminUser from './views/pages/admin/EditAdminUser'
 import AddMemberUser from './views/pages/member/AddMemberUser'
 import EditMemberUser from './views/pages/member/EditMemberUser'
 import ListMemberUser from './views/pages/member/ListMemberUser'
+import AddSubscription from './views/pages/subscription/AddSubscription'
+import Profile from './views/pages/profile/profile'
+import AddBlog from './views/pages/blog/addBlogs'
+import BlogCategory from './views/pages/blog/blogCategory'
+import ListSubscription from './views/pages/subscription/ListSubscription'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
@@ -111,6 +116,15 @@ const routes = [
   { path: '/member', name: 'List Admin', element: ListMemberUser },
   { path: '/member/add', name: 'Add Admin', element: AddMemberUser },
   { path: '/member/edit', name: 'Edit Admin', element: EditMemberUser },
+
+  { path: '/profile', name: 'Profile', element: Profile },
+  { path: '/blog', name: 'Blog', element: AddBlog },
+  { path: '/blog/category', name: 'Category', element: BlogCategory },
+
+  { path: '/subscription/add', name: 'Add Subscription', element: AddSubscription },
+  { path: '/subscription/list', name: 'List Subscription', element: ListSubscription },
+
+
 ]
 
 export default routes
