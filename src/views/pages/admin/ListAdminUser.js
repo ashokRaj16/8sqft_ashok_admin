@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     CCard,
@@ -34,6 +34,9 @@ import { CIcon } from '@coreui/icons-react';
 import { cilSortAscending, cilSortDescending, cilBell, cilDelete, cilEyedropper, cilPencil, cilScrubber, cilTrash, cilSortAlphaUp, cilClearAll } from '@coreui/icons'
 import { deleteAdminUser, getAdminUser } from '../../../models/usersModel';
 import { ToastMessage } from '../../../components/ToastMessage';
+import { debounce } from 'lodash';
+import { useDebounce } from './useDebounce';
+
 
 const usersData = [
   { name: 'Samppa Nori', registered: 'March 1, 2021', role: 'Member', status: 'Active', imgSrc: 'path-to-img1.jpg' },
@@ -58,6 +61,7 @@ const getStatusBadge = (status) => {
   }
 };
 
+
 const ListAdminUser = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,16 +71,21 @@ const ListAdminUser = () => {
   const [currentUsers, setCurrentUsers] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [actionValue, setActionValue] = useState('');
-
   
   const [toast, addToast] = useState(0);
   const navigate = useNavigate();
   const toaster = useRef();
+  
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  // const handleSearch = (event) => {
+  //   setSearchTerm(event.target.value);
+  //   console.log(event.target)
+  // };
 
-  const handleSearch = (event) => {
+  const handleSearch = useCallback((event) => {
     setSearchTerm(event.target.value);
-    console.log(event.target)
-  };
+  }, []);
+
 
   const handleItemsPerPageChange = async (event) => {
     setItemsPerPage(() => parseInt(event.target.value));
@@ -218,7 +227,6 @@ const ListAdminUser = () => {
   }
   };
 
-
   const loadAdminUser = async (offset = 0, per_page = 20, sortOrder = 'asc', sortColumn = '', searchFilter = '' ) => {
     try{
 
@@ -238,14 +246,15 @@ const ListAdminUser = () => {
         )
         addToast(toastContent)
     }
-}
+  }
 
   useEffect(() => {
 
     loadAdminUser(currentPage, itemsPerPage, sortConfig.direction, sortConfig.key, searchTerm);
 
     return () => {}
-  }, [itemsPerPage, currentPage, sortConfig, searchTerm]);
+  }, [itemsPerPage, currentPage, sortConfig, debouncedSearchTerm]);
+
 
   const exportPDF = () => {}
   const exportExcel = () => {}

@@ -10,6 +10,10 @@ import Profile from './views/pages/profile/profile'
 import AddBlog from './views/pages/blog/addBlogs'
 import BlogCategory from './views/pages/blog/blogCategory'
 import ListSubscription from './views/pages/subscription/ListSubscription'
+import Page404 from './views/pages/page404/Page404'
+import Page500 from './views/pages/page500/Page500'
+import PageNotAuthorize from './views/pages/page404/PageNotAuthorize'
+
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
@@ -124,6 +128,7 @@ const routes = [
   { path: '/subscription/add', name: 'Add Subscription', element: AddSubscription },
   { path: '/subscription/list', name: 'List Subscription', element: ListSubscription },
 
+  { path: '*', name: '404', element: PageNotAuthorize },
 
 ]
 

@@ -15,7 +15,7 @@ const HTTP_HEADERS = {
     // "x-api-key" :  `${process.env.X_API_KEY}`,
     // "Authorization" : `Bearer ${process.env.BEARER_TOKEN}`
     "AUTH_KEY" :  `ABCA2343214`,
-    "AUTH_TOKEN" : `lXodlDLrz1iDsSiSBTDKnvkphGK+lLGnOyeZGxTOsacS2uviM0WpdqA4yALnAZAr0`,
+    "AUTH_TOKEN" : `A0Y749iKhAUVZLottsjocqRpyX6hbv9uS6l3MH1i3p6YQezc0ThWFJPnBwYiJKLWsw`,
     "Content-Type" : "application/json",
     "USER_ID" : 2
 }
