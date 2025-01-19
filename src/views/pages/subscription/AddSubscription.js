@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+
 import {
   CButton,
   CCard,
@@ -17,20 +17,13 @@ import {
   CFormCheck,
 //   CInputRadio,
 } from '@coreui/react';
+import { validationSchema } from './subValidation';
+import { subscriptionValues } from './data';
 
-// Validation schema using Yup
-const validationSchema = Yup.object({
-  username: Yup.string().required('Username is required'),
-  email: Yup.string().email('Invalid email address').required('Email is required'),
-  password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-  gender: Yup.string().required('Gender is required'),
-  country: Yup.string().required('Country is required'),
-  terms: Yup.bool().oneOf([true], 'You must accept the terms and conditions'),
-  address: Yup.string(), // Optional field, no required validation
-  publish_date: Yup.date().required('Publish date is required'), // Required field
-});
 
 const AddSubscription = () => {
+
+  
   return (
     <CRow>
       <CCol xs="12" sm="6">
@@ -40,17 +33,8 @@ const AddSubscription = () => {
           </CCardHeader>
           <CCardBody>
             <Formik
-              initialValues={{
-                username: '',
-                email: '',
-                password: '',
-                gender: '',
-                country: '',
-                terms: false,
-                address: '',
-                publish_date: '', // Initialize with an empty string
-              }}
-              validationSchema={validationSchema}
+              initialValues={ subscriptionValues }
+              validationSchema={ validationSchema }
               onSubmit={(values, { setSubmitting }) => {
                 console.log('Form submitted successfully', values);
                 setSubmitting(false);

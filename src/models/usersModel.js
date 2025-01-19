@@ -1,4 +1,5 @@
 import axios from 'axios';
+import errorHandler from '../utils/errorHandler';
 
 // const SERVER_BASE_URL = 'https://api.8sqft.com/api/v1';
 const SERVER_BASE_URL = 'https://www.kidzalaya.com/test/kidzalaya_api/';
@@ -64,43 +65,7 @@ export const getAdminUser = async (offset = 0, per_page = 10, sortOrder = 'asc',
         return result.data;
     }
     catch (error) {
-        // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            } else if (status === 401) {
-                console.error("Unauthorized:", data.message || "Authentication required.");
-                throw new Error(`Unauthorized: ${data.message || "Please log in."}`);
-            } else if (status === 403) {
-                console.error("Forbidden:", data.message || "Access denied.");
-                throw new Error(`Forbidden: ${data.message || "You do not have permission."}`);
-            } else if (status === 404) {
-                console.error("Not Found:", data.message || "Resource not found.");
-                throw new Error(`Not Found: ${data.message || "The requested resource is missing."}`);
-            } else if (status >= 500) {
-                console.error("Server Error:", data.message || "Internal server error.");
-                throw new Error(`Server Error: ${data.message || "Please try again later."}`);
-            } else {
-                console.error(`Unhandled Error (${status}):`, data.message || "Unknown error.");
-                throw new Error(`Error (${status}): ${data.message || "Something went wrong."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error( errorHandler(error) );
     }
 }
 
@@ -129,28 +94,7 @@ export const downloadExcelAdminUser = async (searchFilter = '') => {
         // return result;
     }
     catch (error) {
-        // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error( errorHandler(error) );
     }
 }
 
@@ -163,28 +107,7 @@ export const deleteAdminUser = async (id) => {
         return result;
     }
     catch (error) {
-        // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error( errorHandler(error) );
     }
 }
 
@@ -198,28 +121,7 @@ export const deleteMultipleAdminUsers = async (ids = []) => {
         return result;
     }
     catch (error) {
-        // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error( errorHandler(error) );
     }
 }
 
@@ -232,28 +134,7 @@ export const getAdminUserById = async (id) => {
         return result;
     }
     catch (error) {
-        // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error( errorHandler(error) );
     }
 }
 
@@ -267,28 +148,7 @@ export const createAdminUser = async (data) => {
         return result;
     }
     catch (error) {
-        // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error( errorHandler(error) );
     }
 }
 
@@ -301,27 +161,6 @@ export const getAdminRoles = async () => {
         return result;
     }
     catch (error) {
-        // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error( errorHandler(error) );
     }
 }

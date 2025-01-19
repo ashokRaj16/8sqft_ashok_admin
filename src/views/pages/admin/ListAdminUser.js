@@ -233,8 +233,10 @@ const ListAdminUser = () => {
         const offset = (currentPage - 1);
         const result = await getAdminUser(offset, itemsPerPage, sortConfig.direction, sortConfig.key, searchTerm);
         console.log(result);
-        setCurrentUsers(() => result.payload.book_list)
-        setTotalItems(result.payload.total_count);
+        if(result) {
+          // setCurrentUsers(() => result.payload.book_list)
+          // setTotalItems(result.payload.total_count);
+        }
     }
     catch (error) {
         console.log("Error: ",error);
@@ -388,7 +390,7 @@ const ListAdminUser = () => {
           </CTableRow>
         </CTableHead>
         <CTableBody>
-          {currentUsers.map((user, index) => (
+          {currentUsers && currentUsers.map((user, index) => (
             <CTableRow key={index}>
               <CTableDataCell>
                 {/* <CFormCheck /> */}
