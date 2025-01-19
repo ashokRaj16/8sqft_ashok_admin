@@ -125,7 +125,7 @@ const routes = [
   { path: '/blog', name: 'Blog', element: AddBlog },
   { path: '/blog/category', name: 'Category', element: BlogCategory },
 
-  { path: '/subscription/add', name: 'Add Subscription', element: AddSubscription },
+  { path: '/subscription-plans/add', name: 'Add Subscription', element: AddSubscription },
   { path: '/subscription/list', name: 'List Subscription', element: ListSubscription },
 
   { path: '*', name: '404', element: PageNotAuthorize },

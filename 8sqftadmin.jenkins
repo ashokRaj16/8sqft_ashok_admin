@@ -1,0 +1,59 @@
+
+// 8sqft admin panel pipeline for deployement.
+
+
+pipeline {
+    agent any
+
+    tools {
+        nodejs "NodeJS"
+    }
+
+    stages {
+        stage('checkout')  {
+            steps {
+                script {
+                    git branch: main, url : 'git@github.com:ashokRaj16/8sqft_ashok_admin.git',
+                }
+                // checkout scm git@github.com:ashokRaj16/8sqft_ashok_admin.git
+            }
+        }
+
+
+        stage('install dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('build project') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        stage('ssh connection') {
+            steps {
+                sshagent(credentials: ['8sqft_server']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@195.35.22.24 << EOF
+                        echo "Connected to remote server"
+                        hostname
+                        uptime
+                        exit
+                        EOF
+                    """
+                }
+            }
+        }
+
+        stage('deploy') {
+            steps {
+                sh '''
+                    pm2 restart sqft_admin
+                '''
+            }
+        }
+    }
+}
+

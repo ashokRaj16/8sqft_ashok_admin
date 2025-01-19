@@ -9,7 +9,7 @@ To make buying, selling, and renting properties easy and affordable, with zero b
 
 ## Versions
 
-* [8SQFT Admin v1.0 ](https://github.com/coreui/coreui-free-bootstrap-admin-template)
+* [8SQFT Admin v1.0 ](https://8sqft.com)
 
 
 ### Installation
