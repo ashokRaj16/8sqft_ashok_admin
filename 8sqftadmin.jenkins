@@ -19,15 +19,27 @@ pipeline {
             }
         }
 
+        stage('checkout')  {
+            steps {
+                script {
+                    // git branch: main, url : 'git@github.com:ashokRaj16/8sqft_ashok_admin.git',
+                    echo "Checking out repository."
+                    checkout scm
+
+                }
+            }
+        }
 
         stage('install dependencies') {
             steps {
+                echo "Installing dependency."
                 sh 'npm install'
             }
         }
 
         stage('build project') {
             steps {
+                echo "Building application."
                 sh 'npm run build'
             }
         }
@@ -35,6 +47,7 @@ pipeline {
         stage('ssh connection') {
             steps {
                 sshagent(credentials: ['8sqft_server']) {
+                    echo "Connecting to server."
                     sh """
                         ssh -o StrictHostKeyChecking=no root@195.35.22.24 << EOF
                         echo "Connected to remote server"
@@ -47,12 +60,30 @@ pipeline {
             }
         }
 
-        stage('deploy') {
+        stage('Deploy') {
             steps {
-                sh '''
-                    pm2 restart sqft_admin
-                '''
+                script {
+                    echo 'Deploying the application.'
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no user@your-vps-server-ip << EOF
+                        cd /path/to/deployment/directory
+                        rm -rf *
+                        exit
+                    EOF
+
+                    scp -r ./build/* user@your-vps-server-ip:/path/to/deployment/directory
+                    '''
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs.'
         }
     }
 }
