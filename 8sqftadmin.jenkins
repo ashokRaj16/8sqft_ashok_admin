@@ -49,7 +49,7 @@ pipeline {
                 sshagent(credentials: ['8sqft_server']) {
                     echo "Connecting to server."
                     sh """
-                        ssh -o StrictHostKeyChecking=no root@195.35.22.24 << EOF
+                        ssh -o StrictHostKeyChecking=no root@199.00.00.00 << EOF
                         echo "Connected to remote server"
                         hostname
                         uptime
