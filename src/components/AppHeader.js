@@ -76,7 +76,7 @@ const AppHeader = () => {
             <CNavLink href="#">Settings</CNavLink>
           </CNavItem>
           <CNavItem>
-            <CNavLink href="#">{isLoggedIn ? users.email : 'No mail'}</CNavLink>
+            <CNavLink href="#">{isLoggedIn ? users?.email : 'No mail'}</CNavLink>
           </CNavItem>
         </CHeaderNav>
         <CHeaderNav className="ms-auto">

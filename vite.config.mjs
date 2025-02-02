@@ -5,7 +5,7 @@ import autoprefixer from 'autoprefixer'
 
 export default defineConfig(() => {
   return {
-    base: './',
+    base: '/',
     build: {
       outDir: 'build',
     },
@@ -42,6 +42,11 @@ export default defineConfig(() => {
           find: 'src/',
           replacement: `${path.resolve(__dirname, 'src')}/`,
         },
+        { find: '@page', replacement : `${path.resolve(__dirname, 'src/views/pages')}`},
+        { find: '@component', replacement : `${path.resolve(__dirname, 'src/components')}`},
+        { find: '@model', replacement : `${path.resolve(__dirname, 'src/models')}`},
+        { find: '@store', replacement : `${path.resolve(__dirname, 'src/store')}`},
+        { find: '@util', replacement : `${path.resolve(__dirname, 'src/utils')}`}
       ],
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.scss'],
     },

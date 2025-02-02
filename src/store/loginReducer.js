@@ -1,10 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { login, logout } from '../models/authModel';
+import { login, logout, updateUserProfile } from '../models/authModel';
 
-const storedUser = JSON.parse(localStorage.getItem('authToken'));
+const storedUser = JSON.parse(localStorage.getItem('userInfo'));
+const storedToken = JSON.parse(localStorage.getItem('authToken'));
+
 const initialState = {
     users : storedUser || null,
-    isLoggedIn : !!storedUser,
+    token: storedToken || null,
+    isLoggedIn : !!storedToken,
     loading : false,
     error : null
 }
@@ -25,6 +28,20 @@ export const loginUser = createAsyncThunk(
     }
 )
 
+export const updateUser = createAsyncThunk(
+    'auth/loginUser',
+    async (credentials, { rejectWithValue }) => {
+        try {
+
+            const user = await updateUserProfile(credentials);
+            console.log(user);
+            return user;
+
+        } catch (err) {
+            return rejectWithValue(err.message)
+        }
+    }
+)
 const loginSlice = createSlice({
     name: 'auth',
     initialState: initialState,

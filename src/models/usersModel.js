@@ -29,7 +29,7 @@ const HTTP_HEADERS = {
  * @param {*} sortOrder : 'asc | desc
  * @param {*} sortColumn : sort column name
  * @param {*} searchFilter : searchBox value
- * @returns 
+ * @returns  
  */
 export const getAdminUser = async (offset = 0, per_page = 10, sortOrder = 'asc', sortColumn = '', searchFilter = '' ) => {
     try {

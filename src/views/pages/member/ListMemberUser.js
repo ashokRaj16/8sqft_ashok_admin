@@ -8,17 +8,28 @@ import {
     CTableHeaderCell, 
     CTableDataCell,
     CCard, CCardHeader, CCardBody, CCardFooter,
-    CButton
+    CButton,
+    CCol
 } from "@coreui/react";
+import { useNavigate } from "react-router-dom";
 
 import { cilBell, cilDelete, cilEyedropper, cilPencil, cilScrubber, cilTrash } from '@coreui/icons'
 
 const ListMemberUser = (props) => {
+
+    const navigate = useNavigate();
+
     return (
         <>
             <CCard className="mb-4">
                 <CCardHeader>
                 <strong>Member Users</strong>
+                <CCol className="d-flex justify-content-end">
+                
+                    <CButton
+                    onClick={() => navigate('/admin/add')} 
+                    color='primary'>Add New</CButton>
+                </CCol>
                 {/* <h1>Member Users</h1> */}
                 </CCardHeader>
                 <CCardBody>
@@ -39,9 +50,9 @@ const ListMemberUser = (props) => {
                         <CTableDataCell>Otto</CTableDataCell>
                         <CTableDataCell>@mdo</CTableDataCell>
                         <CTableDataCell>
-                            <CButton color="primary" className="me-2 mb-1"><CIcon icon={cilScrubber} className="" /></CButton>
-                            <CButton color="primary" className="me-2 mb-1"><CIcon icon={cilPencil} className="" /></CButton>
-                            <CButton color="danger" className="me-2 mb-1"><CIcon icon={cilTrash} style={{'--ci-primary-color': 'white'}} /></CButton>
+                            <CButton color="primary" className="me-2 mb-1" size="sm"><CIcon icon={cilScrubber} className="" /></CButton>
+                            <CButton color="primary" className="me-2 mb-1" size="sm"><CIcon icon={cilPencil} className="" /></CButton>
+                            <CButton color="danger" className="me-2 mb-1" size="sm"><CIcon icon={cilTrash} style={{'--ci-primary-color': 'white'}} /></CButton>
                         </CTableDataCell>
                         </CTableRow>
                         <CTableRow>
@@ -50,9 +61,9 @@ const ListMemberUser = (props) => {
                         <CTableDataCell>Thornton</CTableDataCell>
                         <CTableDataCell>@fat</CTableDataCell>
                         <CTableDataCell>
-                            <CButton color="primary" className="me-2 mb-1"><CIcon icon={cilScrubber} className="" /></CButton>
-                            <CButton color="primary" className="me-2 mb-1"><CIcon icon={cilPencil} className="" /></CButton>
-                            <CButton color="danger" className="me-2 mb-1"><CIcon icon={cilTrash} style={{'--ci-primary-color': 'white'}} /></CButton>
+                            <CButton color="primary" className="me-2 mb-1" size="sm"><CIcon icon={cilScrubber} className="" /></CButton>
+                            <CButton color="primary" className="me-2 mb-1" size="sm"><CIcon icon={cilPencil} className="" /></CButton>
+                            <CButton color="danger" className="me-2 mb-1" size="sm"><CIcon icon={cilTrash} style={{'--ci-primary-color': 'white'}} /></CButton>
                         </CTableDataCell>
                         </CTableRow>
                         <CTableRow>
@@ -60,9 +71,9 @@ const ListMemberUser = (props) => {
                         <CTableDataCell colSpan={2}>Larry the Bird</CTableDataCell>
                         <CTableDataCell>@twitter</CTableDataCell>
                         <CTableDataCell>
-                            <CButton color="primary" className="me-2 mb-1"><CIcon icon={cilScrubber} className="" /></CButton>
-                            <CButton color="primary" className="me-2 mb-1"><CIcon icon={cilPencil} className="" /></CButton>
-                            <CButton color="danger" className="me-2 mb-1"><CIcon icon={cilTrash} style={{'--ci-primary-color': 'white'}} /></CButton>
+                            <CButton color="primary" className="me-2 mb-1" size="sm"><CIcon icon={cilScrubber} className="" /></CButton>
+                            <CButton color="primary" className="me-2 mb-1" size="sm"><CIcon icon={cilPencil} className="" /></CButton>
+                            <CButton color="danger" className="me-2 mb-1" size="sm"><CIcon icon={cilTrash} style={{'--ci-primary-color': 'white'}} /></CButton>
                         </CTableDataCell>
                         </CTableRow>
                     </CTableBody>
