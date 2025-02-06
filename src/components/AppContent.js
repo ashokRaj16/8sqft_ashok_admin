@@ -4,6 +4,7 @@ import { CContainer, CSpinner } from '@coreui/react'
 
 // routes config
 import routes from '../routes'
+import ProtectedRoute from '../components/ProtectedRoute'
 
 const AppContent = () => {
   return (
@@ -18,7 +19,11 @@ const AppContent = () => {
                   path={route.path}
                   exact={route.exact}
                   name={route.name}
-                  element={<route.element />}
+                  element={
+<ProtectedRoute allowedRoles={route.allowedRole || []} userRole={'ADMIN'} >
+                    <route.element />
+</ProtectedRoute>
+                }
                 />
               )
             )

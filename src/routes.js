@@ -113,11 +113,11 @@ const routes = [
   { path: '/notifications/toasts', name: 'Toasts', element: Toasts },
   { path: '/widgets', name: 'Widgets', element: Widgets },
 
-  { path: '/admin', name: 'List Admin', element: ListAdminUser },
+  { path: '/admin', name: 'List Admin', element: ListAdminUser, allowedRole: ['ADMIN'] },
   { path: '/admin/add', name: 'Add Admin', element: AddAdminUser },
   { path: '/admin/edit', name: 'Edit Admin', element: EditAdminUser },
 
-  { path: '/member', name: 'List Admin', element: ListMemberUser },
+  { path: '/member', name: 'List Admin', element: ListMemberUser, allowedRole : ['EDITOR'] },
   { path: '/member/add', name: 'Add Admin', element: AddMemberUser },
   { path: '/member/edit', name: 'Edit Admin', element: EditMemberUser },
 
@@ -128,7 +128,8 @@ const routes = [
   { path: '/subscription-plans/add', name: 'Add Subscription', element: AddSubscription },
   { path: '/subscription/list', name: 'List Subscription', element: ListSubscription },
 
-  { path: '*', name: '404', element: PageNotAuthorize },
+  { path: '*', name: '404', element: Page404 },
+  { path: '/401', name: '401', element: Page404, allowedRole: ['EDITOR', 'ADMIN'] },
 
 ]
 

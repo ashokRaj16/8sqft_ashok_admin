@@ -26,12 +26,14 @@ const _nav = [
       color: 'info',
       text: 'NEW',
     },
+    role : ['ADMIN', 'EDITOR', 'SUB_HEAD']
   },
   {
     component: CNavGroup,
     name: 'Base',
     to: '/base',
     icon: <CIcon icon={cilPuzzle} customClassName="nav-icon" />,
+    role: ['ADMIN'],
     items: [
       {
         component: CNavItem,
@@ -166,6 +168,7 @@ const _nav = [
     name: 'Buttons',
     to: '/buttons',
     icon: <CIcon icon={cilCursor} customClassName="nav-icon" />,
+    role: ['ADMIN'],
     items: [
       {
         component: CNavItem,
@@ -202,6 +205,7 @@ const _nav = [
     component: CNavGroup,
     name: 'Forms',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+    role: ['ADMIN'],
     items: [
       {
         component: CNavItem,
@@ -328,6 +332,7 @@ const _nav = [
     component: CNavGroup,
     name: 'Pages',
     icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
+    role: ['ADMIN'],
     items: [
       {
         component: CNavItem,
@@ -360,13 +365,16 @@ const _nav = [
         component: CNavItem,
         name: 'Admin',
         to: '/admin',
+        role : ['EDITOR', 'ADMIN']
       },
       {
         component: CNavItem,
         name: 'Members',
         to: '/member',
+        role : ['EDITOR']
       }
     ],
+    role: ['ADMIN', 'EDITOR']
   }
 ]
 
