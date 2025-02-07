@@ -30,7 +30,7 @@ const AddAdminUser = () => {
     const [roles, setRoles] = useState([]);
 
     const navigate = useNavigate();
-    const toaster = useRef();    
+    const toaster = useRef();
 
     const handleSubmit = async (values, resetForm, setSubmitting) => {
         try {
@@ -296,7 +296,7 @@ const AddAdminUser = () => {
 
                         <Field
                         name="cpassword"
-                        type="cpassword"
+                        type="password"
                         className="form-control"
                         placeholder="Enter confirm password"
                         value={values.cpassword}

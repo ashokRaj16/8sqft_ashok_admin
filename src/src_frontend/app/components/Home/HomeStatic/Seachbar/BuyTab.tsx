@@ -1,0 +1,79 @@
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select";
+
+// Define types for fixed options
+type PropertyType = "Full House" | "Land/Plot";
+
+
+export default function BuyTab() {
+  const [propertyType, setPropertyType] = useState<PropertyType>("Full House");
+ 
+  // const [propertyStatus, setPropertyStatus] = useState<PropertyStatus>("Under Construction");
+  // const [isNewBuilderProject, setIsNewBuilderProject] = useState<boolean>(false);
+
+ 
+
+  return (
+    <div className="flex flex-col space-y-4 ">
+      <div className="flex flex-wrap gap-4">
+        <label className="text-sm sm:text-base">
+          <input
+            type="radio"
+            name="propertyType"
+            value="Full House"
+            checked={propertyType === "Full House"}
+            onChange={(e) => setPropertyType(e.target.value as PropertyType)}
+          />
+          Full House
+        </label>
+        <label className="text-sm sm:text-base">
+          <input
+            type="radio"
+            name="propertyType"
+            value="Land/Plot"
+            checked={propertyType === "Land/Plot"}
+            onChange={(e) => setPropertyType(e.target.value as PropertyType)}
+          />
+          Land/Plot
+        </label>
+      </div>
+
+      {propertyType === "Full House" && (
+        <div className="flex flex-wrap gap-4">
+          {/* BHK Type Select */}
+          
+
+          {/* Property Status Select */}
+          {/* <Select onValueChange={(value) => setPropertyStatus(value as PropertyStatus)}>
+            <SelectTrigger className="flex-1 border border-gray-300 rounded text-sm sm:text-base">
+              <SelectValue placeholder="Select Property Status" />
+            </SelectTrigger>
+            <SelectContent className="bg-white w-full p-2 cursor-pointer">
+              {["Under Construction", "Ready"].map((status) => (
+                <SelectItem className="cursor-pointer hover:bg-primary hover:text-white p-2" key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select> */}
+
+          {/* New Builder Project Checkbox
+          <label className="flex items-center space-x-2 text-sm sm:text-base">
+            <input
+              type="checkbox"
+              checked={isNewBuilderProject}
+              onChange={() => setIsNewBuilderProject((prev) => !prev)}
+            />
+            <span>New Builder Project</span>
+          </label> */}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -76,7 +76,9 @@ const loginSlice = createSlice({
 
         logoutUser : (state) => {
             localStorage.removeItem('eightsqfttoken');
+            localStorage.removeItem('userInfo');
             state.users = null;
+            state.token = null;
             state.isLoggedIn = false;
         },
 
@@ -93,6 +95,7 @@ const loginSlice = createSlice({
         //     }
         // }
     },
+    
     extraReducers: (builder) => {
         builder
             .addCase( loginUser.pending, (state) => {

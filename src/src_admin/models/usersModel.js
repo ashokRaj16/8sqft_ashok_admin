@@ -87,32 +87,12 @@ export const deleteAdminUser = async (id) => {
 export const getAdminUserById = async (id) => {
     try {
         // call to api to get listed single user(async request.) & return data
-        const result = await axiosInstance.get(`/admin-users/${id}`);
-        return result;
+        const result = await axiosInstance.get(`/admin/users/${id}`);
+        // console.log("models:::: ",result)
+        return result.data;
     }
     catch (error) {
-        // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+       throw new errorHandler(error);
     }
 }
 
@@ -190,10 +170,12 @@ export const createMemberUser = async (data) => {
         const result = await axiosInstance.post(`/admin/members`, { 
             ...data
         });
+        console.log(result)
         return result.data;
     }
     catch (error) {
         // throw error;
+        console.log(error)
         throw new Error(errorHandler(error))
     }
 }

@@ -1,0 +1,43 @@
+.first-conatiner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 39px;
+
+}
+.image {
+    height: 4rem;
+    width: 53px
+}
+.heading {
+    font-weight: 500;
+}
+.sub-heading {
+    font-weight: 700;
+
+}
+.second-container {
+    margin-top: 39px;
+    margin-left: 40px;
+
+}
+
+.para-content {
+    padding:12px 10px;
+    font-weight: 100;
+
+}
+
+.list {
+    list-style-type: disc;
+    margin-left: 9px;
+}
+.end {
+    font-weight: 600;
+
+}
+
+.adj {
+    margin-right: 5px;
+}

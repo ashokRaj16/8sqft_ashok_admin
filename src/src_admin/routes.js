@@ -1,37 +1,49 @@
 import React from 'react'
-import ViewMemberUser from './views/pages/member/ViewMemberUser.js'
-import ViewAdminUser from './views/pages/admin/ViewAdminUser.js'
 
-const Dashboard = React.lazy(() => import('./views/pages/dashboard/Dashboard.js'))
-const login = React.lazy(() => import('./views/pages/login/Login.js'))
+const Dashboard = React.lazy(() => import('@page/dashboard/Dashboard.js'))
+const login = React.lazy(() => import('@page/login/Login.js'))
+
 const ListAmenities = React.lazy(() => import('./views/amenities/ManageAmenities.js'))
 const AddAmenity = React.lazy(() => import('./views/amenities/AddAmenity.js'))
 const EditAmenity = React.lazy(() => import('./views/amenities/EditAmenity.js'))
 
-const ListProperties = React.lazy(() => import('./views/pages/properties/ListProperty.js'))
-const Addproperties = React.lazy(() => import('./views/pages/properties/AddProperty.js'))
-const Editproperties = React.lazy(() => import('./views/pages/properties/EditProperty.js'))
-const Viewproperties = React.lazy(() => import('./views/pages/properties/ViewPropertyDetails.js'))
+const ListProperties = React.lazy(() => import('@page/properties/ListProperty.js'))
+const Addproperties = React.lazy(() => import('@page/properties/AddProperty.js'))
+const Editproperties = React.lazy(() => import('@page/properties/EditProperty.js'))
+const Viewproperties = React.lazy(() => import('@page/properties/ViewPropertyDetails.js'))
 
-const ListAdminUser = React.lazy(() => import('./views/pages/admin/ListAdminUser'))
-const EditAdminUser = React.lazy(() => import('./views/pages/admin/EditAdminUser'))
-const AddAdminUser = React.lazy(() => import('./views/pages/admin/AddAdminUser'))
+const ListAdminUser = React.lazy(() => import('@page/admin/ListAdminUser'))
+const EditAdminUser = React.lazy(() => import('@page/admin/EditAdminUser'))
+const AddAdminUser = React.lazy(() => import('@page/admin/AddAdminUser'))
+const ViewAdminUser = React.lazy(() => import('@page/admin/ViewAdminUser'))
 
-const ListMemberUser = React.lazy(() => import('./views/pages/member/ListMemberUser'))
-const AddMemberUser = React.lazy(() => import('./views/pages/member/AddMemberUser'))
-const EditMemberUser = React.lazy(() => import('./views/pages/member/EditMemberUser'))
+const ListMemberUser = React.lazy(() => import('@page/member/ListMemberUser'))
+const AddMemberUser = React.lazy(() => import('@page/member/AddMemberUser'))
+const EditMemberUser = React.lazy(() => import('@page/member/EditMemberUser'))
+const ViewMemberUser = React.lazy(() => import('@page/member/ViewMemberUser'))
 
-const ListSubscriptionPlans = React.lazy(() => import('./views/pages/subscription/ListSubscription'))
-const AddSubscriptionPlans = React.lazy(() => import('./views/pages/subscription/AddSubscription'))
+const ListPlans = React.lazy(() => import('@page/plans/ListPlans'))
+const AddPlans = React.lazy(() => import('@page/plans/AddPlans'))
 
-const Profile = React.lazy(() => import('./views/pages/profile/profile'))
-const AddBlog = React.lazy(() => import('./views/pages/blog/addBlogs'))
-const Page404 = React.lazy(() => import('./views/pages/page404/page404'))
-const PageNotAuthorize = React.lazy(() => import('./views/pages/page404/PageNotAuthorize'))
+const ListRegisterPlan = React.lazy(() => import('@page/registerPlans/ListRegisterPlan'))
+const ViewRegisterPlan = React.lazy(() => import('@page/registerPlans/ViewRegisterPlan'))
+
+const ListContactUs = React.lazy(() => import('@page/contact/ListContactUs'))
+
+const Profile = React.lazy(() => import('@page/profile/profile'))
+const AddBlog = React.lazy(() => import('@page/blog/addBlogs'))
+const ListBlogs = React.lazy(() => import('@page/blog/ListBlogs'))
+const ViewBlogs = React.lazy(() => import('@page/blog/ViewBlogs'))
+
+const BlogCategory = React.lazy(() => import('@page/category/BlogCategory'))
+
+const Page404 = React.lazy(() => import('@page/page404/page404'))
+const PageNotAuthorize = React.lazy(() => import('@page/page404/PageNotAuthorize'))
 
 const routes = [
   { path: '/', exact: true, name: 'login', element: login },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+  
   { path: '/properties/ameneties', name: 'Amennities', element: ListAmenities },
   { path: '/properties/ameneties/add', name: 'Add Amennities', element: AddAmenity },
   { path: '/properties/ameneties/edit/:id', name: 'Edit Amennities', element: EditAmenity },
@@ -51,12 +63,23 @@ const routes = [
   { path: '/member/edit/:id', name: 'Edit Member', element: EditMemberUser },
   { path: '/member/view/:id', name: 'View Member', element: ViewMemberUser },
 
-  { path: '/subscription', name: 'Subscription', element: ListSubscriptionPlans },
-  { path: '/subscription/add', name: 'Add Subscription', element: AddSubscriptionPlans },
-  // { path: '/', name: 'View Subscription', element: EditSubscriptionPlans },
+  { path: '/subscription', name: 'Subscription', element: ListRegisterPlan },
+  { path: '/subscription/view/:id', name: 'Add Subscription', element: ViewRegisterPlan },
+
+  { path: '/plans', name: 'Register Plans', element: ListPlans },
+  { path: '/plans/add', name: 'View Register Plans', element: AddPlans },
 
   { path: '/profile', name: 'Profile', element: Profile },
-  { path: '/blogs', name: 'Add Blogs', element: AddBlog },
+  
+  { path: '/blogs', name: 'Blogs', element: ListBlogs },
+  { path: '/blogs/add', name: 'Add Blogs', element: AddBlog },
+  { path: '/blogs/view/:id', name: 'View Blogs', element: ViewBlogs },
+
+  { path: '/category', name: 'Category', element: BlogCategory },
+
+  { path: '/contact-us', name: 'Contact', element: ListContactUs },
+  // { path: '/contact-us/view/:id', name: 'View Contact', element: ViewContactUs },
+
   // { path: '/blog/add', name: 'List Blogs', element: AddBlog },
 
   { path: '/not-authorize', name: 'Not Authorize', element: PageNotAuthorize },

@@ -36,6 +36,7 @@ import { ToastMessage } from '../../../components/ToastMessage';
 import { deleteAdminUser, getAdminUser, getMemberUser } from '../../../models/usersModel';
 import { useDebounce } from '../../../hooks/useDebounce';
 import Loader from '../../../utils/Loader';
+import { formattedDate } from '../../../utils/date';
 
 
 const getStatusBadge = (status) => {
@@ -303,7 +304,7 @@ const ListAdminUser = () => {
               </CButton>
             </CCol>
           </CRow>
-          <CRow>
+          {/* <CRow>
           <CCol md="4" className="d-flex mb-3 justify-content-end">
           <CFormSelect
             className="me-3"
@@ -315,7 +316,7 @@ const ListAdminUser = () => {
                 {option.label}
               </option>
             ))}
-        </CFormSelect>
+          </CFormSelect>
               <CButton 
                   color="primary" 
                   size="sm" 
@@ -324,7 +325,7 @@ const ListAdminUser = () => {
                   Submit
               </CButton>
           </CCol>
-          {/* <CRow className="mb-3 "> */}
+
           <CCol className="d-flex justify-content-end">
               <CButton 
                   color="success" 
@@ -341,8 +342,7 @@ const ListAdminUser = () => {
                   <FaFilePdf color='white' />
               </CButton>
           </CCol>
-          {/* </CRow> */}
-          </CRow>
+          </CRow> */}
         <CTable align="middle" className="mb-0 border" hover responsive>
           <CTableHead color="light">
             <CTableRow>
@@ -392,7 +392,7 @@ const ListAdminUser = () => {
                 <CTableDataCell>{user.mobile}</CTableDataCell>
                 <CTableDataCell>{user.address || "-"}</CTableDataCell>
 
-                <CTableDataCell>{user?.created_at}</CTableDataCell>
+                <CTableDataCell>{formattedDate(user?.created_at) || '-'}</CTableDataCell>
                 
                 <CTableDataCell>
                   <CButton 

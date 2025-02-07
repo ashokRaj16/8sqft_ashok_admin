@@ -56,8 +56,8 @@ export function errorHandler(error) {
             throw new ServerError(` ${data.message || "An internal server error occurred. Please try again later."}`); 
         } else { 
             logError(new Error(`Unhandled Error (${status}): ${data.message || "Unknown error."}`)); 
+            throw new Error(`(${status}): ${data.message || "An unknown error occurred. Please try again."}`); 
             return `Error (${status}): ${data.message || "Something went wrong."}`;
-            throw new Error(`Error (${status}): ${data.message || "An unknown error occurred. Please try again."}`); 
         } 
     } else if (error.request) { 
         logError(new NetworkError("Network Error: Unable to reach the server. Please check your connection.")); 

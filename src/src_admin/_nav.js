@@ -15,6 +15,8 @@ import {
   cilSpeedometer,
   cilStar,
 } from '@coreui/icons'
+
+
 const _nav = [
   {
     component: CNavItem,
@@ -35,29 +37,29 @@ const _nav = [
     items: [ 
       {
         component: CNavItem,
-        name: 'Rent Property',
+        name: 'Property',
         // icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
         to: '/properties'
       },
-      {
-        component: CNavItem,
-        name: 'Contact View',
-        // icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-        to: '/contact-view'
-      }
+      // {
+      //   component: CNavItem,
+      //   name: 'Contact View',
+      //   // icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+      //   to: '/contact-view'
+      // }
     ]
   },
   
   {
     component: CNavGroup,
-    name: 'Subscription Plans',
+    name: 'Plans',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-    to : '/subscription',
+    to : '/plans',
     items: [ 
       {
         component: CNavItem,
-        name: 'Subscriptions',
-        to: '/subscription'
+        name: 'Plans',
+        to: '/plans'
       },
       {
         component: CNavItem,
@@ -68,14 +70,14 @@ const _nav = [
   },
   {
     component: CNavGroup,
-    name: 'Register Plans',
+    name: 'Subscriptions Plans',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-    to : '/plans',
+    to : '/subscription',
     items: [ 
       {
         component: CNavItem,
-        name: 'Plans',
-        to: '/plans'
+        name: 'Subscription',
+        to: '/subscription'
       },
       {
         component: CNavItem,
@@ -91,13 +93,31 @@ const _nav = [
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     to : '/contact-us',
   },
+  // {
+  //   component: CNavItem,
+  //   name: 'Blogs',
+  //   icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+  //   to : '/blogs',
+  // },
+    
   {
-    component: CNavItem,
+    component: CNavGroup,
     name: 'Blogs',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-    to : '/blogs',
+    to : '/',
+    items: [ 
+      {
+        component: CNavItem,
+        name: 'Category',
+        to: '/category'
+      },
+      {
+        component: CNavItem,
+        name: 'Blog',
+        to: '/blogs'
+      }
+  ]
   },
-    
   {
     component: CNavGroup,
     name: 'Users',
