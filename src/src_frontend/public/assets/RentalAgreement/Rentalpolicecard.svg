@@ -1,0 +1,3 @@
+<Link href="/Rental-Agreement/Rental">
+               <Image src='/assets/RentalAgreement/RentalCard.svg' width={300} height={200} alt="Rental-Agreement-logo" />
+              </Link>

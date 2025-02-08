@@ -24,12 +24,8 @@ import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
 const BlogCategory = () => {
-  const [categories, setCategories] = useState([
-    { id: 1, name: "Technology", parent: "None" },
-    { id: 2, name: "Health", parent: "None" },
-    { id: 3, name: "Lifestyle", parent: "None" },
-    // Sample categories
-  ]);
+  const [categories, setCategories] = useState([]);
+  const [categoriesParent, setCategoriesParent] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Validation Schema for category form
@@ -48,6 +44,21 @@ const BlogCategory = () => {
     setCategories([...categories, newCategory]);
     // Clear the form after adding the category
   };
+
+    // get blog categories & tags.
+    useEffect(() => {
+      ;(async () => {
+        try {
+          const categoryResult = await getBlogCategory()
+          console.log(categoryResult.data.category)
+          setCategoriesParent(categoryResult.data.category)
+        } catch (error) {
+          addToast(<ToastMessage type="error" message={error.message} />)
+        }
+      })()
+  
+      return () => {}
+    }, [])
 
   return (
     <CRow>

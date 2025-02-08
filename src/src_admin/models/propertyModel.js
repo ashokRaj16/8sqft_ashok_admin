@@ -1,26 +1,12 @@
 import axios from 'axios';
 import { constant } from '../utils/constant';
 import axiosInstance from '../config/axiosInstance';
-// update  
-// const authToken = localStorage.getItem('eightsqfttoken');
-// const HTTP_HEADERS = {
-//     "x-api-key" :  constant.X_API_KEY,
-//     "Authorization" : `Bearer ${authToken}`,
-//     "Content-Type" : "application/json"
-// }
+import { errorHandler } from '../utils/errorHandler';
+import { date } from 'yup';
 
-const listProperties = async () => {
+
+export const getPropertyList = async (offset = 1, limit = 10, sortOrder = 'asc', sortColumn = '', searchFilter = '', stepTerm = '' ) => {
     try {
-        
-    }
-    catch (error) {
-
-    }
-}
-
-export const getPropertyList = async (offset = 1, limit = 10, sortOrder = 'asc', sortColumn = '', searchFilter = '' ) => {
-    try {
-        // call to api to get listed user(async request.) & return data
         console.log(offset)
         const result = await axiosInstance.get(`/admin/property`, { 
             params : {
@@ -28,7 +14,8 @@ export const getPropertyList = async (offset = 1, limit = 10, sortOrder = 'asc',
                 limit,
                 sortColumn,
                 sortOrder,
-                searchFilter
+                searchFilter,
+                stepTerm
             },
         });
         return result.data;
@@ -82,30 +69,9 @@ export const getPropertyById = async (id = null) => {
     }
     catch (error) {
         // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error(error)
     }
 }
-
 
 export const deleteProperty = async (id) => {
     try {
@@ -115,27 +81,7 @@ export const deleteProperty = async (id) => {
     }
     catch (error) {
         // throw error;
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 400 && data.status === false && Array.isArray(data.error)) {
-                // Handle validation errors
-                const validationErrors = data.error
-                    .map(err => `${err.field}: ${err.message}`)
-                    .join("; ");
-                console.error("Validation Errors:", validationErrors);
-                throw new Error(`Validation Error: ${validationErrors}`);
-            } else if (status === 400 || status === 401 || status === 403 || status === 404) {
-                console.error("Bad Request:", data.message || "Invalid request.");
-                throw new Error(`Bad Request: ${data.message || "An error occurred."}`);
-            }
-        } else if (error.request) {
-            console.error("Network Error:", error.request);
-            throw new Error("Network Error: Unable to reach the server. Please check your connection.");
-        } else {
-            console.error("Error:", error.message);
-            throw new Error(`Unexpected Error: ${error.message}`);
-        }
+        throw new Error(error)
     }
 }
 
@@ -204,5 +150,42 @@ export const sendPropertyMails = async (id, data) => {
             console.error("Error:", error.message);
             throw new Error(`Unexpected Error: ${error.message}`);
         }
+    }
+}
+
+export const getIntrestedUsersByPropertyId = async (id = null) => {
+    try {
+        // call to api to get listed single user(async request.) & return data
+        const result = await axiosInstance.get(`/admin/property/${id}`);
+        return result.data;
+    }
+    catch (error) {
+       throw new errorHandler(error);
+    }
+}
+
+export const getShortlistedUsersByPropertyId = async (id = null) => {
+    try {
+        // call to api to get listed single user(async request.) & return data
+        const result = await axiosInstance.get(`/admin/property/${id}`);
+        return result.data;
+    }
+    catch (error) {
+       throw new errorHandler(error);
+    }
+}
+
+export const updatePropertyDetails = async (id, data) => {
+    try {
+        console.log(data)
+        // call to api to get listed single user(async request.) & return data
+        const result = await axiosInstance.put(`/admin/property/${id}/features`, 
+            data
+        );
+        return result;
+    }
+    catch (error) {
+        // throw error;
+        throw new errorHandler(error)
     }
 }

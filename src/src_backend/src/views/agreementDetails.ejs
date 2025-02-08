@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agreement Details</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-KyZXEJ1QK5b6sT6QxG6ygtXorfVh0lHqgLmjfbtwKl5ahwddQ8jbmG2j8Zvqxa34" crossorigin="anonymous">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-bar {
+      background-color: #dd822d;
+      color: white;
+      padding: 15px 0;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .table-container {
+      width: 100%;
+      max-width: 1000px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+
+    .table th,
+    .table td {
+      text-align: center;
+      
+    }
+
+    .table th {
+      background-color: #f1f1f1;
+    }
+
+    .label-bold {
+      font-weight: bold;
+    }
+
+    .back-btn {
+      margin-top: 5px;
+      display: block;
+      text-align: center;
+    }
+
+    .form-inline {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .form-control {
+      margin-right: 10px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="header-bar">
+    <h2>8sqft</h2>
+  </div>
+
+  <div class="container content">
+    <a href="/agreements" class="btn btn-primary back-btn">Back to List</a>
+
+    <div class="table-container">
+      <h2 class="text-center mb-4">Agreement Details</h2>
+
+      <% if (agreementDetails) { %>
+        <table class="table table-bordered table-sm">
+          <thead>
+            <tr>
+              <th scope="col">Field</th>
+              <th scope="col">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label-bold">ID</td>
+              <td>
+                <%= agreementDetails.id %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Reference Deposit Amount</td>
+              <td>
+                <%= agreementDetails.ref_dipo_amt %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Agreement Date</td>
+              <td>
+                <%= agreementDetails.agriment_date %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Agreement Type</td>
+              <td>
+                <%= agreementDetails.agriment_type %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Monthly Rent</td>
+              <td>
+                <%= agreementDetails.mnth_rent_amt %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Rent Not Fixed</td>
+              <td>
+                <%= agreementDetails.rent_not_fix %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Increment By Amount (From)</td>
+              <td>
+                <%= agreementDetails.inc_by_amt_from %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Increment Amount To</td>
+              <td>
+                <%= agreementDetails.inc_amt_to %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Increment By Per Month</td>
+              <td>
+                <%= agreementDetails.inc_by_per_month %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Increment By Per To Percent</td>
+              <td>
+                <%= agreementDetails.inc_by_per_to_percent %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Non-Ref Deposit</td>
+              <td>
+                <%= agreementDetails.non_ref_deposit %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Minimum Lock-In Period</td>
+              <td>
+                <%= agreementDetails.min_lokin_period %> months
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Deposit Payment Mode</td>
+              <td>
+                <%= agreementDetails.deposit_payment_mode %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Registration Fee Paid By</td>
+              <td>
+                <%= agreementDetails.reg_fee_paid_by %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Maintenance Paid By</td>
+              <td>
+                <%= agreementDetails.mentenence_paid_by %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Amenities</td>
+              <td>
+                <%= agreementDetails.amenities %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Miscellaneous Clause</td>
+              <td>
+                <%= agreementDetails.misc_clause_desc %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Printing & Cleaning Charges</td>
+              <td>
+                <%= agreementDetails.printing_cleaning_charges %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Property Condition Up to Vacancy</td>
+              <td>
+                <%= agreementDetails.property_cond_upo_vac %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Property Type</td>
+              <td>
+                <%= agreementDetails.property_type %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Floor Number</td>
+              <td>
+                <%= agreementDetails.flour_num %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Flat Number</td>
+              <td>
+                <%= agreementDetails.flat_number %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Building Name</td>
+              <td>
+                <%= agreementDetails.building_name %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Locality</td>
+              <td>
+                <%= agreementDetails.locality %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Road/Street</td>
+              <td>
+                <%= agreementDetails.road_street %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Society Name</td>
+              <td>
+                <%= agreementDetails.society_name %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Pincode</td>
+              <td>
+                <%= agreementDetails.pincode %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">District</td>
+              <td>
+                <%= agreementDetails.distric %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tehsil</td>
+              <td>
+                <%= agreementDetails.tahasil %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Village/City</td>
+              <td>
+                <%= agreementDetails.village_city %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Property Number Type</td>
+              <td>
+                <%= agreementDetails.property_num_type %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Property Number</td>
+              <td>
+                <%= agreementDetails.property_number %>
+             </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Built-Up Area (House)</td>
+              <td>
+                <%= agreementDetails.builtup_area_house %>
+                  <%= agreementDetails.builtup_area_unit %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Use of Area</td>
+              <td>
+                <%= agreementDetails.use_of_area %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Parking Area</td>
+              <td>
+                <%= agreementDetails.parking_area %>
+                  <%= agreementDetails.parking_area_unit %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Gallery Area</td>
+              <td>
+                <%= agreementDetails.gallery_area %>
+                  <%= agreementDetails.gallery_area_unit %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Landlord Entity Type</td>
+              <td>
+                <%= agreementDetails.landloard_entity_type %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Landlord Name</td>
+              <td>
+                <%= agreementDetails.landloard_name %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Landlord Phone</td>
+              <td>
+                <%= agreementDetails.landloard_phone %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Landlord Aadhar</td>
+              <td>
+                <%= agreementDetails.have_landloard_aadhar ? 'Yes' : 'No' %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Landlord PAN</td>
+              <td>
+                <%= agreementDetails.landloard_pan_number %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Landlord Email</td>
+              <td>
+                <%= agreementDetails.landloard_email %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Executing Through</td>
+              <td>
+                <%= agreementDetails.exicuting_through %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Name</td>
+              <td>
+                <%= agreementDetails.tenant_name %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Phone</td>
+              <td>
+                <%= agreementDetails.tanent_phone %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Aadhar</td>
+              <td>
+                <%= agreementDetails.tanent_adhar_card %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Email</td>
+              <td>
+                <%= agreementDetails.tenant_email %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant PAN</td>
+              <td>
+                <%= agreementDetails.tanent_pan %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Building Name</td>
+              <td>
+                <%= agreementDetails.tenant_building_name %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Flat No</td>
+              <td>
+                <%= agreementDetails.tenant_flat_no %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Road/Street</td>
+              <td>
+                <%= agreementDetails.tenant_road_street %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Pincode</td>
+              <td>
+                <%= agreementDetails.tenant_pincode %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant Village/City</td>
+              <td>
+                <%= agreementDetails.tenant_village_city %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant District</td>
+              <td>
+                <%= agreementDetails.tenant_district %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Tenant State</td>
+              <td>
+                <%= agreementDetails.tenant_state %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Delivery Address Fullname</td>
+              <td>
+                <%= agreementDetails.delivery_add_fullname %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Delivery Address Email</td>
+              <td>
+                <%= agreementDetails.delivery_address_email %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Delivery Address Phone</td>
+              <td>
+                <%= agreementDetails.delivery_address_phone %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Delivery Address Pincode</td>
+              <td>
+                <%= agreementDetails.delivery_address_pincode %>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-bold">Delivery Type</td>
+              <td>
+                <%= agreementDetails.delivery_type %>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <a href="/agreements" class="btn btn-primary back-btn">Back to List</a>
+        <% } else { %>
+          <p class="text-center">Details not available for this agreement.</p>
+          <a href="/agreements" class="btn btn-primary back-btn">Back to List</a>
+          <% } %>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-pzjw8f+ua7Kw1TIq0Wb2xYqb1A0X0Vr1Fz07FpRlZGgc5uEdbO6bgDLFfO9rw/Tx"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

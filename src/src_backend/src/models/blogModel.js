@@ -1,0 +1,232 @@
+import pool from '../config/db.js';
+
+/**
+ * Blogs
+ * @param {*} whereClause 
+ * @param {*} sortColumn 
+ * @param {*} sortOrder 
+ * @param {*} page 
+ * @param {*} limit 
+ * @returns 
+ */
+export const getAllblogListAdmin = async (whereClause = null, sortColumn = "id", sortOrder = "ASC", page = 1, limit = 10 ) => {
+    try {
+        const offset = (page - 1) * limit;
+        const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
+        const searchQuery = `SELECT * FROM  tbl_blogs tb
+                    ${whereClause} ${orderQuery}
+                    LIMIT ${limit} OFFSET ${offset}`;
+
+                    console.log(searchQuery)
+        const [rows] = await pool.execute(searchQuery);
+        return rows;
+    } catch (error) {
+        console.error('Error fetching all users:', error);
+        throw new Error('Unable to fetch users.');
+    }
+};
+
+export const getAllblogCountAdmin = async ( whereClause = null ) => {
+    try {
+
+        const totalCountQuery = `SELECT 
+                    COUNT(*) AS count
+                FROM 
+                        tbl_blogs tb
+                ${whereClause}`;
+        
+        const [rows] = await pool.query(totalCountQuery);
+        console.log(rows);
+        return rows[0].count;
+    }
+    catch(error) {
+        throw new Error('Unable to fetch entry', error);
+    }
+};
+
+export const createBlogAdmin = async (data) => {
+
+    const { title, description, short_description, banner_image, banner_video, cat_id,
+        tags, comment_enabled, author_name, meta_title, meta_description,
+        meta_keyword, user_id } = data;
+
+    // console.log(data)
+    try {
+      const inserQuery = `INSERT INTO tbl_blogs 
+        (title, description, short_description, banner_image, banner_video, 
+        cat_id, tags, comment_enabled, author_name, meta_title, 
+        meta_description, meta_keyword, added_by) 
+        VALUES 
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const paramsData = [title, description, short_description, banner_image, 
+        banner_video, cat_id, tags, comment_enabled, author_name, meta_title, 
+        meta_description, meta_keyword, user_id ];
+
+      const [result] = await pool.execute( inserQuery, paramsData );
+  
+      console.log(result)
+      return { insertId : result.insertId, affectedRows: result.affectedRows, ...data };
+
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new Error('Unable to create user.', error);
+    }
+};
+
+export const updateBlogAdmin = async (id, blogData) => {
+
+try {
+    console.log("models", blogData);
+    
+    let queryField = [];
+    let queryParams = [];
+
+    for (const [key, value] of Object.entries(blogData)) {
+        if (value !== undefined && value !== null) {
+            queryField.push(`${key} = ?`);
+            queryParams.push(value);
+        } 
+    }
+    queryParams.push(id);
+
+    const query = `
+            UPDATE tbl_blogs 
+            SET 
+            ${queryField.join(', ') }
+            WHERE id = ?`;
+
+    const [result] = await pool.execute(query, queryParams);
+    return { affectedRows: result.affectedRows, ...blogData };
+} catch (error) {
+    console.error('Error updating user:', error);
+    throw new Error('Unable to update user.');
+}
+};
+
+export const deleteBlogAdmin = async (id) => {
+    try {
+        const result = await pool.execute(`update tbl_blogs set is_deleted = '1' WHERE id = ?`, [id]);
+        return result;
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        throw new Error('Unable to delete user.');
+    }
+};
+
+export const getBlogByIdAdmin = async (id) => {
+
+    try {
+        const [rows] = await pool.execute('SELECT * FROM tbl_blogs where id = ?', [id]);
+        console.log(rows)
+        return rows;
+
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        throw new Error('Unable to fetch user.');
+    }
+};
+
+
+/**
+ * Blog category
+ * @param {*} data 
+ * @returns 
+ */
+export const getAllCategoryListAdmin = async ( whereClause = null, sortColumn = "id", sortOrder = "ASC", page = 1, limit = 10 ) => {
+    try {
+        const offset = (page - 1) * limit;
+        const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
+        const searchQuery = `SELECT * FROM tbl_blog_category tbc
+                    ${whereClause} ${orderQuery}
+                    LIMIT ${limit} OFFSET ${offset}`;
+
+                    console.log(searchQuery)
+        const [rows] = await pool.execute(searchQuery);
+        return rows;
+    } catch (error) {
+        console.error('Error fetching all category:', error);
+        throw new Error('Unable to fetch category.');
+    }
+};
+
+export const getAllCategoryCountAdmin = async ( whereClause = null ) => {
+    try {
+
+        const totalCountQuery = `SELECT 
+                    COUNT(*) AS count
+                FROM 
+                    tbl_blog_category tbc
+                ${whereClause}`;
+        
+        const [rows] = await pool.query(totalCountQuery);
+        console.log(rows);
+        return rows[0].count;
+    }
+    catch(error) {
+        throw new Error('Unable to fetch entry', error);
+    }
+};
+
+
+export const createCategoryAdmin = async (data) => {
+
+    const { title, description, cat_icon, cat_banner, parent_cat_id } = data;
+
+    console.log(data)
+    try {
+      const inserQuery = `INSERT INTO tbl_blog_category 
+        ( title, description, cat_icon, cat_banner, parent_cat_id ) 
+        VALUES 
+        (?, ?, ?, ?, ?)`;
+      const paramsData = [ title, description, cat_icon, cat_banner, parent_cat_id ];
+
+      const [result] = await pool.execute( inserQuery, paramsData );
+  
+      console.log(result)
+      return { result, ...data };
+
+    } catch (error) {
+      console.error('Error creating category:', error);
+      throw new Error('Unable to create category.', error);
+    }
+};
+
+export const updateCategoryAdmin = async (id, blogData) => {
+
+try {
+    console.log("models", blogData);
+    
+    let queryField = [];
+    let queryParams = [];
+
+    for (const [key, value] of Object.entries(blogData)) {
+        if (value !== undefined && value !== null) {
+            queryField.push(`${key} = ?`);
+            queryParams.push(value);
+        } 
+    }
+    queryParams.push(id);
+
+    const query = `
+            UPDATE tbl_blog_category 
+            SET 
+            ${queryField.join(', ') }
+            WHERE id = ?`;
+
+    const [result] = await pool.execute(query, queryParams);
+    return { result, ...blogData };
+} catch (error) {
+    console.error('Error updating category:', error);
+    throw new Error('Unable to update category.');
+}
+};
+
+export const deleteCategoryAdmin = async (id) => {
+    try {
+        const result = await pool.execute(`update tbl_blog_category set is_deleted = '1' WHERE id = ?`, [id]);
+        return result;
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        throw new Error('Unable to delete category.');
+    }
+};

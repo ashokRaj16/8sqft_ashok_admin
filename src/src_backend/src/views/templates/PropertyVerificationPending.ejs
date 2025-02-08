@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Verification Pending</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+        }
+        .header {
+            text-align: center;
+            color: #333333;
+        }
+        .property-details {
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #999999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">Property Verification Pending</h1>
+        <p>Dear <%= name %>,</p>
+        <p>Thank you for listing your property on 8sqft! Your property is currently <strong>under verification</strong> by our team.</p>
+        <p>Here are the details of your listing:</p>
+        <div class="property-details">
+            <p><strong>Property Name:</strong> <%= propertyName %></p>
+            <p><strong>Location:</strong> <%= location %></p>
+            <p><strong>Listing ID:</strong> <%= listingId %></p>
+        </div>
+        <p>We will notify you once the verification process is complete. If additional information or documents are needed, our team will reach out to you shortly.</p>
+        <p>If you have any questions, feel free to contact us at <a href="mailto:support@8sqft.com">support@8sqft.com</a>.</p>
+        <div class="footer">
+            <p>Thank you for choosing 8sqft!</p>
+            <p>Best regards,</p>
+            <p>The 8sqft Team</p>
+        </div>
+    </div>
+</body>
+</html>

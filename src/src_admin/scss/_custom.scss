@@ -1,1 +1,30 @@
 // Here you can add other styles
+
+// variables
+$order-info-border: rgb(252, 102, 0);
+
+// 8SQFT Styles
+// plan register
+.ass-plan-reg-header {
+    position: relative;
+    padding-bottom: 10px;
+    padding-left: 10px;
+  
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(to top, $order-info-border, rgba(252, 102, 0, 0));
+    }
+}
+
+// modal 
+.custom-modal .modal-dialog {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 95vh; /* Ensure it's vertically centered */
+}

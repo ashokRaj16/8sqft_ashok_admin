@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Approved</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+        }
+        .header {
+            text-align: center;
+            color: #333333;
+        }
+        .property-details {
+            margin: 20px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #999999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">Congratulations, Your Property is Approved!</h1>
+        <p>Dear <%= name %>,</p>
+        <p>We are excited to inform you that your property has been successfully approved and is now live on 8sqft!</p>
+        <p>Here are the details of your approved listing:</p>
+        <div class="property-details">
+            <p><strong>Property Name:</strong> <%= propertyName %></p>
+            <p><strong>Location:</strong> <%= location %></p>
+            <p><strong>Listing ID:</strong> <%= listingId %></p>
+        </div>
+        <p>To view your listing, click the button below:</p>
+        <a href="<%= propertyLink %>" class="cta-button">View My Property</a>
+        <p>If you have any questions or need assistance, please contact us at <a href="mailto:support@8sqft.com">support@8sqft.com</a>.</p>
+        <div class="footer">
+            <p>Thank you for choosing 8sqft!</p>
+            <p>Best regards,</p>
+            <p>The 8sqft Team</p>
+        </div>
+    </div>
+</body>
+</html>
