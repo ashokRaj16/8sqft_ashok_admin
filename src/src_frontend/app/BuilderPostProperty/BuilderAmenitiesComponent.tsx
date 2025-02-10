@@ -9,7 +9,6 @@ import { GoogleMap, Marker, LoadScript } from "@react-google-maps/api";
 import { debounce } from "lodash";
 // import usegetStateslist from "@/hooks/getStates";
 
-
 import {
   Tooltip,
   TooltipContent,
@@ -110,207 +109,211 @@ export default function BuilderAmenitiesComponent({
       }}
     >
       {({ values, setFieldValue, isSubmitting }: any) => (
-        
-        (
-          <Form className="max-w-4xl mx-auto p-6 bg-white rounded-lg  space-y-4 ">
-            <div className="flex items-center flex-col sm:flex-row">
-              <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
-                Water Supply
-                <ReusableRedTagComponent />
-              </label>
-              <div className="flex gap-1 flex-wrap sm:flex-nowrap sm:ml-4 w-full sm:w-auto">
-                {["Yes", "No"].map((option) => (
+        <Form className="max-w-4xl mx-auto p-6 bg-white rounded-lg  space-y-4 ">
+          <div className="flex items-center flex-col sm:flex-row">
+            <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
+              Water Supply
+              <ReusableRedTagComponent />
+            </label>
+            <div className="flex gap-1 flex-wrap sm:flex-nowrap sm:ml-4 w-full sm:w-auto">
+              {["Yes", "No"].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setFieldValue("waterSupply", option)}
+                  className={`px-8 py-1 rounded-[50px] text-sm font-medium  ${
+                    values.waterSupply === option
+                      ? "bg-[#FC6600] text-white"
+                      : "bg-white text-black border border-[#222222]/80"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            <ErrorMessage
+              name="waterSupply"
+              component="div"
+              className="text-red text-[10px]"
+            />
+          </div>
+
+          <div className="flex items-center flex-col sm:flex-row">
+            <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
+              Sewage Connection
+              <ReusableRedTagComponent />
+            </label>
+            <div className="flex gap-1 flex-wrap sm:flex-nowrap sm:ml-4 w-full sm:w-auto">
+              {["Yes", "No"].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setFieldValue("sewageConnection", option)}
+                  className={`px-8 py-1  rounded-[50px] text-sm font-medium  ${
+                    values.sewageConnection === option
+                      ? "bg-[#FC6600] text-white"
+                      : "bg-white text-black border border-[#222222]/80"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            <ErrorMessage
+              name="sewageConnection"
+              component="div"
+              className="text-red text-[10px]"
+            />
+          </div>
+
+          <div className="flex items-center flex-col sm:flex-row">
+            <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
+              Electricity Connection
+              <ReusableRedTagComponent />
+            </label>
+            <div className="flex gap-1 flex-wrap sm:flex-nowrap sm:ml-4 w-full sm:w-auto">
+              {["Yes", "No"].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setFieldValue("electricityConnection", option)}
+                  className={`px-8 py-1  rounded-[50px] text-sm font-medium  ${
+                    values.electricityConnection === option
+                      ? "bg-[#FC6600] text-white"
+                      : "bg-white text-black border border-[#222222]/80"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            <ErrorMessage
+              name="electricityConnection"
+              component="div"
+              className="text-red text-[10px]"
+            />
+          </div>
+
+          <div className="flex items-center flex-col sm:flex-row">
+            <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
+              Granted Security
+              <ReusableRedTagComponent />
+            </label>
+            <div className="flex gap-1 flex-wrap sm:flex-nowrap sm:ml-4 w-full sm:w-auto">
+              {["Yes", "No"].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setFieldValue("grantedSecurity", option)}
+                  className={`px-8 py-1  rounded-[50px] text-sm font-medium  ${
+                    values.grantedSecurity === option
+                      ? "bg-[#FC6600] text-white"
+                      : "bg-white text-black border border-[#222222]/80"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            <ErrorMessage
+              name="grantedSecurity"
+              component="div"
+              className="text-red text-[10px]"
+            />
+          </div>
+
+          <div className="flex items-center flex-col sm:flex-row">
+            <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
+              Select Available Amenities
+            </label>
+            <div className="flex flex-wrap gap-4">
+              {filters.map((amenity) => {
+                const isSelected = values.otherAmenities.includes(amenity);
+
+                return (
                   <button
-                    key={option}
+                    key={amenity}
                     type="button"
-                    onClick={() => setFieldValue("waterSupply", option)}
-                    className={`px-8 py-1 rounded-[50px] text-sm font-medium  ${
-                      values.waterSupply === option
-                        ? "bg-[#FC6600] text-white"
-                        : "bg-white text-black border border-[#222222]/80"
+                    onClick={() => {
+                      const updatedAmenities = isSelected
+                        ? values.otherAmenities.filter(
+                            (item: string) => item !== amenity
+                          )
+                        : [...values.otherAmenities, amenity];
+                      setFieldValue("otherAmenities", updatedAmenities);
+                    }}
+                    className={`p-0 flex items-center space-x-2 rounded-[50px] text-[10px] lg:text-sm font-medium ${
+                      isSelected
+                        ? "bg-[#FC6600] text-white px-2 py-1 "
+                        : "bg-white text-black border border-[#222222]/80 px-2 py-1 "
                     }`}
                   >
-                    {option}
+                    <span>{amenity}</span>
+                    {!isSelected && (
+                      <span className="text-lg font-bold ">+</span>
+                    )}
                   </button>
-                ))}
-              </div>
-
-              <ErrorMessage
-                name="waterSupply"
-                component="div"
-                className="text-red text-[10px]"
-              />
+                );
+              })}
             </div>
-
-            <div className="flex items-center flex-col sm:flex-row">
-              <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
-                Sewage Connection
-                <ReusableRedTagComponent />
+            <ErrorMessage
+              name="otherAmenities"
+              component="div"
+              className="text-red text-xs"
+            />
+          </div>
+          <div className="flex flex-col w-full text-center">
+            <div className="flex flex-col md:flex-row">
+              <label className=" font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
+                Property Description
               </label>
-              <div className="flex gap-1 flex-wrap sm:flex-nowrap sm:ml-4 w-full sm:w-auto">
-                {["Yes", "No"].map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setFieldValue("sewageConnection", option)}
-                    className={`px-8 py-1  rounded-[50px] text-sm font-medium  ${
-                      values.sewageConnection === option
-                        ? "bg-[#FC6600] text-white"
-                        : "bg-white text-black border border-[#222222]/80"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-
-              <ErrorMessage
-                name="sewageConnection"
-                component="div"
-                className="text-red text-[10px]"
-              />
-            </div>
-
-            <div className="flex items-center flex-col sm:flex-row">
-              <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
-                Electricity Connection
-                <ReusableRedTagComponent />
-              </label>
-              <div className="flex gap-1 flex-wrap sm:flex-nowrap sm:ml-4 w-full sm:w-auto">
-                {["Yes", "No"].map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() =>
-                      setFieldValue("electricityConnection", option)
-                    }
-                    className={`px-8 py-1  rounded-[50px] text-sm font-medium  ${
-                      values.electricityConnection === option
-                        ? "bg-[#FC6600] text-white"
-                        : "bg-white text-black border border-[#222222]/80"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-
-              <ErrorMessage
-                name="electricityConnection"
-                component="div"
-                className="text-red text-[10px]"
-              />
-            </div>
-
-            <div className="flex items-center flex-col sm:flex-row">
-              <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
-                Granted Security
-                <ReusableRedTagComponent />
-              </label>
-              <div className="flex gap-1 flex-wrap sm:flex-nowrap sm:ml-4 w-full sm:w-auto">
-                {["Yes", "No"].map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setFieldValue("grantedSecurity", option)}
-                    className={`px-8 py-1  rounded-[50px] text-sm font-medium  ${
-                      values.grantedSecurity === option
-                        ? "bg-[#FC6600] text-white"
-                        : "bg-white text-black border border-[#222222]/80"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-
-              <ErrorMessage
-                name="grantedSecurity"
-                component="div"
-                className="text-red text-[10px]"
-              />
-            </div>
-
-            <div className="flex items-center flex-col sm:flex-row">
-              <label className="block font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
-                Select Available Amenities
-              </label>
-              <div className="flex flex-wrap gap-4">
-                {filters.map((amenity) => {
-                  const isSelected = values.otherAmenities.includes(amenity);
-
-                  return (
-                    <button
-                      key={amenity}
-                      type="button"
-                      onClick={() => {
-                        const updatedAmenities = isSelected
-                          ? values.otherAmenities.filter(
-                              (item: string) => item !== amenity
-                            )
-                          : [...values.otherAmenities, amenity];
-                        setFieldValue("otherAmenities", updatedAmenities);
-                      }}
-                      className={`p-0 flex items-center space-x-2 rounded-[50px] text-[10px] lg:text-sm font-medium ${
-                        isSelected
-                          ? "bg-[#FC6600] text-white px-2 py-1 "
-                          : "bg-white text-black border border-[#222222]/80 px-2 py-1 "
-                      }`}
-                    >
-                      <span>{amenity}</span>
-                      {!isSelected && (
-                        <span className="text-lg font-bold ">+</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <ErrorMessage
-                name="otherAmenities"
-                component="div"
-                className="text-red text-xs"
-              />
-            </div>
-            <div className="flex flex-col w-full text-center">
-              <div className="flex flex-col md:flex-row">
-                <label className=" font-semibold flex items-center gap-1 w-full sm:max-w-48 m-4">
-                  Property Description
-                </label>
-                <Field
-                  as="textarea"
-                  name="propertyDescription"
-                  className="w-full p-2 border rounded-md"
-                  placeholder="5000 Character "
-                  rows="8"
-                  length="5000"
-                />
-              </div>
-              <ErrorMessage
+              <Field
+                as="textarea"
                 name="propertyDescription"
-                component="div"
-                className="text-red  text-[10px] lg:text-xs "
+                className="w-full p-2 border rounded-md"
+                placeholder="5000 Character "
+                rows="8"
+                length="5000"
               />
             </div>
+            <ErrorMessage
+              name="propertyDescription"
+              component="div"
+              className="text-red  text-[10px] lg:text-xs "
+            />
+          </div>
 
-            <div className="flex flex-row gap-4 justify-center items-center">
-              {/* Back Button */}
-              {/* <button
+          {/* <div className="flex flex-row gap-4 justify-center items-center"> */}
+          {/* Back Button */}
+          {/* <button
               type="button"
               className="min-w-[100px] py-1 px-4 bg-black text-white rounded-full text-sm"
             >
               BACK
             </button> */}
 
-              {/* Save & Next Button */}
-              <button
+          {/* Save & Next Button */}
+          {/* <button
                 type="submit"
                 className="min-w-[100px] py-1 px-4 bg-primary text-white rounded-full text-sm"
               >
                 {isSubmitting ? "Submitting..." : "SAVE & NEXT"}
-              </button>
-            </div>
-          </Form>
-        )
+              </button> */}
+
+          <div className="flex flex-row gap-4 justify-center items-center">
+            <button
+              type="submit"
+              className="mt-8 w-full max-w-48 flex justify-center items-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
+            >
+              {isSubmitting ? "Submitting..." : "SAVE & NEXT"}
+            </button>
+          </div>
+          {/* </div> */}
+        </Form>
       )}
     </Formik>
   );

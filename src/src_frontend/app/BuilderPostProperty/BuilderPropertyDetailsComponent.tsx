@@ -4,7 +4,12 @@ import React, { useCallback, useState, useMemo, useEffect } from "react";
 import { Formik, Field, Form, ErrorMessage, useFormikContext } from "formik";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
-import { GoogleMap, Marker, LoadScript } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  Marker,
+  LoadScript,
+  LoadScriptNext,
+} from "@react-google-maps/api";
 import { debounce } from "lodash";
 import ReusableRedTagComponent from "../CompoundComponent/ReusableRedTag";
 
@@ -59,23 +64,22 @@ const validationSchema = Yup.object({
     .required("Per sqft rate is required")
     .positive("Per sqft rate must be a positive number"),
 });
-interface PropertyDetailsProps {
-  // onNext: () => void;
-  // Receive `onNext` as a prop
-}
+
 interface PropertyDetailsProps {
   onNext: () => void; // Receive `onNext` as a prop
 }
+
 export default function BuilderPropertyDetailsComponent({
   onNext,
-}: // onNext,
-PropertyDetailsProps) {
+}: PropertyDetailsProps) {
   const { mutate } = useBuilderPostPropertyDetails({
     onSuccess: (data) => {
+      console.log("success", data);
       toast.success(`${data.message}`);
       onNext();
     },
     onError: (error: any) => {
+      console.log("error", error);
       toast.error(error.message);
     },
   });
@@ -87,10 +91,12 @@ PropertyDetailsProps) {
     cityName: "",
     pincode: "",
   });
+
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
+
   const [show, setShow] = useState(false);
   const { id } = usePropertyIdStore();
   const userid = id!;
@@ -108,9 +114,11 @@ PropertyDetailsProps) {
       [name]: value,
     }));
   };
+
   const [suggestions, setSuggestions] = useState<
     google.maps.places.AutocompletePrediction[]
   >([]); // Search suggestions
+
   const [loading, setLoading] = useState(false);
   const GOOGLE_MAPS_API_KEY = "AIzaSyB4mLQjyo8whkMHMHA5mpZ4Y17dS2bjgaM";
   const INDIA_BOUNDS = {
@@ -119,8 +127,6 @@ PropertyDetailsProps) {
     west: 68.7, // Westernmost longitude
     east: 97.25, // Easternmost longitude
   };
-
-  
 
   const fetchPlaceSuggestions = useCallback(
     debounce(async (query: string) => {
@@ -219,6 +225,7 @@ PropertyDetailsProps) {
     },
     []
   );
+
   const handleCustomInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: any
@@ -227,6 +234,7 @@ PropertyDetailsProps) {
     setFieldValue("propertyLocation", value); // Update Formik field for propertyLocation
     setSearchQuery(value); // Update search query state for consistency
   };
+
   const mapOptions = useMemo(
     () => ({
       zoom: 12,
@@ -234,9 +242,13 @@ PropertyDetailsProps) {
     }),
     [selectedLocation]
   );
+
   return (
     <>
-      <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
+      <LoadScriptNext
+        googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+        libraries={["places"]}
+      >
         <Formik
           const
           initialValues={{
@@ -288,502 +300,496 @@ PropertyDetailsProps) {
           }}
         >
           {({ values, setFieldValue, isSubmitting }: any) => (
-            console.log(values),
-            (
-              <Form className="max-w-4xl mx-auto p-6 bg-white rounded-lg space-y-4">
-                <div>
-                  <div className="flex flex-col md:flex-row">
-                    <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex ">
-                      Select City
-                      <ReusableRedTagComponent />
-                    </label>
-                    {City?.data?.length ? (
-                      <div className="flex flex-wrap gap-2 md:gap-4">
-                        {City?.data.map((citys) => (
-                          <button
-                            key={citys.id}
-                            type="button"
-                            onClick={() =>
-                              setFieldValue("city", citys.city_name)
-                            }
-                            className={`px-4 py-2 rounded-full text-sm font-medium ${
-                              values.city === citys.city_name
-                                ? "bg-[#FC6600] text-white"
-                                : "bg-white text-black border border-[#222222]/80"
-                            }`}
-                          >
-                            {citys.city_name}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <ErrorMessage
-                    name="selectedState"
-                    component="div"
-                    className="text-red text-sm mt-1"
-                  />
-                </div>
-
+            // console.log(values),
+            <Form className="max-w-4xl mx-auto p-6 bg-white rounded-lg space-y-4">
+              <div>
                 <div className="flex flex-col md:flex-row">
-                  <label className="font-semibold w-full md:max-w-48 mb-2 md:mb-0 flex items-center">
-                    Property Address
+                  <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex ">
+                    Select City
                     <ReusableRedTagComponent />
                   </label>
-                  <div className="flex flex-col w-full">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      placeholder="Search location..."
-                      className="w-full p-2 border rounded-md md:h-[28px] h-[36px] text-sm"
-                    />
-
-                    {/* Loading State */}
-                    {loading && (
-                      <div className="text-sm text-gray-500">
-                        Loading suggestions...
-                      </div>
-                    )}
-
-                    {/* Suggestions Dropdown */}
-                    {suggestions.length > 0 && (
-                      <ul className="border rounded-md mt-1 max-h-40 overflow-y-auto bg-white shadow-lg">
-                        {suggestions.slice(0, 3).map((suggestion) => (
-                          <li
-                            key={suggestion.place_id}
-                            onClick={() =>
-                              handleSuggestionClick(
-                                suggestion.place_id,
-                                setFieldValue
-                              )
-                            }
-                            className="p-2 hover:bg-gray-100 cursor-pointer"
-                          >
-                            {suggestion.description}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {/* Custom Location Option */}
-                    {!suggestions.length && searchQuery && (
-                      <li
-                        style={{ cursor: "pointer", color: "blue" }}
-                        onClick={() => setShow(true)}
-                        className="p-2 hover:bg-gray-100 text-sm"
-                      >
-                        Add Custom Location:
-                        {show && (
-                          <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) =>
-                              handleCustomInputChange(e, setFieldValue)
-                            }
-                            placeholder="Enter your custom address"
-                            className="p-2 hover:bg-gray-100 placeholder:text-xs mt-2 border rounded-md w-full"
-                          />
-                        )}
-                      </li>
-                    )}
-
-                    <ErrorMessage
-                      name="propertyLocation"
-                      component="div"
-                      className="text-red text-xs mt-1"
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full md:w-[64%] md:ml-[194px] h-[250px]">
-                  <GoogleMap
-                    mapContainerStyle={{ height: "100%", width: "100%" }}
-                    options={mapOptions}
-                    onClick={(event) => handleMapClick(event, setFieldValue)}
-                  >
-                    {selectedLocation && <Marker position={selectedLocation} />}
-                  </GoogleMap>
-                </div>
-
-                {/* Hidden Fields */}
-                <Field type="hidden" name="latitude" />
-                <Field type="hidden" name="longitude" />
-                <Field type="hidden" name="propertyLocation" />
-
-                <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
-                  <label className="w-full md:max-w-48 font-semibold flex items-center">
-                    Landmark
-                    <ReusableRedTagComponent />
-                  </label>
-                  <Field
-                    type="text"
-                    name="landmark"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      setFieldValue("landmark", e.target.value);
-                    }}
-                    className="w-full p-2 border rounded-md h-[28px] text-sm"
-                  />
-                </div>
-
-                <div className="flex flex-col md:flex-row">
-                  <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex items-center">
-                    RERA Number
-                    <ReusableRedTagComponent />
-                  </label>
-                  <div className="flex gap-5">
-                    {["Yes", "No"].map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setFieldValue("is_rera_number", option)}
-                        className={`px-8 py-1  rounded-[50px] text-sm font-medium  w-fit my-3  ${
-                          values.is_rera_number === option
-                            ? "bg-[#FC6600] text-white"
-                            : "bg-white text-black border border-[#222222]/80"
-                        }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                  {values.is_rera_number === "Yes" ? (
-                    <Field
-                      type="text"
-                      name="reraNumber"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFieldValue("reraNumber", e.target.value);
-                      }}
-                      placeHolder="Provide RERA Number"
-                      className="w-full p-2 border rounded-md h-[28px] text-sm my-3 ml-1"
-                    />
-                  ) : null}
-
-                  <ErrorMessage
-                    name="is_rera_number"
-                    component="div"
-                    className="text-red text-[10px] lg:text-sm"
-                  />
-                </div>
-
-                <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
-                  <label className="w-full md:max-w-48 font-semibold flex items-center">
-                    Property Title
-                  </label>
-                  <Field
-                    type="text"
-                    name="propertyTitle"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      setFieldValue("propertyTitle", e.target.value);
-                    }}
-                    className="w-full p-2 border rounded-md h-[28px] text-sm"
-                  />
-                </div>
-
-                <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
-                  <label className="w-full md:max-w-48 font-semibold flex items-center">
-                    Company Name
-                    <ReusableRedTagComponent />
-                  </label>
-                  <Field
-                    type="text"
-                    name="companyName"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      setFieldValue("companyName", e.target.value);
-                    }}
-                    className="w-full p-2 border rounded-md h-[28px] text-sm"
-                  />
-                </div>
-
-                <div className="flex flex-col md:flex-row">
-                  <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex items-center">
-                    Project Variety <ReusableRedTagComponent />
-                  </label>
-                  <div className="flex gap-1 flex-wrap">
-                    {ProjectVariety.map((variety) => (
-                      <button
-                        key={variety}
-                        type="button"
-                        onClick={() => setFieldValue("ProjectVariety", variety)}
-                        className={`px-4 py-2  rounded-[50px] text-sm font-medium font-['Poppins'] ${
-                          values.ProjectVariety === variety
-                            ? "bg-[#FC6600] text-white"
-                            : "bg-white text-black border border-[#222222]/80"
-                        }`}
-                      >
-                        {variety}
-                      </button>
-                    ))}
-                  </div>
-                  <ErrorMessage
-                    name="ProjectVariety"
-                    component="div"
-                    className="text-red text-xs"
-                  />
-                </div>
-
-                <div className="flex flex-col md:flex-row">
-                  <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex items-center">
-                    Open Plot Variety
-                    <ReusableRedTagComponent />
-                  </label>
-                  <div className="flex gap-1 flex-wrap">
-                    {DoorFacing.map((facing) => (
-                      <button
-                        key={facing}
-                        type="button"
-                        onClick={() => setFieldValue("openPlotVariety", facing)}
-                        className={`px-4 py-2  rounded-[50px] text-sm font-medium  ${
-                          values.openPlotVariety === facing
-                            ? "bg-[#FC6600] text-white"
-                            : "bg-white text-black border border-[#222222]/80"
-                        }`}
-                      >
-                        {facing}
-                      </button>
-                    ))}
-                  </div>
-
-                  <ErrorMessage
-                    name="openPlotVariety"
-                    component="div"
-                    className="text-red text-xs"
-                  />
-                </div>
-
-                <div className="flex flex-col md:flex-row">
-                  <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex items-center">
-                    Current Status
-                    <span className="mr-18">
-                      <ReusableRedTagComponent />
-                    </span>
-                  </label>
-                  <div className="flex gap-1 flex-wrap">
-                    {ProjectVarietyType.map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setFieldValue("currentStatus", type)}
-                        className={`px-6 py-2   rounded-full text-sm font-medium  ${
-                          values.currentStatus === type
-                            ? "bg-[#FC6600] text-white"
-                            : "bg-white text-black border border-[#222222]/80"
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-
-                  <ErrorMessage
-                    name="currentStatus"
-                    component="div"
-                    className="text-red text-xs"
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center w-full gap-4">
-                  {/* Label Section */}
-                  <label className="font-semibold whitespace-nowrap w-full  sm:w-[150px] flex items-center">
-                    Total Project Area <ReusableRedTagComponent />
-                  </label>
-
-                  {/* Input and Select Section */}
-                  <div className="flex flex-col ml-8 sm:flex-row gap-4 w-full sm:w-auto">
-                    {/* Input Field */}
-                    <Field
-                      type="text"
-                      name="totalProjectArea"
-                      placeholder=""
-                      className="w-[165px] h-[28px]  p-2 border rounded-md "
-                    />
-
-                    <select
-                      className="w-[165px] h-[28px] text-center px-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
-                      onChange={(e) =>
-                        setSelectedProjectAreaType(e.target.value)
-                      }
-                      value={selectedProjectAreaType} // Bind state to the select value
-                    >
-                      <option value="Acre">Acre</option>
-                      <option value="Sq.ft">Sq.ft</option>
-                      <option value="Sq.m">Sq.m</option>
-                    </select>
-                  </div>
-
-                  {/* Error Message */}
-                  <ErrorMessage
-                    name="totalProjectArea"
-                    component="div"
-                    className="text-red text-[10px] w-full mt-2"
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center w-full gap-4">
-                  {/* Label Section */}
-                  <label className="font-semibold whitespace-nowrap w-full sm:w-[150px] flex items-center">
-                    Width of facing road <ReusableRedTagComponent />
-                  </label>
-
-                  {/* Input and Select Section */}
-                  <div className="flex flex-col ml-8 sm:flex-row gap-4 w-full sm:w-auto">
-                    {/* Input Field */}
-                    <Field
-                      type="text"
-                      name="widthOfFacingRoad"
-                      placeholder=""
-                      className="w-[165px] h-[28px]  p-2 border rounded-md "
-                    />
-
-                    <span>Feet</span>
-                  </div>
-
-                  {/* Error Message */}
-                  <ErrorMessage
-                    name="widthOfFacingRoad"
-                    component="div"
-                    className="text-red text-[10px] w-full mt-2"
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center w-full gap-4">
-                  <label className="font-semibold whitespace-nowrap w-full  sm:w-[150px] flex items-center">
-                    Possession Date
-                    <ReusableRedTagComponent />
-                  </label>
-
-                  <div className="flex flex-col ml-8 sm:flex-row gap-4 w-full sm:w-auto">
-                    <select
-                      name="month"
-                      className="w-[165px] h-[40px] text-center px-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
-                      style={{
-                        maxHeight: "200px",
-                        overflowY: "auto",
-                      }}
-                      value={selectedDate.month}
-                      onChange={handleChange}
-                    >
-                      <option value="" disabled>
-                        Select Month
-                      </option>
-                      {[
-                        "January",
-                        "February",
-                        "March",
-                        "April",
-                        "May",
-                        "June",
-                        "July",
-                        "August",
-                        "September",
-                        "October",
-                        "November",
-                        "December",
-                      ].map((month) => (
-                        <option key={month} value={month}>
-                          {month}
-                        </option>
+                  {City?.data?.length ? (
+                    <div className="flex flex-wrap gap-2 md:gap-4">
+                      {City?.data.map((citys) => (
+                        <button
+                          key={citys.id}
+                          type="button"
+                          onClick={() => setFieldValue("city", citys.city_name)}
+                          className={`px-4 py-2 rounded-full text-sm font-medium ${
+                            values.city === citys.city_name
+                              ? "bg-[#FC6600] text-white"
+                              : "bg-white text-black border border-[#222222]/80"
+                          }`}
+                        >
+                          {citys.city_name}
+                        </button>
                       ))}
-                    </select>
+                    </div>
+                  ) : null}
+                </div>
 
-                    {/* Year Dropdown */}
-                    <select
-                      name="year"
-                      className="w-[165px] h-[40px] text-center px-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
-                      style={{
-                        maxHeight: "200px", // Allows space for 5 options
-                        overflowY: "auto", // Enables scrollbar
-                      }}
-                      value={selectedDate.year}
-                      onChange={handleChange}
+                <ErrorMessage
+                  name="city"
+                  component="div"
+                  className="text-red text-sm mt-1"
+                />
+              </div>
+
+              <div className="flex flex-col md:flex-row">
+                <label className="font-semibold w-full md:max-w-48 mb-2 md:mb-0 flex items-center">
+                  Property Address
+                  <ReusableRedTagComponent />
+                </label>
+                <div className="flex flex-col w-full">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Search location..."
+                    className="w-full p-2 border rounded-md md:h-[28px] h-[36px] text-sm"
+                  />
+
+                  {/* Loading State */}
+                  {loading && (
+                    <div className="text-sm text-gray-500">
+                      Loading suggestions...
+                    </div>
+                  )}
+
+                  {/* Suggestions Dropdown */}
+                  {suggestions.length > 0 && (
+                    <ul className="border rounded-md mt-1 max-h-40 overflow-y-auto bg-white shadow-lg">
+                      {suggestions.slice(0, 3).map((suggestion) => (
+                        <li
+                          key={suggestion.place_id}
+                          onClick={() =>
+                            handleSuggestionClick(
+                              suggestion.place_id,
+                              setFieldValue
+                            )
+                          }
+                          className="p-2 hover:bg-gray-100 cursor-pointer"
+                        >
+                          {suggestion.description}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Custom Location Option */}
+                  {!suggestions.length && searchQuery && (
+                    <li
+                      style={{ cursor: "pointer", color: "blue" }}
+                      onClick={() => setShow(true)}
+                      className="p-2 hover:bg-gray-100 text-sm"
                     >
-                      <option value="" disabled>
-                        Select Year
-                      </option>
-                      {Array.from({ length: 21 }, (_, i) => 2010 + i).map(
-                        (year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        )
+                      Add Custom Location:
+                      {show && (
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) =>
+                            handleCustomInputChange(e, setFieldValue)
+                          }
+                          placeholder="Enter your custom address"
+                          className="p-2 hover:bg-gray-100 placeholder:text-xs mt-2 border rounded-md w-full"
+                        />
                       )}
-                    </select>
-                  </div>
+                    </li>
+                  )}
 
-                  {/* Error Message */}
                   <ErrorMessage
-                    name="possessionDate"
+                    name="propertyLocation"
                     component="div"
-                    className="text-red text-[10px] w-full mt-2"
+                    className="text-red text-xs mt-1"
                   />
                 </div>
+              </div>
 
-                <div className="flex flex-col lg:flex-row justify-between">
-                  <div className="flex flex-col w-full lg:w-1/2">
-                    <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
-                      <label className="w-full md:max-w-48 font-semibold flex items-center">
-                        Total Unit Number <ReusableRedTagComponent />
-                      </label>
-                      <Field
-                        type="text"
-                        name="totalUnitNumber"
-                        className="lg:w-full p-2 border rounded-md h-[28px]"
-                      />
-                    </div>
+              <div className="w-full md:w-[64%] md:ml-[194px] h-[250px]">
+                <GoogleMap
+                  mapContainerStyle={{ height: "100%", width: "100%" }}
+                  options={mapOptions}
+                  onClick={(event) => handleMapClick(event, setFieldValue)}
+                >
+                  {selectedLocation && <Marker position={selectedLocation} />}
+                </GoogleMap>
+              </div>
 
-                    <ErrorMessage
-                      name="totalUnitNumber"
-                      component="div"
-                      className="text-red text-[10px]"
-                    />
-                  </div>
+              {/* Hidden Fields */}
+              <Field type="hidden" name="latitude" />
+              <Field type="hidden" name="longitude" />
+              <Field type="hidden" name="propertyLocation" />
+
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                <label className="w-full md:max-w-48 font-semibold flex items-center">
+                  Landmark
+                  <ReusableRedTagComponent />
+                </label>
+                <Field
+                  type="text"
+                  name="landmark"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setFieldValue("landmark", e.target.value);
+                  }}
+                  className="w-full p-2 border rounded-md h-[28px] text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col md:flex-row">
+                <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex items-center">
+                  RERA Number
+                  <ReusableRedTagComponent />
+                </label>
+                <div className="flex gap-5">
+                  {["Yes", "No"].map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setFieldValue("is_rera_number", option)}
+                      className={`px-8 py-1  rounded-[50px] text-sm font-medium  w-fit my-3  ${
+                        values.is_rera_number === option
+                          ? "bg-[#FC6600] text-white"
+                          : "bg-white text-black border border-[#222222]/80"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+                {values.is_rera_number === "Yes" ? (
+                  <Field
+                    type="text"
+                    name="reraNumber"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setFieldValue("reraNumber", e.target.value);
+                    }}
+                    placeHolder="Provide RERA Number"
+                    className="w-full p-2 border rounded-md h-[28px] text-sm my-3 ml-1"
+                  />
+                ) : null}
+
+                <ErrorMessage
+                  name="is_rera_number"
+                  component="div"
+                  className="text-red text-[10px] lg:text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                <label className="w-full md:max-w-48 font-semibold flex items-center">
+                  Property Title
+                </label>
+                <Field
+                  type="text"
+                  name="propertyTitle"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setFieldValue("propertyTitle", e.target.value);
+                  }}
+                  className="w-full p-2 border rounded-md h-[28px] text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                <label className="w-full md:max-w-48 font-semibold flex items-center">
+                  Company Name
+                  <ReusableRedTagComponent />
+                </label>
+                <Field
+                  type="text"
+                  name="companyName"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setFieldValue("companyName", e.target.value);
+                  }}
+                  className="w-full p-2 border rounded-md h-[28px] text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col md:flex-row">
+                <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex items-center">
+                  Project Variety <ReusableRedTagComponent />
+                </label>
+                <div className="flex gap-1 flex-wrap">
+                  {ProjectVariety.map((variety) => (
+                    <button
+                      key={variety}
+                      type="button"
+                      onClick={() => setFieldValue("ProjectVariety", variety)}
+                      className={`px-4 py-2  rounded-[50px] text-sm font-medium font-['Poppins'] ${
+                        values.ProjectVariety === variety
+                          ? "bg-[#FC6600] text-white"
+                          : "bg-white text-black border border-[#222222]/80"
+                      }`}
+                    >
+                      {variety}
+                    </button>
+                  ))}
+                </div>
+                <ErrorMessage
+                  name="ProjectVariety"
+                  component="div"
+                  className="text-red text-xs"
+                />
+              </div>
+
+              <div className="flex flex-col md:flex-row">
+                <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex items-center">
+                  Open Plot Variety
+                  <ReusableRedTagComponent />
+                </label>
+                <div className="flex gap-1 flex-wrap">
+                  {DoorFacing.map((facing) => (
+                    <button
+                      key={facing}
+                      type="button"
+                      onClick={() => setFieldValue("openPlotVariety", facing)}
+                      className={`px-4 py-2  rounded-[50px] text-sm font-medium  ${
+                        values.openPlotVariety === facing
+                          ? "bg-[#FC6600] text-white"
+                          : "bg-white text-black border border-[#222222]/80"
+                      }`}
+                    >
+                      {facing}
+                    </button>
+                  ))}
                 </div>
 
-                <div className="flex flex-col lg:flex-row justify-between">
-                  <div className="flex flex-col w-full lg:w-1/2">
-                    <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
-                      <label className="w-full md:max-w-48 font-semibold flex items-center">
-                        Per sqft rate <ReusableRedTagComponent />
-                      </label>
-                      <Field
-                        type="text"
-                        name="perSqftRate"
-                        className="lg:w-full p-2 border rounded-md h-[28px]"
-                      />
-                    </div>
+                <ErrorMessage
+                  name="openPlotVariety"
+                  component="div"
+                  className="text-red text-xs"
+                />
+              </div>
 
-                    <ErrorMessage
-                      name="perSqftRate"
-                      component="div"
-                      className="text-red text-[10px]"
-                    />
-                  </div>
+              <div className="flex flex-col md:flex-row">
+                <label className="mb-2 font-semibold w-full md:max-w-48 md:mb-0 flex items-center">
+                  Current Status
+                  <span className="mr-18">
+                    <ReusableRedTagComponent />
+                  </span>
+                </label>
+                <div className="flex gap-1 flex-wrap">
+                  {ProjectVarietyType.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setFieldValue("currentStatus", type)}
+                      className={`px-6 py-2   rounded-full text-sm font-medium  ${
+                        values.currentStatus === type
+                          ? "bg-[#FC6600] text-white"
+                          : "bg-white text-black border border-[#222222]/80"
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
                 </div>
 
-                <BuilderConfigration />
+                <ErrorMessage
+                  name="currentStatus"
+                  component="div"
+                  className="text-red text-xs"
+                />
+              </div>
 
-                <div className="flex flex-row gap-4 justify-center items-center">
-                  <button
-                    type="submit"
-                    className="min-w-[100px] p-4 bg-primary text-white rounded-full text-sm "
+              <div className="flex flex-col sm:flex-row items-center w-full gap-4">
+                {/* Label Section */}
+                <label className="font-semibold whitespace-nowrap w-full  sm:w-[150px] flex items-center">
+                  Total Project Area <ReusableRedTagComponent />
+                </label>
+
+                {/* Input and Select Section */}
+                <div className="flex flex-col ml-8 sm:flex-row gap-4 w-full sm:w-auto">
+                  {/* Input Field */}
+                  <Field
+                    type="text"
+                    name="totalProjectArea"
+                    placeholder=""
+                    className="w-[165px] h-[28px]  p-2 border rounded-md "
+                  />
+
+                  <select
+                    className="w-[165px] h-[28px] text-center px-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                    onChange={(e) => setSelectedProjectAreaType(e.target.value)}
+                    value={selectedProjectAreaType} // Bind state to the select value
                   >
-                    Save and Next
-                  </button>
+                    <option value="Acre">Acre</option>
+                    <option value="Sq.ft">Sq.ft</option>
+                    <option value="Sq.m">Sq.m</option>
+                  </select>
                 </div>
 
-                {/* 
+                {/* Error Message */}
+                <ErrorMessage
+                  name="totalProjectArea"
+                  component="div"
+                  className="text-red text-[10px] w-full mt-2"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center w-full gap-4">
+                {/* Label Section */}
+                <label className="font-semibold whitespace-nowrap w-full sm:w-[150px] flex items-center">
+                  Width of facing road <ReusableRedTagComponent />
+                </label>
+
+                {/* Input and Select Section */}
+                <div className="flex flex-col ml-8 sm:flex-row gap-4 w-full sm:w-auto">
+                  {/* Input Field */}
+                  <Field
+                    type="text"
+                    name="widthOfFacingRoad"
+                    placeholder=""
+                    className="w-[165px] h-[28px]  p-2 border rounded-md "
+                  />
+
+                  <span>Feet</span>
+                </div>
+
+                {/* Error Message */}
+                <ErrorMessage
+                  name="widthOfFacingRoad"
+                  component="div"
+                  className="text-red text-[10px] w-full mt-2"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center w-full gap-4">
+                <label className="font-semibold whitespace-nowrap w-full  sm:w-[150px] flex items-center">
+                  Possession Date
+                  <ReusableRedTagComponent />
+                </label>
+
+                <div className="flex flex-col ml-8 sm:flex-row gap-4 w-full sm:w-auto">
+                  <select
+                    name="month"
+                    className="w-[165px] h-[40px] text-center px-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                    style={{
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                    }}
+                    value={selectedDate.month}
+                    onChange={handleChange}
+                  >
+                    <option value="" disabled>
+                      Select Month
+                    </option>
+                    {[
+                      "January",
+                      "February",
+                      "March",
+                      "April",
+                      "May",
+                      "June",
+                      "July",
+                      "August",
+                      "September",
+                      "October",
+                      "November",
+                      "December",
+                    ].map((month) => (
+                      <option key={month} value={month}>
+                        {month}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Year Dropdown */}
+                  <select
+                    name="year"
+                    className="w-[165px] h-[40px] text-center px-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                    style={{
+                      maxHeight: "200px", // Allows space for 5 options
+                      overflowY: "auto", // Enables scrollbar
+                    }}
+                    value={selectedDate.year}
+                    onChange={handleChange}
+                  >
+                    <option value="" disabled>
+                      Select Year
+                    </option>
+                    {Array.from({ length: 21 }, (_, i) => 2010 + i).map(
+                      (year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                {/* Error Message */}
+                <ErrorMessage
+                  name="possessionDate"
+                  component="div"
+                  className="text-red text-[10px] w-full mt-2"
+                />
+              </div>
+
+              <div className="flex flex-col lg:flex-row justify-between">
+                <div className="flex flex-col w-full lg:w-1/2">
+                  <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                    <label className="w-full md:max-w-48 font-semibold flex items-center">
+                      Total Unit Number <ReusableRedTagComponent />
+                    </label>
+                    <Field
+                      type="text"
+                      name="totalUnitNumber"
+                      className="lg:w-full p-2 border rounded-md h-[28px]"
+                    />
+                  </div>
+
+                  <ErrorMessage
+                    name="totalUnitNumber"
+                    component="div"
+                    className="text-red text-[10px]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col lg:flex-row justify-between">
+                <div className="flex flex-col w-full lg:w-1/2">
+                  <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                    <label className="w-full md:max-w-48 font-semibold flex items-center">
+                      Per sqft rate <ReusableRedTagComponent />
+                    </label>
+                    <Field
+                      type="text"
+                      name="perSqftRate"
+                      className="lg:w-full p-2 border rounded-md h-[28px]"
+                    />
+                  </div>
+
+                  <ErrorMessage
+                    name="perSqftRate"
+                    component="div"
+                    className="text-red text-[10px]"
+                  />
+                </div>
+              </div>
+
+              <BuilderConfigration />
+
+              <div className="flex flex-row gap-4 justify-center items-center">
+                <button
+                  type="submit"
+                  className="mt-8 w-full max-w-48 flex justify-center items-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
+                >
+                  {isSubmitting ? "Submitting..." : "SAVE & NEXT"}
+                </button>
+              </div>
+
+              {/* 
                 <button
                   type="submit"
                   className="w-1/2  py-2 px-4 bg-primary text-white rounded-md mt-4"
                 >
                   {"Save and Next"}
                 </button> */}
-              </Form>
-            )
+            </Form>
           )}
         </Formik>
-      </LoadScript>
+      </LoadScriptNext>
     </>
   );
 }

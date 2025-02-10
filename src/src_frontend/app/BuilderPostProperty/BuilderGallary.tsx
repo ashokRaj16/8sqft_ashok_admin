@@ -80,12 +80,15 @@ export default function BuilderGallary({ onNext }: GalleryComponentProps) {
           />
         </div>
       </div>
-      <button
-        onClick={handleSubmit}
-        className="mt-8 w-full max-w-48 flex self-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
-      >
-        Save and Next
-      </button>
+      <div className="flex flex-row gap-4 justify-center items-center">
+        <button
+          onClick={handleSubmit}
+          className="mt-8 w-full max-w-48 flex justify-center items-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
+        >
+          Save and Next
+        </button>
+      </div>
+
       {error && (
         <p className="text-red-500 text-sm mt-4">Error: {error.message}</p>
       )}

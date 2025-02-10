@@ -316,9 +316,9 @@ const PostPropertyFormComponent = () => {
               ) : null}
 
               <CardFooter>
-                {!token ? (
+                {/* {!token ? (
                   <HoverCardComponent /> // Show login prompt if user is not logged in
-                ) : (
+                ) : ( */}
                   <Button
                     variant="default"
                     className={
@@ -335,7 +335,7 @@ const PostPropertyFormComponent = () => {
                   >
                     Proceed
                   </Button>
-                )}
+                {/* )} */}
               </CardFooter>
             </Card>
           </TabsContent>

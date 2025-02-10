@@ -14,4 +14,10 @@ module.exports = {
       
     ],
   },
+  async rewrites() {
+    return [
+      { source: '/builder-post-property', destination: '/BuilderPostProperty' },
+      { source: '/residential-plan', destination: '/ResidentialPlan' },
+    ]
+  }
 };

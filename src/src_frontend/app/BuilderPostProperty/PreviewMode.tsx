@@ -28,7 +28,9 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
   const { mutate } = useBuilderSubmitDetail({
     onSuccess: (data: any) => {
       toast.success(`${data.message}`);
+      // ### show popup/modal for submitted successfully and shift him to post property 
       onNext();
+      router.push('/Post-Property')
     },
     onError: (error: any) => {
       toast.error(error.message);
@@ -75,6 +77,7 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
     }
     return min;
   }, Infinity);
+
   const details = [
     {
       label: `₹${property?.rent_amount || "N/A"}`,
@@ -123,64 +126,68 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
         </div>
 
         <div className="flex flex-col  w-full max-w-7xl mx-auto">
-        <div className="flex flex-col gap-6 lg:p-4 bg-white rounded-lg lg:shadow-md w-full">
-        <div className="flex items-center justify-between lg:px-4 lg:py-2 bg-white">
-          <div className="flex flex-col w-[688px] gap-4">
-            <div className="hidden lg:flex text-sm text-gray">
-              Home &gt; Listings &gt; Dehu
-            </div>
+          <div className="flex flex-col gap-6 lg:p-4 bg-white rounded-lg lg:shadow-md w-full">
+            <div className="flex items-center justify-between lg:px-4 lg:py-2 bg-white">
+              <div className="flex flex-col w-[688px] gap-4">
+                {/* <div className="hidden lg:flex text-sm text-gray">
+                  Home &gt; Listings &gt; Dehu
+                </div> */}
 
-            <div className="space-y-2 hidden lg:block">
-              <h1 className="text-3xl font-medium text-[#222222cc] ">
-                {property?.property_title || "Property Title"}
-              </h1>
+                <div className="space-y-2 hidden lg:block">
+                  <h1 className="text-3xl font-medium text-[#222222cc] ">
+                    {property?.property_title || "Property Title"}
+                  </h1>
 
-              <div className="space-y-1 gap-2">
-                <div className="flex items-center gap-1 text-xs">
-                  <span className="font-light">By</span>
-                  <span className="font-light text-[#fc6600]">
-                    {property?.company_name}
-                  </span>
+                  <div className="space-y-1 gap-2">
+                    <div className="flex items-center gap-1 text-xs">
+                      <span className="font-light">By</span>
+                      <span className="font-light text-[#fc6600]">
+                        {property?.company_name}
+                      </span>
+                    </div>
+
+                    <p className="text-xs font-light text-[#222222]">
+                      {`${property?.city_name || ""} ${
+                        property?.landmark || ""
+                      } ${property?.locality || ""}`}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Card className="w-11 h-8 bg-gradient-to-b from-[#ff9146] to-[#fc6600]">
+                      <CardContent className="flex items-center justify-center p-0 h-full">
+                        <Star className="w-4 h-4 text-white" />
+                        <h1 className="text-xs text-white"> 5</h1>
+                      </CardContent>
+                    </Card>
+
+                    <Button
+                      variant="secondary"
+                      className="h-8 bg-[#f3f1f1] text-[#fc6600] hover:bg-[#f3f1f1] hover:text-[#fc6600]"
+                    >
+                      Write a Review
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:flex flex-col items-end gap-4 w-[348px] hidden">
+                <div className="text-right">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xl font-light">{`  ${formatPrice(
+                      Number(minCarpetPrice)
+                    )} Starting`}</span>
+                    <span className="text-md font-light">
+                      {`  ${formatPrice(
+                        Number(property?.per_sqft_amount)
+                      )}/sq.ft`}
+                    </span>
+                  </div>
                 </div>
 
-                <p className="text-xs font-light text-[#222222]">
-                  {`${property?.city_name || ""} ${property?.landmark || ""} ${
-                    property?.locality || ""
-                  }`}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Card className="w-11 h-8 bg-gradient-to-b from-[#ff9146] to-[#fc6600]">
-                  <CardContent className="flex items-center justify-center p-0 h-full">
-                    <Star className="w-4 h-4 text-white" />
-                    <h1 className="text-xs text-white"> 5</h1>
-                  </CardContent>
-                </Card>
-
-                <Button
-                  variant="secondary"
-                  className="h-8 bg-[#f3f1f1] text-[#fc6600] hover:bg-[#f3f1f1] hover:text-[#fc6600]"
-                >
-                  Write a Review
-                </Button>
+                <BuilderContactSection />
               </div>
             </div>
-          </div>
-
-          <div className="lg:flex flex-col items-end gap-4 w-[348px] hidden">
-            <div className="text-right">
-              <div className="flex items-center gap-1">
-              <span className="text-xl font-light">{`  ${formatPrice(Number(minCarpetPrice))} Starting`}</span>
-                <span className="text-md font-light">
-                  {`  ${formatPrice(Number(property?.per_sqft_amount))}/sq.ft`}
-                </span>
-              </div>
-            </div>
-
-            <BuilderContactSection />
-          </div>
-        </div>
 
             <div className="flex flex-col  gap-4 w-full  lg:px-10 h-[60vh]">
               <div className="lg:w-full h-full">
@@ -191,20 +198,21 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
                   possession_date={property.possession_date}
                 />
               </div>
-              
             </div>
 
             <div className="text-sm text-gray-600 mt-4">
-            <BuilderPreviewModeLayout />
+              <BuilderPreviewModeLayout />
             </div>
           </div>
         </div>
-        <button
-          onClick={() => mutate({ id: Number(userid), step_id: 5 })}
-          className="mt-8 w-full max-w-48 flex self-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
-        >
-          Save and Next
-        </button>
+        <div className="flex flex-row gap-4 justify-center items-center">
+          <button
+            onClick={() => mutate({ id: Number(userid), step_id: 5 })}
+            className="mt-8 w-full max-w-48 flex justify-center items-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
+          >
+            Save
+          </button>
+        </div>
       </div>
     </div>
   );

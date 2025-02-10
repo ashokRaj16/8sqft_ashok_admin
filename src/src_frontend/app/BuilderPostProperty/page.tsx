@@ -8,6 +8,7 @@ import BuilderPropertyDetailsComponent from "./BuilderPropertyDetailsComponent";
 import BuilderAmenitiesComponent from "./BuilderAmenitiesComponent";
 import BuilderGallary from "./BuilderGallary";
 import PreviewModeComponent from "./PreviewMode";
+import { title } from "process";
 
 // Define the Tab component type
 type TabComponent = {
@@ -17,30 +18,53 @@ type TabComponent = {
 };
 
 export default function BuilderPostProperty(): JSX.Element {
+
   const [activeTab, setActiveTab] = useState<string>("Property Details");
+
   const [completedTabs, setCompletedTabs] = useState<{
     [key: string]: boolean;
   }>({
-    "Property Details": false,
-    Amenities: false,
-    "Gallery & Verification": false,
-    "Preview Mode": false,
+    "Property Details" : false,
+    "Amenities" : false,
+    "Gallery & Verification" : false,
+    "Preview Mode" : false,
   });
 
-  // Handle the completion of the current tab
-  const handleCompleteTab = (title: string) => {
-    setCompletedTabs((prev) => ({
-      ...prev,
-      [title]: true,
-    }));
-  };
+  const handleCompleteAndNext = (title : string) => {
+    setCompletedTabs((prev) => {
+      const updatedTabs = {
+        ...prev,
+        [title] : true,
+      }
 
-  const handleNext = (): void => {
-    const currentIndex = Tablinks.findIndex(({ title }) => title === activeTab);
-    if (currentIndex < Tablinks.length - 1 && completedTabs[activeTab]) {
-      setActiveTab(Tablinks[currentIndex + 1].title);
-    }
-  };
+      const currentIndex = Tablinks.findIndex(({ title }) => title === activeTab);
+      if (currentIndex < Tablinks.length - 1 && updatedTabs[title]) {
+        setActiveTab(Tablinks[currentIndex + 1].title);
+      }
+
+      return updatedTabs;
+    })
+  }
+
+  console.log("completed tabs", completedTabs);
+
+  // Handle the completion of the current tab
+  // const handleCompleteTab = (title: string) => {
+  //   console.log("tab title:", title)
+  //   setCompletedTabs((prev) => ({
+  //     ...prev,
+  //     [title]: true,
+  //   }));
+  // };
+
+  // const handleNext = (): void => {
+
+  //   const currentIndex = Tablinks.findIndex(({ title }) => title === activeTab);
+  //   console.log('Current index:', currentIndex, Tablinks.length, completedTabs[activeTab]);
+  //   if (currentIndex < Tablinks.length - 1 && completedTabs[activeTab]) {
+  //     setActiveTab(Tablinks[currentIndex + 1].title);
+  //   }
+  // };
 
   const Tablinks: TabComponent[] = [
     {
@@ -56,6 +80,8 @@ export default function BuilderPostProperty(): JSX.Element {
   useEffect(() => {
     hydrateAuthStore();
   }, []);
+
+
   const isMobile = useMediaQuery("(max-width: 1024px)");
   return (
     <Tabs value={activeTab} className="w-full flex flex-col items-center">
@@ -115,8 +141,9 @@ export default function BuilderPostProperty(): JSX.Element {
           >
             <Component
               onNext={() => {
-                handleCompleteTab(title);
-                handleNext();
+                // handleCompleteTab(title);
+                //handleNext();
+                handleCompleteAndNext(title)
               }}
             />
           </TabsContent>
