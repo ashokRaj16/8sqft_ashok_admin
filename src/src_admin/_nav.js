@@ -23,6 +23,7 @@ const _nav = [
     name: 'Dashboard',
     to: '/dashboard',
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    role : ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE"]
   },
   // {
   //   component: CNavItem,
@@ -34,12 +35,14 @@ const _nav = [
     name: 'Properties',
     to: '/properties',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+    role : ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE"],
     items: [ 
       {
         component: CNavItem,
         name: 'Property',
         // icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-        to: '/properties'
+        to: '/properties',
+        role : ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE"]
       },
       // {
       //   component: CNavItem,
@@ -55,17 +58,19 @@ const _nav = [
     name: 'Plans',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     to : '/plans',
+    role : ['SUPER ADMIN', 'SUB ADMIN'],
     items: [ 
       {
         component: CNavItem,
         name: 'Plans',
-        to: '/plans'
+        to: '/plans',
+        role : ['SUPER ADMIN', 'SUB ADMIN']
       },
-      {
-        component: CNavItem,
-        name: 'Coupons',
-        to: '/coupons'
-      },
+      // {
+      //   component: CNavItem,
+      //   name: 'Coupons',
+      //   to: '/coupons'
+      // },
   ]
   },
   {
@@ -73,17 +78,19 @@ const _nav = [
     name: 'Subscriptions Plans',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     to : '/subscription',
+    role : ['SUPER ADMIN'],
     items: [ 
       {
         component: CNavItem,
         name: 'Subscription',
-        to: '/subscription'
+        to: '/subscription',
+        role : ['SUPER ADMIN']
       },
-      {
-        component: CNavItem,
-        name: 'Renewal',
-        to: '/renewal'
-      }
+      // {
+      //   component: CNavItem,
+      //   name: 'Renewal',
+      //   to: '/renewal'
+      // }
   ]
     
   },
@@ -92,6 +99,7 @@ const _nav = [
     name: 'Contact Us',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     to : '/contact-us',
+    role : ['SUPER ADMIN']
   },
   // {
   //   component: CNavItem,
@@ -109,12 +117,14 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Category',
-        to: '/category'
+        to: '/category',
+        role : ['SUPER ADMIN', 'SUB ADMIN']
       },
       {
         component: CNavItem,
         name: 'Blog',
-        to: '/blogs'
+        to: '/blogs',
+        role : ['SUPER ADMIN', 'SUB ADMIN']
       }
   ]
   },
@@ -122,17 +132,20 @@ const _nav = [
     component: CNavGroup,
     name: 'Users',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+    role : ['SUPER ADMIN', 'SUB ADMIN'],
     to : '/',
     items: [ 
       {
         component: CNavItem,
         name: 'Admin',
-        to: '/admin'
+        to: '/admin',
+        role : ['SUPER ADMIN']
       },
       {
         component: CNavItem,
         name: 'Member',
-        to: '/member'
+        to: '/member',
+        role : ['SUPER ADMIN', 'SUB ADMIN']
       }
   ]
   },
@@ -141,6 +154,7 @@ const _nav = [
     name: 'Setting',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     to : '/setting',
+    role : ['SUPER ADMIN']
   },
 ]
 
