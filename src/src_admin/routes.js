@@ -42,48 +42,46 @@ const PageNotAuthorize = React.lazy(() => import('@page/page404/PageNotAuthorize
 
 const routes = [
   { path: '/', exact: true, name: 'login', element: login },
-  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard , allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
   
   { path: '/properties/ameneties', name: 'Amennities', element: ListAmenities },
   { path: '/properties/ameneties/add', name: 'Add Amennities', element: AddAmenity },
   { path: '/properties/ameneties/edit/:id', name: 'Edit Amennities', element: EditAmenity },
 
-  { path: '/properties', name: 'Properties', element: ListProperties },
-  { path: '/properties/add', name: 'Add Properties', element: Addproperties },
-  { path: '/properties/edit/:id', name: 'Edit Properties', element: Editproperties },
-  { path: '/properties/view/:id', name: 'View Property', element: Viewproperties },
+  { path: '/properties', name: 'Properties', element: ListProperties, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE"] },
+  { path: '/properties/add', name: 'Add Properties', element: Addproperties, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/properties/edit/:id', name: 'Edit Properties', element: Editproperties, allowedRole: ['SUPER ADMIN', 'SUB ADMIN']  },
+  { path: '/properties/view/:id', name: 'View Property', element: Viewproperties, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE"]  },
   
-  { path: '/admin', name: 'Admin', element: ListAdminUser },
-  { path: '/admin/add', name: 'Add Admin', element: AddAdminUser },
-  { path: '/admin/edit/:id', name: 'Edit Admin', element: EditAdminUser },
-  { path: '/admin/view/:id', name: 'Edit Admin', element: ViewAdminUser },
+  { path: '/admin', name: 'Admin', element: ListAdminUser, allowedRole: ['SUPER ADMIN']  },
+  { path: '/admin/add', name: 'Add Admin', element: AddAdminUser, allowedRole: ['SUPER ADMIN'] },
+  { path: '/admin/edit/:id', name: 'Edit Admin', element: EditAdminUser, allowedRole: ['SUPER ADMIN'] },
+  { path: '/admin/view/:id', name: 'Edit Admin', element: ViewAdminUser, allowedRole: ['SUPER ADMIN'] },
 
-  { path: '/member', name: 'Member', element: ListMemberUser },
-  { path: '/member/add', name: 'Add Member', element: AddMemberUser },
-  { path: '/member/edit/:id', name: 'Edit Member', element: EditMemberUser },
-  { path: '/member/view/:id', name: 'View Member', element: ViewMemberUser },
+  { path: '/member', name: 'Member', element: ListMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/member/add', name: 'Add Member', element: AddMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/member/edit/:id', name: 'Edit Member', element: EditMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/member/view/:id', name: 'View Member', element: ViewMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
 
-  { path: '/subscription', name: 'Subscription', element: ListRegisterPlan },
-  { path: '/subscription/view/:id', name: 'Add Subscription', element: ViewRegisterPlan },
+  { path: '/subscription', name: 'Subscription', element: ListRegisterPlan, allowedRole: ['SUPER ADMIN'] },
+  { path: '/subscription/view/:id', name: 'Add Subscription', element: ViewRegisterPlan, allowedRole: ['SUPER ADMIN'] },
 
-  { path: '/plans', name: 'Register Plans', element: ListPlans },
-  { path: '/plans/add', name: 'View Register Plans', element: AddPlans },
+  { path: '/plans', name: 'Register Plans', element: ListPlans, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/plans/add', name: 'View Register Plans', element: AddPlans, allowedRole: ['SUPER ADMIN'] },
 
-  { path: '/profile', name: 'Profile', element: Profile },
+  { path: '/profile', name: 'Profile', element: Profile, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
   
-  { path: '/blogs', name: 'Blogs', element: ListBlogs },
-  { path: '/blogs/add', name: 'Add Blogs', element: AddBlog },
-  { path: '/blogs/view/:id', name: 'View Blogs', element: ViewBlogs },
+  { path: '/blogs', name: 'Blogs', element: ListBlogs , allowedRole: ['SUPER ADMIN'] },
+  { path: '/blogs/add', name: 'Add Blogs', element: AddBlog, allowedRole: ['SUPER ADMIN'] },
+  { path: '/blogs/view/:id', name: 'View Blogs', element: ViewBlogs, allowedRole: ['SUPER ADMIN'] },
 
-  { path: '/category', name: 'Category', element: BlogCategory },
+  { path: '/category', name: 'Category', element: BlogCategory, allowedRole: ['SUPER ADMIN'] },
 
-  { path: '/contact-us', name: 'Contact', element: ListContactUs },
+  { path: '/contact-us', name: 'Contact', element: ListContactUs, allowedRole: ['SUPER ADMIN'] },
   // { path: '/contact-us/view/:id', name: 'View Contact', element: ViewContactUs },
 
-  // { path: '/blog/add', name: 'List Blogs', element: AddBlog },
-
-  { path: '/not-authorize', name: 'Not Authorize', element: PageNotAuthorize },
-  { path: '*', name: 'Not Found', element: Page404 },
+  { path: '/401', name: '401', element: PageNotAuthorize, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
+  { path: '*', name: 'Not Found', element: Page404, allowedRole : ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
 ]
 
 export default routes;

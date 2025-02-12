@@ -3,10 +3,17 @@ import { NavLink } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import SimpleBar from 'simplebar-react'
 import 'simplebar-react/dist/simplebar.min.css'
+import { useSelector } from 'react-redux'
 
 import { CBadge, CNavLink, CSidebarNav } from '@coreui/react'
 
 export const AppSidebarNav = ({ items }) => {
+
+  const { sidebarShow, unfoldable } = useSelector((state) => state.theme)
+  const { users } = useSelector((state) =>state.auth);
+
+  // const useRole = users.
+  console.log(users.role_name)
   const navLink = (name, icon, badge, indent = false) => {
     return (
       <>
@@ -52,7 +59,7 @@ export const AppSidebarNav = ({ items }) => {
     const Component = component
     return (
       <Component compact as="div" key={index} toggler={navLink(name, icon)} {...rest}>
-        {item.items?.map((item, index) =>
+        {item.items?.filter(item => item.role?.includes(users.role_name)).map((item, index) =>
           item.items ? navGroup(item, index) : navItem(item, index, true),
         )}
       </Component>
@@ -62,7 +69,7 @@ export const AppSidebarNav = ({ items }) => {
   return (
     <CSidebarNav as={SimpleBar}>
       {items &&
-        items.map((item, index) => (item.items ? navGroup(item, index) : navItem(item, index)))}
+        items.filter(item => item.role?.includes(users.role_name)).map((item, index) => (item.items ? navGroup(item, index) : navItem(item, index)))}
     </CSidebarNav>
   )
 }

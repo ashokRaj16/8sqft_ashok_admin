@@ -15,13 +15,9 @@ import { logo } from 'src/assets/brand/logo'
 import { sygnet } from 'src/assets/brand/sygnet'
 import { foldableSidebar, toggleSidebar } from '../store/themeReducer';
 
-// sidebar nav config
 import navigation from '../_nav'
 
 const AppSidebar = () => {
-  // const dispatch = useDispatch()
-  // const unfoldable = useSelector((state) => state.sidebarUnfoldable)
-  // const sidebarShow = useSelector((state) => state.sidebarShow)
 
   const dispatch = useDispatch()
   const { sidebarShow, unfoldable } = useSelector((state) => state.theme)

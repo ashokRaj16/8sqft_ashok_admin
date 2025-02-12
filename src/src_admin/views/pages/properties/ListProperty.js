@@ -162,7 +162,7 @@
 //#endregion
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   CCard,
   CCardBody,
@@ -192,7 +192,7 @@ import {
 // import { jsPDF } from 'jspdf';
 // import 'jspdf-autotable';
 // import * as XLSX from 'xlsx';
-import _ from 'lodash'
+import _, { replace } from 'lodash'
 import {
   FaSort,
   FaSortUp,
@@ -230,10 +230,18 @@ const getStatusBadge = (status) => {
 }
 
 const ListProperty = () => {
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [searchParams] = useSearchParams();
+  const page = searchParams.get('page');
+  const perpage = searchParams.get('perpage');
+
   const [searchTerm, setSearchTerm] = useState('')
   const [stepTerm, setStepTerm] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(20)
+  const [currentPage, setCurrentPage] = useState(Number(page) || 1)
+  const [itemsPerPage, setItemsPerPage] = useState(Number(perpage) || 20)
   const [sortConfig, setSortConfig] = useState({ key: '', direction: '' })
   const [selectedMembers, setSelectedMembers] = useState([])
   const [currentMembers, setCurrentMembers] = useState([])
@@ -243,10 +251,11 @@ const ListProperty = () => {
   const [tooltipOpen, setTooltipOpen] = useState(false)
 
   const [toast, addToast] = useState(0)
-  const navigate = useNavigate()
+  
   const toaster = useRef()
   const debounceValue = useDebounce(searchTerm, 500)
-
+  
+  
   const handleSearch = (event) => {
     const value = event.target.value
     setSearchTerm(value)
@@ -259,24 +268,6 @@ const ListProperty = () => {
       setStepTerm(value)
     }
   }
-
-  // const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-
-  // Debounced function for handling API calls or delayed updates
-  //  const debouncedSearch = useCallback(
-  //   _.debounce(async (value) => {
-  //     console.log("Debounced value:", value);
-  //     // await loadPropertyData();
-  //     // Perform actions like API calls here
-  //   }, 500),
-  //   [] // Ensures debounce function is stable across renders
-  // );
-
-  // const handleSearch = (event) => {
-  //   const value = event.target.value;
-  //   setSearchTerm(value); // Update the text field immediately
-  //   debouncedSearch(value); // Pass the value to the debounced function
-  // };
 
   const handleVisitExternalLink = (id, project_type = null) => {
     console.log(id, project_type)
@@ -318,8 +309,7 @@ const ListProperty = () => {
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(i)
     }
-
-    return pageNumbers
+    return pageNumbers;
   }
 
   const requestSort = (key) => {
@@ -407,9 +397,10 @@ const ListProperty = () => {
         searchTerm,
         stepTerm,
       )
-      console.log('UI:', result.data.property, stepTerm)
       setCurrentMembers(() => result.data.property)
       setTotalItems(result.data.totalCounts)
+      updatePageRoute( currentPage, itemsPerPage)
+      
       setLoading(false)
     } catch (error) {
       console.log('Error: ', error)
@@ -418,12 +409,23 @@ const ListProperty = () => {
       setLoading(false)
     }
   }
+  
+  const updatePageRoute = async ( pageNumber, perPage ) => {
+    // ### add app params like searchFilter | stepId
+    console.log("key:", pageNumber, perPage);
+    const params = new URLSearchParams(location.search)
+    params.set('page', pageNumber)
+    params.set('perpage', perPage)
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true })
+  }
 
   useEffect(() => {
+    console.log(currentPage)
     loadPropertyData()
-
+    
     return () => {}
   }, [itemsPerPage, currentPage, sortConfig, debounceValue, stepTerm])
+
 
   const handleDelete = async (id) => {
     let confirmDelete = confirm('Are you sure to remove?', 'message')
@@ -455,6 +457,13 @@ const ListProperty = () => {
     navigate(`/properties/view/${id}?isEdit=${isEdit}`)
   }
 
+  const resetDataHandler = () => {
+    setSearchTerm('')
+    setStepTerm('')
+    setCurrentPage(1)
+    setItemsPerPage(20);
+  }
+  
   const exportPDF = () => {}
   const exportExcel = () => {}
 
@@ -465,9 +474,9 @@ const ListProperty = () => {
         <CCardHeader className="d-flex">
           <strong>Property List</strong>
           <CCol className="d-flex justify-content-end">
-            <CButton onClick={() => navigate('/properties/add')} color="primary">
+            {/* <CButton onClick={() => navigate('/properties/add')} color="primary">
               Add New
-            </CButton>
+            </CButton> */}
             {/* <h1>Member Users</h1> */}
           </CCol>
         </CCardHeader>
@@ -530,10 +539,9 @@ const ListProperty = () => {
               </CButton>
               <CButton
                 color="primary"
-                onClick={() => {
-                  setSearchTerm('')
-                  setStepTerm('')
-                }}
+                onClick={() =>
+                  resetDataHandler()
+                }
               >
                 Clear
               </CButton>
@@ -607,9 +615,9 @@ const ListProperty = () => {
                 <CTableHeaderCell onClick={() => requestSort('locality')}>
                   Locality {getSortIcon('locality')}
                 </CTableHeaderCell>
-                <CTableHeaderCell onClick={() => requestSort('email')}>
-                  User Email {getSortIcon('email')}
-                </CTableHeaderCell>
+                {/* <CTableHeaderCell onClick={() => requestSort('email')}>
+                  Full Name {getSortIcon('email')}
+                </CTableHeaderCell> */}
                 <CTableHeaderCell onClick={() => requestSort('mobile')}>
                   User Mobile {getSortIcon('mobile')}
                 </CTableHeaderCell>
@@ -639,7 +647,7 @@ const ListProperty = () => {
                     </CTableDataCell>
                     <CTableDataCell>{property.city_name || '-'}</CTableDataCell>
                     <CTableDataCell>{property.locality || '-'}</CTableDataCell>
-                    <CTableDataCell>{property.user_email || '-'}</CTableDataCell>
+                    {/* <CTableDataCell>{property.user_email || '-'}</CTableDataCell> */}
                     <CTableDataCell>{property.user_mobile || '-'}</CTableDataCell>
 
                     <CTableDataCell>

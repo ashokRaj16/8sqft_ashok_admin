@@ -17,9 +17,9 @@ import {
     CToaster } from '@coreui/react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { validationAdminSchema } from './adminValidation';
-import { createAdminUser, getAdminRoles } from '../../../models/usersModel';
-import { ToastMessage } from '../../../components/ToastMessage';
-import { getAllCities } from '../../../models/locationModel';
+import { createAdminUser, getAdminRoles } from '@model/usersModel';
+import { ToastMessage } from '@component/ToastMessage';
+import { getAllCities } from '@model/locationModel';
 import { initialAdminValues } from './data';
 import { useNavigate } from 'react-router-dom';
 
@@ -237,7 +237,7 @@ const AddAdminUser = () => {
                         <CCol sm={10} md={6} lg={4}>
                         <Field
                             name="city"
-                            as="select"
+                            as={CFormSelect}
                             className="form-control"
                             >
                         <option value="-1" label="Select city" />
@@ -258,7 +258,7 @@ const AddAdminUser = () => {
                         <CCol sm={10} md={6} lg={4}>
                         <Field
                             name="role_id"
-                            as="select"
+                            as={CFormSelect}
                             className="form-control"
                             >
                         <option value="-1" label="Select Role" />

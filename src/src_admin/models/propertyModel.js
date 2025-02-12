@@ -1,9 +1,7 @@
 import axios from 'axios';
 import { constant } from '../utils/constant';
-import axiosInstance from '../config/axiosInstance';
 import { errorHandler } from '../utils/errorHandler';
-import { date } from 'yup';
-
+import axiosInstance from '../config/axiosInstance';
 
 export const getPropertyList = async (offset = 1, limit = 10, sortOrder = 'asc', sortColumn = '', searchFilter = '', stepTerm = '' ) => {
     try {
@@ -182,10 +180,117 @@ export const updatePropertyDetails = async (id, data) => {
         const result = await axiosInstance.put(`/admin/property/${id}/features`, 
             data
         );
-        return result;
+        return result.data;
     }
     catch (error) {
         // throw error;
+        throw new errorHandler(error)
+    }
+}
+
+export const updatePropertyAmeneties = async (id, data) => {
+    try {
+        console.log(data)
+        const result = await axiosInstance.put(`/admin/property/${id}/ameneties`, 
+            data
+        );
+        return result.data;
+    }
+    catch (error) {
+        // throw error;
+        throw new errorHandler(error)
+    }
+}
+
+export const createPropertyFandQ = async (id, data) => {
+    try {
+        console.log(data)
+        // call to api to get listed single user(async request.) & return data
+        const result = await axiosInstance.post(`/admin/property/${id}/fandq`, 
+            data
+        );
+        return result.data;
+    }
+    catch (error) {
+        // throw error;
+        throw new errorHandler(error)
+    }
+}
+
+export const updatePropertyFandQ = async (id, sid, data) => {
+    try {
+        console.log(data)
+        // call to api to get listed single user(async request.) & return data
+        const result = await axiosInstance.put(`/admin/property/${id}/fandq/${sid}`, 
+            data
+        );
+        return result.data;
+    }
+    catch (error) {
+        // throw error;
+        throw new errorHandler(error)
+    }
+}
+
+export const deletePropertyFandQ = async (id, sid) => {
+    try {
+        
+        // call to api to get listed single user(async request.) & return data
+        const result = await axiosInstance.delete(`/admin/property/${id}/fandq/${sid}`);
+        return result.data;
+    }
+    catch (error) {
+        // throw error;
+        throw new errorHandler(error)
+    }
+}
+
+
+
+export const createPropertyConfiguration = async (id, data) => {
+    try {
+        for (let [key, value] of data.entries()) {
+            console.log(`Key: ${key}, Value:`, value);
+        }
+        
+        const authToken = localStorage.getItem('eightsqfttoken');
+        const result = await axios.post(`${constant.SERVER_BASE_URL}/admin/property/${id}/configuration`,
+            data, {
+                headers : {
+                    "x-api-key": constant.X_API_KEY,
+                    "Content-Type": "multipart/form-data",
+                    "Authorization": `Bearer ${authToken}`,
+                }
+            }
+        )
+
+        return result.data;
+    }
+    catch (error) {
+        throw new errorHandler(error)
+    }
+}
+
+export const updatePropertyConfiguration = async (id, sid, data) => {
+    try {
+        console.log(data)
+        const result = await axiosInstance.put(`/admin/property/${id}/configuration/${sid}`, 
+            data
+        );
+        return result.data;
+    }
+    catch (error) {
+        throw new errorHandler(error)
+    }
+}
+
+export const deletePropertyConfiguration = async (id, sid) => {
+    try {
+        console.log(id, sid)
+        const result = await axiosInstance.delete(`/admin/property/${id}/configuration/${sid}`);
+        return result.data;
+    }
+    catch (error) {
         throw new errorHandler(error)
     }
 }

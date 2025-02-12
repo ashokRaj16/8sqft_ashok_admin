@@ -244,6 +244,14 @@ const ViewAdminUser = () => {
                                 </CCol>
                               </CRow>
 
+                              <CRow>
+                                <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                  <p className='fw-bold m-2' >Role: </p>
+                                  <p className="m-2">{userDetails.role_id}</p>
+                                  {/* <small>3 days ago</small> */}
+                                </CCol>
+                              </CRow>
+
                               <CRow className="align-items-center">
                                 {/* <CCol lg="3" md="6" className="text-center border rounded p-3 m-1">
                                   <CHeader className="fw-bold">{userDetails?.property_type || "-"}</CHeader>
