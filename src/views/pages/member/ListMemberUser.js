@@ -27,7 +27,7 @@ const ListMemberUser = (props) => {
                 <CCol className="d-flex justify-content-end">
                 
                     <CButton
-                    onClick={() => navigate('/admin/add')} 
+                    onClick={() => navigate('/member/add')} 
                     color='primary'>Add New</CButton>
                 </CCol>
                 {/* <h1>Member Users</h1> */}

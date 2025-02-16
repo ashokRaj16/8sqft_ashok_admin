@@ -114,12 +114,12 @@ const routes = [
   { path: '/widgets', name: 'Widgets', element: Widgets },
 
   { path: '/admin', name: 'List Admin', element: ListAdminUser, allowedRole: ['ADMIN'] },
-  { path: '/admin/add', name: 'Add Admin', element: AddAdminUser },
-  { path: '/admin/edit', name: 'Edit Admin', element: EditAdminUser },
+  { path: '/admin/add', name: 'Add Admin', element: AddAdminUser, allowedRole: ['ADMIN'] },
+  { path: '/admin/edit', name: 'Edit Admin', element: EditAdminUser, allowedRole: ['ADMIN'] },
 
-  { path: '/member', name: 'List Admin', element: ListMemberUser, allowedRole : ['EDITOR'] },
-  { path: '/member/add', name: 'Add Admin', element: AddMemberUser },
-  { path: '/member/edit', name: 'Edit Admin', element: EditMemberUser },
+  { path: '/member', name: 'List Admin', element: ListMemberUser, allowedRole : ['EDITOR', 'ADMIN'] },
+  { path: '/member/add', name: 'Add Admin', element: AddMemberUser, allowedRole: ['ADMIN'] },
+  { path: '/member/edit', name: 'Edit Admin', element: EditMemberUser, allowedRole: ['ADMIN'] },
 
   { path: '/profile', name: 'Profile', element: Profile },
   { path: '/blog', name: 'Blog', element: AddBlog },

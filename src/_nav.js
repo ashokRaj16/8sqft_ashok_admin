@@ -371,7 +371,7 @@ const _nav = [
         component: CNavItem,
         name: 'Members',
         to: '/member',
-        role : ['EDITOR']
+        role : ['EDITOR', 'ADMIN']
       }
     ],
     role: ['ADMIN', 'EDITOR']
