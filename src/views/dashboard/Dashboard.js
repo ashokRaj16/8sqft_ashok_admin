@@ -53,6 +53,7 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
+import DraggableComponent from '../pages/member/DraggableComponent'
 
 const Dashboard = () => {
   const progressExample = [
@@ -178,6 +179,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <DraggableComponent />
       <WidgetsDropdown className="mb-4" />
       <CCard className="mb-4">
         <CCardBody>
@@ -380,6 +382,7 @@ const Dashboard = () => {
           </CCard>
         </CCol>
       </CRow>
+      
     </>
   )
 }
