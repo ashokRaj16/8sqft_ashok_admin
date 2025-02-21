@@ -15,7 +15,32 @@ const itemList = [
     { id: 4, name: 'Sham Dev', address: 'Delhi', role: 'Sub Admin' },
     { id: 5, name: 'Mahesh', address: 'Pune', role: 'Sale Person' },
     { id: 6, name: 'CHetan Bhagat', address: 'Delhi', role: 'Editor' },
-    { id: 7, name: 'John Doe', address: 'Pune', role: 'Market Head' }
+    { id: 7, name: 'John Doe', address: 'Pune', role: 'Market Head' },
+
+    { id: 8, name: 'Ashok Raj', address: 'Nashik', role: 'Admin' },
+    { id: 9, name: 'Mr. Y', address: 'Nashik', role: 'Sub Admin' },
+    { id: 10, name: 'Mr. X', address: 'Nagar', role: 'Editor' },
+    { id: 11, name: 'Sham Dev', address: 'Delhi', role: 'Sub Admin' },
+    { id: 12, name: 'Mahesh', address: 'Pune', role: 'Sale Person' },
+    { id: 13, name: 'CHetan Bhagat', address: 'Delhi', role: 'Editor' },
+    { id: 14, name: 'John Doe', address: 'Pune', role: 'Market Head' },
+
+    { id: 15, name: 'Ashok Raj', address: 'Nashik', role: 'Admin' },
+    { id: 16, name: 'Mr. Y', address: 'Nashik', role: 'Sub Admin' },
+    { id: 17, name: 'Mr. X', address: 'Nagar', role: 'Editor' },
+    { id: 18, name: 'Sham Dev', address: 'Delhi', role: 'Sub Admin' },
+    { id: 19, name: 'Mahesh', address: 'Pune', role: 'Sale Person' },
+    { id: 20, name: 'CHetan Bhagat', address: 'Delhi', role: 'Editor' },
+    { id: 21, name: 'John Doe', address: 'Pune', role: 'Market Head' },
+    
+    { id: 22, name: 'Ashok Raj', address: 'Nashik', role: 'Admin' },
+    { id: 23, name: 'Mr. Y', address: 'Nashik', role: 'Sub Admin' },
+    { id: 24, name: 'Mr. X', address: 'Nagar', role: 'Editor' },
+    { id: 25, name: 'Sham Dev', address: 'Delhi', role: 'Sub Admin' },
+    { id: 26, name: 'Mahesh', address: 'Pune', role: 'Sale Person' },
+    { id: 27, name: 'CHetan Bhagat', address: 'Delhi', role: 'Editor' },
+    { id: 28, name: 'John Doe', address: 'Pune', role: 'Market Head' },
+
 ]
 
 const DraggableComponent = (props) => {
@@ -53,7 +78,8 @@ const DraggableComponent = (props) => {
                 </CCardHeader>
                 <CCardBody>
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                        <SortableContext items={items.map((item) => item.id)}>
+                        <SortableContext items={items.map((item) => item.id)} >
+                            <div style={{ maxHeight: 300, overflow: 'auto'}} >
                     <CTable>
                         <CTableHead>
                             <CTableRow>
@@ -75,6 +101,7 @@ const DraggableComponent = (props) => {
                             }
                         </CTableBody>
                     </CTable>
+                    </div>
                     </SortableContext>
                     </DndContext>
                 </CCardBody>
