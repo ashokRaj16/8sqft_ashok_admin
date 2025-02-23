@@ -1,9 +1,9 @@
-import { CCard, CCardBody, CCardHeader, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from "@coreui/react";
-import { useState } from "react";
+import { CCard, CCardBody, CCardHeader, CButton, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from "@coreui/react";
+import { useState, useEffect } from "react";
 import { FaPencil } from "react-icons/fa6";
 
-import { FaGripVertical } from "react-icons/fa";
-import { CSS } from '@dnd-kit/utilities'
+import { FaGripVertical, FaTrash } from "react-icons/fa";
+import ExcelJS from 'exceljs';
 
 import Loader from '../member/Loader'
 
@@ -42,13 +42,59 @@ const itemList = [
 
 ]
 
-const ExcelUploadComponent = ( { selectedFiles, ...rest}) => {
+const ExcelUploadComponent = ({ selectedFiles, ...rest }) => {
 
     const [loading, setLoading] = useState(false)
-    const [role, setRole] = useState('ADMIN')
-    const [items, setItems] = useState(itemList.filter((i) => i.role.toLowerCase() === role.toLowerCase()))
+    const [excelFile, setExcelFile] = useState(selectedFiles || [])
     console.log("xcel log", selectedFiles);
 
+
+    const handleExcelFile = async () => {
+        if (!selectedFiles || selectedFiles.length === 0) return;
+        if (selectedFiles.some((item) => item.type !== "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && item.type !== "application/vnd.ms-excel")) {
+            console.error("Invalid file type! Please upload an Excel (.xlsx) file.");
+            return;
+        }
+        setLoading(true);
+
+        const fileObj = selectedFiles[0];
+        const response = await fetch(fileObj.url)
+        const blob = await response.blob()
+        // const file = selectedFiles[0]; // Assuming single file upload
+        const reader = new FileReader();
+
+        reader.onload = async (e) => {
+            const buffer = e.target.result;
+            console.log("parsed", buffer);
+
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(buffer);
+
+            const worksheet = workbook.worksheets[0]; // Read the first sheet
+            const parsedData = [];
+
+            worksheet.eachRow((row, rowIndex) => {
+                if (rowIndex === 1) return; // Skip header row
+
+                parsedData.push({
+                    id: rowIndex,
+                    name: row.getCell(1).value || "",
+                    address: row.getCell(2).value || "",
+                    role: row.getCell(3).value || "",
+                    sequence_no: row.getCell(4).value || rowIndex, // Default sequence number
+                });
+            });
+            setExcelFile(parsedData);
+            setLoading(false);
+        };
+
+        reader.readAsArrayBuffer(blob);
+    };
+
+    // Load Excel file on mount or file change
+    useEffect(() => {
+        handleExcelFile();
+    }, [selectedFiles]);
 
     return (
         <div>
@@ -56,41 +102,43 @@ const ExcelUploadComponent = ( { selectedFiles, ...rest}) => {
             <CCard className="mb-4">
                 <CCardHeader>
                     <h1>Excel Records</h1>
+                    <CButton color="primary" className="me-4" >
+                        Find Duplicate
+                    </CButton>
+                    <CButton color="primary" >
+                        Remove Duplicate
+                    </CButton>
                 </CCardHeader>
                 <CCardBody>
                     <div style={{ maxHeight: 300, overflow: 'auto' }} >
-                        <CTable>
-                            <CTableHead>
-                                <CTableRow>
-                                    <CTableHeaderCell>
-                                        <FaGripVertical size={16} color="gray" style={{ marginRight: 5 }} />
-                                    </CTableHeaderCell>
-                                    <CTableHeaderCell>Sr</CTableHeaderCell>
-                                    <CTableHeaderCell>Name</CTableHeaderCell>
-                                    <CTableHeaderCell>Address</CTableHeaderCell>
-                                    <CTableHeaderCell>Role</CTableHeaderCell>
-                                    <CTableHeaderCell>sequence</CTableHeaderCell>
-                                    <CTableHeaderCell>Action</CTableHeaderCell>
-                                </CTableRow>
-                            </CTableHead>
-                            <CTableBody>
-                            {
-                                items && items.map((item, index) => (
-                                    <CTableRow >
-                                        <CTableDataCell style={{ cursor: 'grab' }}>
-                                            <FaGripVertical color="dark-grey" style={{ fontWeight: 'normal', opacity: 0.7 }} />
-                                        </CTableDataCell>
-                                        <CTableDataCell>{index}</CTableDataCell>
-                                        <CTableDataCell>{item.name}</CTableDataCell>
-                                        <CTableDataCell>{item.address}</CTableDataCell>
-                                        <CTableDataCell>{item.role}</CTableDataCell>
-                                        <CTableDataCell>{item.sequence_no}</CTableDataCell>
-                                        <CTableDataCell><FaPencil /></CTableDataCell>
+                        {excelFile.length > 0 &&
+                            <CTable>
+                                <CTableHead>
+                                    <CTableRow>
+                                        <CTableHeaderCell>Sr</CTableHeaderCell>
+                                        <CTableHeaderCell>Name</CTableHeaderCell>
+                                        <CTableHeaderCell>Address</CTableHeaderCell>
+                                        <CTableHeaderCell>Mobile</CTableHeaderCell>
+                                        <CTableHeaderCell>Email</CTableHeaderCell>
+                                        <CTableHeaderCell>Action</CTableHeaderCell>
                                     </CTableRow>
-                                ))
-                            }
-                            </CTableBody>
-                        </CTable>
+                                </CTableHead>
+                                <CTableBody>
+                                    {
+                                        excelFile.map((item, index) => (
+                                            <CTableRow >
+                                                <CTableDataCell>{index}</CTableDataCell>
+                                                <CTableDataCell>{item.name}</CTableDataCell>
+                                                <CTableDataCell>{item.address}</CTableDataCell>
+                                                <CTableDataCell>{item.role}</CTableDataCell>
+                                                <CTableDataCell>{item.sequence_no}</CTableDataCell>
+                                                <CTableDataCell><FaTrash onClick={() => setExcelFile((prevData) => prevData.filter((_, i) => i !== index))} /></CTableDataCell>
+                                            </CTableRow>
+                                        ))
+                                    }
+                                </CTableBody>
+                            </CTable>
+                        }
                     </div>
                 </CCardBody>
             </CCard>

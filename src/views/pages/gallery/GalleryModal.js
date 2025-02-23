@@ -95,16 +95,20 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
 
     const handleDelete = (id) => {
         setGallery((prev) => prev.filter((file) => file.id !== id));
+        setSelectedImages((prev) => prev.filter((file) => file.id !== id));
     };
 
-    const handleSelectImage = (id) => {
+    const handleSelectImage = (file) => {
+        console.log("file", file)
         setSelectedImages((prev) => {
-            const newSelection = prev.includes(id) ? prev.filter((fileId) => fileId !== id) : [...prev, id];
-            console.log(prev)
+            const isSelected = prev.some((item) => item.id === file.id);
+            const newSelection = isSelected ? prev.filter((item) => item.id !== file.id) : [...prev, file];
             onSelectImages(newSelection);
             return newSelection;
         });
     };
+
+
 
     
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -299,7 +303,9 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
 
                                         <CCol key={file.id} md={4} lg={3} sm={6} xs={6} className="mb-3 text-center">
                                         <div className="position-relative p-3 rounded shadow-sm d-flex flex-column align-items-center justify-content-center" style={{ border: "2px solid #ccc", borderRadius: "10px", maxWidth: "180px", minHeight: "200px", backgroundColor: "#f8f9fa" }}>
-                                            <CFormCheck className="position-absolute" style={{ position: "absolute", top: "5px", left: "5px", zIndex: 1 }} checked={selectedImages.includes(file.id)} onChange={() => handleSelectImage(file.id)} />
+                                            <CFormCheck className="position-absolute" style={{ position: "absolute", top: "5px", left: "5px", zIndex: 1 }} checked={
+                                                selectedImages && selectedImages.some((item) => item.id === file.id)
+                                                } onChange={() => handleSelectImage(file)} />
                                             <FaTrashAlt className="position-absolute" style={{ top: "5px", right: "5px", cursor: "pointer", color: "red", fontSize: "1.2rem" }} onClick={() => handleDelete(file.id)} />
                                             {file.type.startsWith("image/") ? (
                                                 <CImage src={file.url} width={150} height={150} alt={file.name} className="rounded" style={{ objectFit: "contain", maxHeight: "150px" }} />
