@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import classNames from 'classnames'
 
 import {
@@ -53,7 +53,9 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
-import DraggableComponent from '../pages/member/DraggableComponent'
+import DraggableComponent from '../pages/gallery/DraggableComponent'
+import GalleryModal from '../pages/gallery/GalleryModal'
+import ExcelUploadComponent from '../pages/gallery/ExcelUploadComponent'
 
 const Dashboard = () => {
   const progressExample = [
@@ -176,9 +178,20 @@ const Dashboard = () => {
       activity: 'Last week',
     },
   ]
-
+  const [visible, setVisible] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState([])
+  
   return (
     <>
+    
+      <GalleryModal visible={visible} setVisible={setVisible} onSelectImages={setSelectedFiles} />
+      <CButton color="primary" onClick={() => setVisible(!visible)}>
+        Launch demo modal
+      </CButton>
+      {
+         selectedFiles.length
+      }
+      <ExcelUploadComponent selectedFiles={selectedFiles} />
       <DraggableComponent />
       <WidgetsDropdown className="mb-4" />
       <CCard className="mb-4">
