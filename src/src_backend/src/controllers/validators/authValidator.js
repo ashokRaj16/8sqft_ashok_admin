@@ -3,8 +3,8 @@ import validator from 'validator';
 const registerUserValidator = (req = {}) => {
 
     const errors = [];
-    if(!req.email) {
-        errors.push({ fields: 'email', message : 'Email id is required.' })
+    if(!req.email && !req.mobile) {
+        errors.push({ fields: 'email_mobile', message : 'Mobile or Email id is required.' })
     }
 
     if(req.email && !validator.isEmail(req.email))
@@ -12,9 +12,9 @@ const registerUserValidator = (req = {}) => {
         errors.push({ fields: 'email', message : 'Email id not in valid format.' })
     }
 
-    if (!req.mobile) {
-        errors.push({ fields: 'mobile', message : 'Mobile number is required.' })
-    }
+    // if (!req.mobile) {
+    //     errors.push({ fields: 'mobile', message : 'Mobile number is required.' })
+    // }
 
     if (req.mobile && !validator.isMobilePhone(req.mobile)) {
         errors.push({ fields: 'mobile', message : 'Mobile number is not valid format.' })

@@ -276,6 +276,13 @@ export const propertyConfigurationValidator = (req = {}) => {
         errors.push({field: "property_id", message: "Property Id is required!"});
     }
 
+
+    // ### check from database reference.
+    if( req.property_id && !validator.isNumeric(req.property_id))
+    {
+        errors.push({field: "property_id", message: "Please enter valid Property Id!"});
+    }
+
     if( !req.carpet_price )
     {
         errors.push({field: "carpet_price", message: "Carpet price is required."});
@@ -284,6 +291,62 @@ export const propertyConfigurationValidator = (req = {}) => {
     if( !req.carpet_area )
     {
         errors.push({field: "carpet_area", message: "Carpet area is required."});
+    }
+  
+    return errors;
+}
+
+
+export const propertyFandQValidator = (req = {}) => {
+
+    let errors = [];
+   
+    if( !req.faq_question )
+    {
+        errors.push({field: "faq_question", message: "Question is required."});
+    }
+
+    if( !req.faq_answer )
+    {
+        errors.push({field: "faq_answer", message: "Answer is required."});
+    }
+  
+    return errors;
+}
+
+
+export const propertyNearbyValidator = (req = {}) => {
+
+    let errors = [];
+   
+    if( !req.nearby_id )
+    {
+        errors.push({field: "nearby_id", message: "Nearby id is required."});
+    }
+
+    if( !req.location_title )
+    {
+        errors.push({field: "location_title", message: "Location title is required."});
+    }
+
+    if( !req.distance )
+    {
+        errors.push({field: "distance", message: "Distance is required."});
+    }
+
+    if( !req.time )
+    {
+        errors.push({field: "time", message: "Time is required."});
+    }
+
+    if( !req.longitude )
+    {
+        errors.push({field: "lagitute", message: "Lagitute is required."});
+    }
+
+    if( !req.latitude )
+    {
+        errors.push({field: "latitute", message: "Latitute is required."});
     }
   
     return errors;

@@ -1,21 +1,27 @@
 import multer from "multer";
 import path from 'path';
 import express from "express";
-// import * as propertyController from "../../controllers/propertyController.js";
+
 import * as propertyController from '../../controllers/admin/propertyController.js';
 import { 
     updatePropertyFeaturesAdmin, 
     updatePropertyAmenetiesAdmin, 
-    updatePropertyConfiguration,
     updatePropertyImages,
-    updatePropertyFandqAdmin,
     uploadPropertyImagesAdmin,
+    deletePropertyImageAdmin,    
     uploadPropertyConfigurationAdmin,
-    deletePropertyImageAdmin,
+    updatePropertyConfiguration,
     deletePropertyConfigurationAdmin,
+    createPropertyFandqAdmin,    
     deletePropertyFandqAdmin,
-    createPropertyFandqAdmin
-} from '../../controllers/admin/propertyController.js';
+    updatePropertyFandqAdmin,
+    getCategories,    
+    getNearbyLocationsByCategory,
+    createNearbyLocationAdmin,
+    updatePropertyNearbyAdmin,
+    deletePropertyNearbyAdmin,
+    generatePropertyNearbyAdmin
+} from '../../controllers/admin/propertyController.js';  
 
 const router = express.Router();
 
@@ -105,10 +111,18 @@ router.route('/:id/fandq/:sid')
 router.route('/:id/fandq')
     .post( createPropertyFandqAdmin );
 
-// ### need work
-router.route('/:id/nearby')
-    .put( propertyController.updatePropertyImages );
+// ### need work nearby
+router.route('/:id/nearby/:sid')
+    .put( updatePropertyNearbyAdmin )
+    .delete( deletePropertyNearbyAdmin );
 
+router.route('/:id/nearby')
+    .post( createNearbyLocationAdmin)
+    .get( generatePropertyNearbyAdmin);
+
+router.get('/:id/nearby_categories', getNearbyLocationsByCategory);
+
+// Property Status 
 router.put('/:id/status', propertyController.changePropertyStatus);
 
 router.route('/')
@@ -117,5 +131,6 @@ router.route('/')
 router.route('/:id')
         .get(propertyController.getPropertyById)
         .delete(propertyController.deletePropertyById);
+
 
 export default router;

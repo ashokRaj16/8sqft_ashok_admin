@@ -1,6 +1,13 @@
 import express from "express";
 
-import * as userController from "../../controllers/admin/userController.js";
+import {
+    listMembers, 
+    addMemberUser,
+    listUsersById,
+    editUser,
+    deleteUser,
+    listPropertiesByMemberId
+} from "../../controllers/admin/userController.js";
 // import * as authMiddleware from "../Middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -9,11 +16,13 @@ const router = express.Router();
 // router.use(authMiddleware.loggedIn); 
 
 // User management CRUD
-router.get('/', userController.listMembers);
-router.post('/', userController.addMemberUser);
+router.get('/', listMembers);
+router.post('/', addMemberUser);
 
-router.get('/:id', userController.listUsersById);
-router.put('/:id', userController.editUser);
-router.delete('/:id', userController.deleteUser);
+router.get('/:id', listUsersById);
+router.put('/:id', editUser);
+router.delete('/:id', deleteUser);
+
+router.get('/:id/properties', listPropertiesByMemberId);
 
 export default router;

@@ -16,7 +16,6 @@ import planRoutes from '../routes/frontend/plansRoutes.js';
 import profileRoutes from '../routes/frontend/profileRoutes.js';
 import agreementRoutes from '../routes/frontend/agreementsRoutes.js';
 
-
 import { verifyClientToken } from "../Middleware/authMiddleware.js";
 import { assignSessionId } from "../Middleware/session.js";
 
@@ -30,11 +29,11 @@ router.use('/contact_developer', contactDeveloper);
 
 router.use('/property', propertyRoutes);
 router.use('/plans', planRoutes);
-
+router.use('/kyc/', aadharAuthRoutes);
 
 // Proptected routes.
 router.use(verifyClientToken);
-router.use('/kyc/', aadharAuthRoutes);          // done
+          // done
 router.use('/agreements', agreementRoutes);       //  check
 
 // ## make it proper.

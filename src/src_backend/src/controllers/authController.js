@@ -109,10 +109,10 @@ export const verifyMobileOtp = async (req, res) => {
       const userQuery = 'SELECT * FROM tbl_users WHERE mobile = ?';
       const [user] = await pool.query(userQuery, [mobile]);
 
-      console.log(user[0]);
       if (user.length === 0) {
         return res.status(200).json({
           status: true,
+          flag: 'M',
           message: 'User not found, please register.',
           needToRegister: true,
           mobile,
@@ -120,7 +120,7 @@ export const verifyMobileOtp = async (req, res) => {
       }
       else {
 
-        const tokenData = { id: user[0].id, mobile, first_name: user[0].fname, last_name: user[0].lname, mobile: user[0].mobile };
+        const tokenData = { id: user[0].id, email: user[0]?.email, first_name: user[0].fname, last_name: user[0].lname, mobile: user[0]?.mobile };
         const newToken = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY });
         console.log(newToken, tokenData)
         data['token'] = newToken;
@@ -135,7 +135,52 @@ export const verifyMobileOtp = async (req, res) => {
     console.error('Error while verify OTP:', error);
     return internalServerResponse(res, false, 'Failed to verify OTP due to an internal error.', error.message);
   }
+};
 
+// Mobile verification for dashboard profile
+export const verifyMobile = async (req, res) => {
+  const { mobile, otp } = req.body;
+  let data = {};
+
+  if (!mobile) {
+    return badRequestResponse(res, false, 'Please enter mobile number.');
+  }
+
+  if (!otp) {
+    return badRequestResponse(res, false, 'Please enter OTP.');
+  }
+
+  const formattedMobile = formatPhoneNumber(mobile);
+  const storedOtpData = otpStore[formattedMobile];
+
+  if (!storedOtpData) {
+    return badRequestResponse(res, false, 'OTP not found or expired.');
+  }
+
+  const { otp: storedOtp, expiry } = storedOtpData;
+
+  if (Date.now() > expiry) {
+    delete otpStore[formattedMobile];
+    return res.status(400).json({ message: 'OTP expired' });
+  }
+
+  try {
+    if (parseInt(otp, 10) === storedOtp) {
+      const updateQuery = `UPDATE tbl_users SET is_mobile_verified = '1' WHERE mobile = ?`;
+      await pool.query(updateQuery, [mobile]);
+      
+      return res.status(200).json({
+        status: true,
+        message: 'Mobile Verified Successfully',
+        mobile,
+      });
+    } else {
+      return badRequestResponse(res, false, 'Invalid OTP.');
+    }
+  } catch (error) {
+    console.error('Error while verifying OTP:', error);
+    return internalServerResponse(res, false, 'Failed to verify OTP due to an internal error.', error.message);
+  }
 };
 
 export const sendOtpToEmail = async (req, res) => {
@@ -172,6 +217,7 @@ export const sendOtpToEmail = async (req, res) => {
   }
 };
 
+
 export const verifyEmailOtp = async (req, res) => {
   const { email, otp } = req.body;
   const data = {}
@@ -206,10 +252,11 @@ export const verifyEmailOtp = async (req, res) => {
       const userQuery = 'SELECT * FROM tbl_users WHERE email = ?';
       const [user] = await pool.query(userQuery, [email]);
 
-      console.log(user[0]);
+      // console.log(user[0]);
       if (user.length === 0) {
         return res.status(200).json({
           status: true,
+          flag: 'E',
           message: 'User not found, please register.',
           needToRegister: true,
           email,
@@ -228,6 +275,55 @@ export const verifyEmailOtp = async (req, res) => {
     return internalServerResponse(res, false, 'Error checking user in database.');
   }
 };
+// email verification for dashboard profile
+export const verifyEmail = async (req, res) => {
+  const { email, otp } = req.body;
+  const data = {}
+  console.log(email, otp)
+
+  if (!email) {
+    return badRequestResponse(res, false, 'Please enter email.');
+  }
+
+  if (!otp) {
+    return badRequestResponse(res, false, 'Please enter otp.');
+  }
+
+  if (email && !validator.isEmail(email)) {
+    return badRequestResponse(res, false, 'Please enter valid email.');
+  }
+
+  const storedOtpData = otpStore[email];
+  if (!storedOtpData) {
+    return badRequestResponse(res, false, 'OTP not found or expired');
+  }
+
+  const { otp: storedOtp, expiry } = storedOtpData;
+
+  if (Date.now() > expiry) {
+    delete otpStore[email];
+    return badRequestResponse(res, false, 'OTP expired.');
+  }
+
+  try {
+    if (parseInt(otp, 10) === storedOtp) {
+      const updateQuery = `UPDATE tbl_users SET is_email_verified = '1' WHERE email = ?`;
+      await pool.query(updateQuery, [email]);
+      
+      return res.status(200).json({
+        status: true,
+        message: 'Email Verified Successfully',
+        email,
+      });
+    } else {
+      return badRequestResponse(res, false, 'Invalid OTP.');
+    }
+  } catch (error) {
+    console.error('Database error:', error);
+    return internalServerResponse(res, false, 'Error checking user in database.');
+  }
+};
+
 
 export const resendOtpToEmail = async (req, res) => {
   const { email } = req.body;
@@ -271,38 +367,55 @@ export const resendOtpToEmail = async (req, res) => {
 };
 
 export const registerUser = async (req, res) => {
-  const { email, first_name, last_name, mobile } = req.body;
-  const data = {}
+  const { email, first_name, last_name, mobile, flag } = req.body;
+  const data = {};
   const errors = registerUserValidator(req.body);
   if (errors.length > 0) {
     return badRequestResponse(res, false, 'Validation message', errors);
   }
 
   try {
-    const userCheckQuery = 'SELECT * FROM tbl_users WHERE email = ?';
-    const [user] = await pool.query(userCheckQuery, [email]);
-
-    // console.log(user)
-    if (user.length > 0) {
-      // return res.status(400).json({ message: 'User already exists' });
-      return badRequestResponse(res, false, 'User already exists.')
+    let users;
+    if (email || mobile) {
+      const userCheckQuery = 'SELECT * FROM tbl_users WHERE email = ? OR mobile = ?';
+      const [results] = await pool.query(userCheckQuery, [email || null, mobile || null]);
+      users = results;
     }
 
-    const insertQuery = `
-      INSERT INTO tbl_users (email, fname, lname, mobile)
-      VALUES (?, ?, ?, ?)`;
-    const newUser = await pool.query(insertQuery, [email, first_name, last_name, mobile]);
-    console.log(newUser);
+    if (users.length > 0) {
+      return badRequestResponse(res, false, 'User already exists.');
+    }
 
-    const tokenData = { id: newUser[0].insertId, email, first_name, last_name, mobile };
+    const is_email_verified = flag === 'E' ? '1' : '0';
+    const is_mobile_verified = flag === 'M' ? '1' : '0';
+
+    const insertQuery = `
+      INSERT INTO tbl_users (email, fname, lname, mobile, is_email_verified, is_mobile_verified)
+      VALUES (?, ?, ?, ?, ?, ?)`;
+    
+    const newUser = await pool.query(insertQuery, [
+      email || null, 
+      first_name || null, 
+      last_name || null, 
+      mobile || null, 
+      is_email_verified, 
+      is_mobile_verified
+    ]);
+
+    const tokenData = {
+      id: newUser[0].insertId,
+      email: email || null,
+      first_name,
+      last_name,
+      mobile: mobile || null
+    };
     const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY });
     data['token'] = token;
 
     return successWithDataResponse(res, true, 'Registration successful', data);
-
   } catch (error) {
     console.error('Error registering user:', error);
-    return badRequestResponse(res, false, 'Failed to register user', error)
+    return badRequestResponse(res, false, 'Failed to register user', error);
   }
 };
 
@@ -370,3 +483,62 @@ export const resendOtpToMobile = async (req, res) => {
   }
 };
 
+
+export const messageCallback = (req, res) => {
+    console.log("Valid Webhook Call:", req.body);
+
+    const { app, timestamp, version, type, payload } = req.body;
+    const { id, gsId, type: eventType, destination, payload: eventPayload } = payload;
+
+    // console.log("App:", app);
+    // console.log("Timestamp:", new Date(timestamp).toISOString());
+    // console.log("Version:", version);
+    // console.log("Event Type:", type);
+    // console.log("Message ID:", id);
+    // console.log("Gupshup Message ID:", gsId || "N/A");
+    // console.log("Status:", eventType);
+    // console.log("Destination:", destination);
+    // console.log("Additional Payload:", eventPayload);
+
+    switch (eventType) {
+        case "enqueued":
+            console.log(`Message to ${destination} has been queued.`);
+            break;
+        case "failed":
+            console.log(`Message to ${destination} failed to send.`);
+            if (destination) {
+                const otp = generateOtp();
+                otpStore[destination] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+                sendTextMessage(destination, otp);
+            }
+            break;
+        default:
+            console.log(`Unknown event type: ${eventType}`);
+    }
+
+    res.status(200).json({ success: true, message: "Webhook received" });
+};
+
+const sendTextMessage = async (destination, otp) => {
+    try {
+        console.log(`Sending OTP ${otp} to ${destination}`);
+
+        const API_URL = "https://www.textguru.in/api/sendmsg.php";
+        const API_KEY = "YOUR_TEXTGURU_API_KEY"; // Replace with your API Key
+        const SENDER_ID = "YOUR_SENDER_ID"; // Replace with your sender ID
+        const MESSAGE = `Your OTP is: ${otp}. It is valid for 5 minutes.`;
+
+        const response = await axios.get(API_URL, {
+            params: {
+                api_key: API_KEY,
+                mobile: destination,
+                sender: SENDER_ID,
+                message: MESSAGE
+            }
+        });
+
+        console.log("TextGuru Response:", response.data);
+    } catch (error) {
+        console.error("Error sending OTP:", error.message);
+    }
+};

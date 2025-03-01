@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Property Pending Approval</title>
+    <title>Title Here</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,6 +41,8 @@
 </head>
 <body>
     <div class="container">
+        <%- include('partials/header') %>
+
         <h1 class="header">Your Property is Listed!</h1>
         <p>Dear <%= name %>,</p>
         <p>Thank you for listing your property with 8sqft! We are excited to help you showcase your property.</p>
@@ -52,11 +54,8 @@
         </div>
         <p>Your property is currently <strong>pending approval</strong> by our team. We will review your listing shortly and notify you once it is approved and live on our platform.</p>
         <p>If you have any questions, feel free to contact us at <a href="mailto:support@8sqft.com">support@8sqft.com</a>.</p>
-        <div class="footer">
-            <p>Thank you for choosing 8sqft!</p>
-            <p>Best regards,</p>
-            <p>The 8sqft Team</p>
-        </div>
+        
+        <%- include('partials/footer') %>
     </div>
 </body>
 </html>

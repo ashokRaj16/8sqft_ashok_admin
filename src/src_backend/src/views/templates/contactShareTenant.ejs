@@ -42,6 +42,7 @@
 </head>
 <body>
     <div class="container">
+        <%- include('partials/header') %>
         <h1 class="header">Let's Stay Connected! Contact Details Inside!</h1>
         <p>Dear <%= cusName %>,</p>
         <p>Thank you for your interest in our property listings! Below are the details you requested:</p>
@@ -63,12 +64,8 @@
           </p>
             <p>We hope these details are helpful. If you have any questions or need further assistance, please don't hesitate to reach out, feel free to contact us at <a href="mailto:support@8sqft.com">support@8sqft.com</a>.</p>
             <p>Looking forward to assisting you in finding your perfect property.</p>
-
-        <div class="footer">
-            <p>Thank you for choosing 8SQFT</p>
-            <p>Best regards,</p>
-            <p> <strong>8sqft Team</strong></p>
-        </div>
+          
+        <%- include('partials/footer') %>        
     </div>
 </body>
 </html>

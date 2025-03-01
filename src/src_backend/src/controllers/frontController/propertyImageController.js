@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand, ListObjectsCommand } from "@aws-sdk/client-s3";
 
 import multer from "multer";
 import dotenv from 'dotenv';
@@ -43,7 +43,7 @@ export const uploadPropertyImages = async (req, res) => {
           return badRequestResponse(res, false, "Error processing uploaded files", err);
       }
 
-      const { property_id, img_title } = req.body;
+      const { property_id, img_title, image_category } = req.body;
       const files = req.files;
 
       if (!property_id || !img_title || !files || !files.length) {
@@ -105,7 +105,7 @@ export const uploadPropertyImages = async (req, res) => {
               (property_id, img_title, image_category, file_type, image_size, property_img_url)
               VALUES (?, ?, ?, ?, ?, ?) `;
 
-              const insertValues = [property_id, img_title, img_title, file.mimetype, file.size, imageUrl];
+              const insertValues = [property_id, img_title, image_category, file.mimetype, file.size, imageUrl];
               const [dbResponse] = await connection.query(insertQuery, insertValues);
 
               imageUrls.push({ id: dbResponse.insertId, imageUrl });
@@ -216,6 +216,7 @@ export const uploadPropertyConfiguration = async (req, res) => {
     const errors = propertyConfigurationValidator(req.body);
     if(errors.length > 0)
     {
+      console.log(errors)
       return badRequestResponse(res, false, 'Validation Message', errors)
     }
 
@@ -228,10 +229,14 @@ export const uploadPropertyConfiguration = async (req, res) => {
       width_unit,
       length_unit,
       carpet_price,
+      unit_price_type
     } = req.body;
 
     const files = req.files;
     // console.log(files);
+    if(files.length <= 0) {
+      return badRequestResponse(res, true, "Please select images.");  
+    }
 
     let imageUrls = [];
     let connection;
@@ -257,13 +262,14 @@ export const uploadPropertyConfiguration = async (req, res) => {
           );
         }
       }
-
+      
       await ensureFolderExists(monthFolder);
       await ensureFolderExists(propertyFolder);
-
       connection = await pool.getConnection();
       await connection.beginTransaction();
-
+      
+      console.log( files.length)
+      
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
@@ -285,19 +291,31 @@ export const uploadPropertyConfiguration = async (req, res) => {
         const imageUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
 
         const insertQuery = `INSERT INTO tbl_property_unit_configuration 
-            (property_id, unit_name, carpet_area, length, width, width_unit, length_unit, carpet_price, unit_img_url, file_type, file_size)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            (property_id, unit_name, carpet_area, length, width, width_unit, length_unit, carpet_price, unit_img_url, file_type, file_size, unit_price_type)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-        const insertValues = [property_id, unit_name, carpet_area, length, width, width_unit, length_unit, carpet_price, imageUrl, file.mimetype, file.size];
+        const insertValues = [property_id, 
+            unit_name || null, 
+            carpet_area || null, 
+            length || null, 
+            width || null, 
+            width_unit || null, 
+            length_unit || null, 
+            carpet_price || null, 
+            imageUrl || null, 
+            file.mimetype || null, 
+            file.size || null,
+            unit_price_type || null ];
 
         const [dbResponse] = await connection.query(insertQuery, insertValues);
 
         imageUrls.push({ id: dbResponse.insertId, imageUrl });
       }
-
+      
       await connection.commit();
 
-      const data = { [unit_name || "configuration"]: imageUrls };
+      const data = { ["configuration"]: imageUrls };
+      console.log(data)
       return successWithDataResponse(res, true, "Configuration added successfully.", data);
     } catch (error) {
       if (connection) {
@@ -334,23 +352,31 @@ export const deletePropertyConfiguration = async (req, res) => {
       }
 
       const imageUrl = rows[0].unit_img_url;
+      if(!imageUrl) {
+        return badRequestResponse(res, false, "No image found.");
+      }
       const bucketName = process.env.AWS_S3_BUCKET_NAME;
       const s3Key = imageUrl.replace(`https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/`, "");
 
       const pathParts = s3Key.split("/");
       if (pathParts.length < 3) {
-          return badRequestResponse(res, false, "Invalid image path format");
+        await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: s3Key }));
+        
+        const deleteQuery = `DELETE FROM tbl_property_unit_configuration WHERE id = ?`;
+        await connection.query(deleteQuery, [sid]);
+        await connection.commit();          
+        return successResponse(res, true, "Configuration deleted successfully.");
       }
 
       const monthFolder = pathParts[0] + "/";
       const propertyFolder = `${monthFolder}${pathParts[1]}/`;
 
-      await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: s3Key }));
+      // await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: s3Key }));
 
       const deleteQuery = `DELETE FROM tbl_property_unit_configuration WHERE id = ?`;
       await connection.query(deleteQuery, [id]);
 
-      const listPropertyObjects = await s3.send(new PutObjectCommand({
+      const listPropertyObjects = await s3.send(new ListObjectsCommand({
           Bucket: bucketName,
           Prefix: propertyFolder,
       }));
@@ -359,7 +385,7 @@ export const deletePropertyConfiguration = async (req, res) => {
           await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: `${propertyFolder}placeholder.txt` }));
       }
 
-      const listMonthObjects = await s3.send(new PutObjectCommand({
+      const listMonthObjects = await s3.send(new ListObjectsCommand({
           Bucket: bucketName,
           Prefix: monthFolder,
       }));
