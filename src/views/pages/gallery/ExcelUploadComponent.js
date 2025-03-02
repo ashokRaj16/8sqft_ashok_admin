@@ -51,7 +51,10 @@ const ExcelUploadComponent = ({ selectedFiles, ...rest }) => {
 
     const handleExcelFile = async () => {
         if (!selectedFiles || selectedFiles.length === 0) return;
-        if (selectedFiles.some((item) => item.type !== "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && item.type !== "application/vnd.ms-excel")) {
+        if (selectedFiles.some((item) => {
+            return (item.type !== "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && item.type !== "application/vnd.ms-excel")
+        })) {
+
             console.error("Invalid file type! Please upload an Excel (.xlsx) file.");
             return;
         }

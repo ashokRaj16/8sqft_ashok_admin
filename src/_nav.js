@@ -375,6 +375,20 @@ const _nav = [
       }
     ],
     role: ['ADMIN', 'EDITOR']
+  },
+  {
+    component: CNavGroup,
+    name: 'Blog',
+    icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Blogs',
+        to: '/blog',
+        role : ['EDITOR', 'ADMIN']
+      },
+    ],
+    role: ['ADMIN', 'EDITOR']
   }
 ]
 

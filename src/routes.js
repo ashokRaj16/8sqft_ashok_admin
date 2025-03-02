@@ -122,7 +122,7 @@ const routes = [
   { path: '/member/edit', name: 'Edit Admin', element: EditMemberUser, allowedRole: ['ADMIN'] },
 
   { path: '/profile', name: 'Profile', element: Profile },
-  { path: '/blog', name: 'Blog', element: AddBlog },
+  { path: '/blog', name: 'Blog', element: AddBlog, allowedRole: ['EDITOR', 'ADMIN'] },
   { path: '/blog/category', name: 'Category', element: BlogCategory },
 
   { path: '/subscription-plans/add', name: 'Add Subscription', element: AddSubscription },
