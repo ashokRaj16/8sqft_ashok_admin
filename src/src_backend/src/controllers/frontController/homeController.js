@@ -4,8 +4,9 @@ import axios from 'axios';
 import { renderEmailTemplate } from '../../config/nodemailer.js';
 import { sendMailTemplate } from '../../config/nodemailer.js';
 
-import { getSearchDropDownLocationByKey, getRecommendationData } from '../../models/homeModels.js';
+import { getSearchDropDownLocationByKey, getRecommendationData, getSpotlightData } from '../../models/homeModels.js';
 import { badRequestResponse, successResponse, successWithDataResponse } from '../../utils/response.js';
+import { getPropertyCountByIds } from '../../models/propertyModels.js';
 
 export const getSearchDropDownLocations = async (req, res) => {
   try {
@@ -150,7 +151,7 @@ export const getContactById = async (req, res) => {
  */
 export const getRecommendations = async (req, res) => {
   try {
-    const { amount, area, city_name, property_type, property_rent_buy, limit = 10 } = req.query;
+    const { amount, area, city_name, property_type, property_rent_buy, limit } = req.query;
 
     const recommendations = await getRecommendationData(amount, area, city_name, property_type, property_rent_buy, limit);
 
@@ -164,6 +165,37 @@ export const getRecommendations = async (req, res) => {
   }
 };
 
+export const getSpotlight = async (req, res) => {
+  try {
+    const { categories, limit } = req.query;
+
+    let spotlights = await getSpotlightData(limit, categories);
+    let ids = spotlights.map((i)=> `${i.id}`)
+    let resultCountProperty = await getPropertyCountByIds(ids);
+
+    let newSpotlight = spotlights.map((item) => {
+      let findProperty = resultCountProperty.find((i) => i.property_id === item.id);
+      if (findProperty) {
+        return {
+          ...item,
+          unique_view_count:
+            (item.unique_view_count || 0) +
+            (findProperty?.views || 0)
+        };
+      }
+      return item;
+    });
+
+    
+    if (!spotlights || spotlights.length === 0) {
+      return badRequestResponse(res, false, "No spolight found for the given criteria.");
+    }
+    return successResponse(res, true, 'Spotlight properties retrieved successfully.', newSpotlight);
+  } catch (error) {
+    console.error('Error fetching spotlight:', error);
+    return badRequestResponse(res, false, "Error fetching spotlights.", error);
+  }
+};
 
 export const contactSendMail = async (req, res) => {
   try {
@@ -371,125 +403,4 @@ export const contactSendWhatsApp = async (req, res) => {
     return badRequestResponse(res, false, 'Failed to exchange contact details via WhatsApp', error);
   }
 };
-
-export const getInterestedUsers = async (req, res) => {
-  try {
-    const user_id = req.userId;
-    const { limit = 10, offset = 0 } = req.query;
-
-    // Query to get properties owned by the user
-    const getPropertyQuery = 'SELECT property_title as title, id as property_id FROM tbl_property WHERE user_id = ?';
-    const [properties] = await pool.query(getPropertyQuery, [user_id]);
-
-    if (properties.length === 0) {
-      return successResponse(res, true, 'No properties found for the user.', []);
-    }
-
-    const propertyIds = properties.map(property => property.property_id);
-    const propertyIdsJson = JSON.stringify(propertyIds);
-
-    // Query to get interested users for the user's properties
-    const interestedUsersQuery = `
-      SELECT user_id, property_id 
-      FROM tbl_property_intrest 
-      WHERE JSON_CONTAINS(property_id, ?) 
-      LIMIT ? OFFSET ?`;
-    const [interestedUsersResult] = await pool.query(interestedUsersQuery, [propertyIdsJson, parseInt(limit), parseInt(offset)]);
-
-    if (interestedUsersResult.length === 0) {
-      return successResponse(res, true, 'No users are interested in these properties.', []);
-    }
-
-    const userIds = [...new Set(interestedUsersResult.map(row => row.user_id))];
-
-    // Query to get details of interested users
-    const userDetailsQuery = `
-      SELECT id, fname, lname, email, mobile 
-      FROM tbl_users 
-      WHERE id IN (?)`;
-    const [userDetailsResult] = await pool.query(userDetailsQuery, [userIds]);
-
-    if (userDetailsResult.length === 0) {
-      return successResponse(res, true, 'No user details found for the interested users.', []);
-    }
-
-    // Map user details with their interested properties
-    const userDetailsWithProperties = userDetailsResult.map(user => {
-      const userInterests = interestedUsersResult.filter(interest => interest.user_id === user.id);
-      const properties = userInterests.map(interest => {
-        const propertyIdsArray = JSON.parse(interest.property_id || '[]');
-        return propertyIdsArray.filter(id => propertyIds.includes(id));
-      }).flat();
-
-      return {
-        ...user,
-        properties,
-      };
-    });
-
-    return successResponse(res, true, 'Interested users retrieved successfully.', userDetailsWithProperties);
-  } catch (error) {
-    console.error('Error in getInterestedUsers:', error);
-    return badRequestResponse(res, false, 'Failed to retrieve interested users.', error);
-  }
-};
-
-export const getShortlistedProperties = async (req, res) => {
-  try {
-    const userId = req.userId;
-
-    if (!userId) {
-      return badRequestResponse(res, false, 'User ID is required');
-    }
-
-    const wishlistQuery = 'SELECT property_id FROM tbl_property_shortlist WHERE user_id = ?';
-    const [wishlistResult] = await pool.query(wishlistQuery, [userId]);
-
-    if (wishlistResult.length === 0) {
-      return successResponse(res, true, 'No shortlisted properties found.', []);
-    }
-
-    const propertyIds = wishlistResult.map(row => row.property_id);
-
-    const propertyDetailsQuery = `SELECT id, property_title, description, rent_amount, city_name, property_type, status 
-      FROM tbl_property WHERE id IN (?)`;
-    const [propertyDetailsResult] = await pool.query(propertyDetailsQuery, [propertyIds]);
-
-    if (propertyDetailsResult.length === 0) {
-      return successResponse(res, true, 'No property details found for the shortlisted properties.', []);
-    }
-
-    return successResponse(res, true, 'Shortlisted properties retrieved successfully.', propertyDetailsResult);
-
-  } catch (error) {
-    console.error('Error in getShortlistedProperties:', error);
-    return badRequestResponse(res, false, 'Failed to retrieve shortlisted properties.', error);
-  }
-};
-
-export const getPaymentLogs = async (req, res) => {
-  try {
-    const userId = req.userId;
-
-    if (!userId) {
-      return badRequestResponse(res, false, 'User ID is required');
-    }
-
-    const paymentLogsQuery = `SELECT user_id, plan_id, order_id, order_amount, customer_email, customer_phone, payment_status, created_at
-      FROM tbl_payment_history WHERE user_id = ? ORDER BY created_at DESC`;
-    const [paymentLogsResult] = await pool.query(paymentLogsQuery, [userId]);
-
-    if (paymentLogsResult.length === 0) {
-      return successResponse(res, true, 'No payment logs found.', []);
-    }
-
-    return successResponse(res, true, 'Payment logs retrieved successfully.', paymentLogsResult);
-
-  } catch (error) {
-    console.error('Error in getPaymentLogs:', error);
-    return badRequestResponse(res, false, 'Failed to retrieve payment logs.', error);
-  }
-};
-
-
 

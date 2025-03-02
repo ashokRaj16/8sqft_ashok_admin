@@ -36,28 +36,6 @@ export const getAllUserCountAdmin = async ( whereClause = null ) => {
   }
 };
 
-
-// ## check if it required?
-// export const getAllPropertyCountAdmin = async ( whereClause = null ) => {
-//   try {
-
-//       const totalCountQuery = `SELECT 
-//                   COUNT(*) AS count
-//               FROM 
-//                   tbl_users tu 
-//               ${whereClause}`;
-
-//       // const totalCountQuery = `SELECT COUNT(*) AS count FROM tbl_property ${whereClause}`;
-//       const [rows] = await pool.query(totalCountQuery);
-//       console.log(rows);
-//       return rows[0].count;
-//   }
-//   catch(error) {
-//       throw new Error('Unable to fetch entry', error);
-//   }
-// };
-
-
 export const getUsersById = async (id) => {
   
   try {
@@ -127,7 +105,7 @@ export const updateMemberProfile = async (id, userData) => {
             WHERE id = ?`;
 
     const [result] = await pool.execute(query, queryParams);
-    return { result, ...userData };
+    return { affectedRows: result.affectedRows, ...userData };
   } catch (error) {
     console.error('Error updating user:', error);
     throw new Error('Unable to update user.');

@@ -35,6 +35,7 @@
 </head>
 <body>
     <div class="container">
+        <%- include('partials/header') %>
         <h1 class="header">Property Verification Pending</h1>
         <p>Dear <%= name %>,</p>
         <p>Thank you for listing your property on 8sqft! Your property is currently <strong>under verification</strong> by our team.</p>
@@ -46,11 +47,8 @@
         </div>
         <p>We will notify you once the verification process is complete. If additional information or documents are needed, our team will reach out to you shortly.</p>
         <p>If you have any questions, feel free to contact us at <a href="mailto:support@8sqft.com">support@8sqft.com</a>.</p>
-        <div class="footer">
-            <p>Thank you for choosing 8sqft!</p>
-            <p>Best regards,</p>
-            <p>The 8sqft Team</p>
-        </div>
+        
+        <%- include('partials/footer') %>
     </div>
 </body>
 </html>

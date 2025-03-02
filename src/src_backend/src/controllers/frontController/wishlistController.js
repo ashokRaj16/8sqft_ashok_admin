@@ -50,3 +50,33 @@ export const addToWishlist = async (req, res) => {
         return badRequestResponse(res, false, "An error occurred while adding to the wishlist.", error);
     }
 };
+
+
+export const removeShortlistPropertyByUser = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user_id = req.userId;
+      
+      const checkQuery = `SELECT property_id 
+        FROM tbl_property_shortlist 
+        WHERE user_id = ?`;
+      const [result] = await pool.query(checkQuery, [user_id]);
+      
+      console.log(id, user_id, result)
+      if (result.length === 0) {
+        return badRequestResponse(res, false, "No shortlisted properties found for this user.");
+      }
+  
+      let existingProperties = JSON.parse(result[0].property_id);
+  
+      existingProperties = existingProperties.filter(prop => prop.pid !== parseInt(id));
+  
+      const updateQuery = `UPDATE tbl_property_shortlist SET property_id = ? WHERE user_id = ?`;
+      await pool.query(updateQuery, [JSON.stringify(existingProperties), user_id]);
+  
+      return successResponse(res, true, "Property removed from shortlist successfully.");
+    } catch (error) {
+      console.error("Error in removeShortlistPropertyByUser:", error);
+      return badRequestResponse(res, false, "Failed to remove property from shortlist.", error);
+    }
+  };

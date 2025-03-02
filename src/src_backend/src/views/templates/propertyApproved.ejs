@@ -45,6 +45,7 @@
 </head>
 <body>
     <div class="container">
+        <%- include('partials/header') %>
         <h1 class="header">Congratulations, Your Property is Approved!</h1>
         <p>Dear <%= name %>,</p>
         <p>We are excited to inform you that your property has been successfully approved and is now live on 8sqft!</p>
@@ -57,11 +58,8 @@
         <p>To view your listing, click the button below:</p>
         <a href="<%= propertyLink %>" class="cta-button">View My Property</a>
         <p>If you have any questions or need assistance, please contact us at <a href="mailto:support@8sqft.com">support@8sqft.com</a>.</p>
-        <div class="footer">
-            <p>Thank you for choosing 8sqft!</p>
-            <p>Best regards,</p>
-            <p>The 8sqft Team</p>
-        </div>
+        
+        <%- include('partials/footer') %>
     </div>
 </body>
 </html>

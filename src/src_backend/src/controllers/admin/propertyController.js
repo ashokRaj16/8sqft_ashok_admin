@@ -2,9 +2,9 @@ import pool from '../../config/db.js';
 import validator from 'validator';
 import _ from 'lodash';
 import path from 'path';
-import { PutObjectCommand, ListObjectsCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, ListObjectsCommand, DeleteObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
-import { propertyValidators, propertyUpdateFeaturesValidators, amenetiesValidators, featureValidators } from '../validators/propertyValidators.js';
+import { propertyValidators, propertyUpdateFeaturesValidators, amenetiesValidators, featureValidators, propertyFandQValidator, propertyNearbyValidator } from '../validators/propertyValidators.js';
 import { successResponse, badRequestResponse, internalServerResponse, successWithDataResponse } from '../../utils/response.js';
 import { upload, s3 } from '../../utils/imageUploadHelper.js';
 import { 
@@ -19,6 +19,7 @@ import {
   getPropertyAmenetiesById, 
   getPropertyImagesById, 
   getPropertyConfigurationById,
+  getPropertyFaqById,
   getAllPropertyList,
   getAllPropertyCount,
   delPropertyById, 
@@ -32,10 +33,16 @@ import {
   updatePropertyConfigurationAdminDb,
   delPropertyFandqByIdAdminDb,
   updatePropertyFandqAdminDb,
-  createPropertyFandQAdminDb
+  createPropertyFandQAdminDb,
+  createPropertyNearbyAdminDb,
+  updatePropertyNearbyAdminDb,
+  delPropertyNearbyByIdAdminDb,
+  getAllPropertyNearbyCategoryAdmin,
+  getPropertyNearbyById
  } from '../../models/propertyModels.js';
 import { getUsersById } from '../../models/userModel.js';
 import { propertyConfigurationValidator } from '../validators/propertyValidators.js';
+import { sanitizedField, sanitizedNumber } from '../../utils/commonHelper.js';
 
 export const getProperty = async (req, res) => {
     try {
@@ -104,6 +111,10 @@ export const getAllProperty = async (req, res) => {
     }
 
     whereClauses.push(` tp.is_deleted = '0' `);
+
+    if(filters?.activeStep) {
+      whereClauses.push(` tp.status >= '2' `);
+    }
 
     let baseQuery = '';
     if (whereClauses.length > 0) {
@@ -359,6 +370,14 @@ export const getPropertyById = async (req, res) => {
 
         const configurationImages = await getPropertyConfigurationById(searchId);
         data['configuration'] = configurationImages;
+
+        const propertyFaq = await getPropertyFaqById(searchId);
+        data['faq'] = propertyFaq;
+
+        // ## update it for frontend
+        const propertyNearby = await getPropertyNearbyById(searchId);
+        data['nearby'] = propertyNearby;
+
       }
 
       if(data) {
@@ -635,6 +654,7 @@ export const updatePropertyConfiguration = async (req, res) => {
   try {
 
     const { id, sid } = req.params;
+        
     if(!sid || !id) {
       return badRequestResponse(res, false, "Image id required with query.")
     }
@@ -669,9 +689,20 @@ export const updatePropertyConfiguration = async (req, res) => {
 
 export const createPropertyFandqAdmin = async (req, res) => {
   try {
-    const { id } = req.params;
+    console.log(req.body);
+    const {id} = req.params;
+    const errors = propertyFandQValidator(req.body);
+
     if(!id) {
-      return badRequestResponse(res, false, "Property id required with query.")
+      return badRequestResponse(res, false, "Property id is required.")
+    }
+
+    if(id && !validator.isNumeric(id)) {
+      return badRequestResponse(res, false, "Property id is not valid.")
+    }
+
+    if(errors.length > 0) {
+      return badRequestResponse(res, false, "Validation Message", errors)
     }
     const { 
       faq_question,
@@ -679,11 +710,11 @@ export const createPropertyFandqAdmin = async (req, res) => {
     } = req.body;
 
     const data = {
-      property_id : id,
+      property_id :id,
       faq_question : faq_question || null,
       faq_answer : faq_answer || null
     }
-    console.log(data);
+
     const result = await createPropertyFandQAdminDb(data);
     if(result) {
         return successResponse(res, true, 'Property f&q created!', result);
@@ -848,9 +879,10 @@ export const uploadPropertyImagesAdmin = async (req, res) => {
 
 
 export const deletePropertyImageAdmin = async (req, res) => {
-  const { id } = req.params;
+  const { id, sid } = req.params;
+  console.log("Image url:::", id, sid);
 
-  if (!id) {
+  if (!id || !sid) {
       return badRequestResponse(res, false, "Missing required field: image_id");
   }
 
@@ -861,7 +893,7 @@ export const deletePropertyImageAdmin = async (req, res) => {
       await connection.beginTransaction();
 
       const selectQuery = `SELECT property_img_url FROM tbl_property_gallery WHERE id = ?`;
-      const [rows] = await connection.query(selectQuery, [id]);
+      const [rows] = await connection.query(selectQuery, [sid]);
 
       if (!rows.length) {
           return badRequestResponse(res, false, "Image not found");
@@ -870,11 +902,24 @@ export const deletePropertyImageAdmin = async (req, res) => {
       const imageUrl = rows[0].property_img_url;
       const bucketName = process.env.AWS_S3_BUCKET_NAME;
       const s3Key = imageUrl.replace(`https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/`, "");
+      
+      console.log("Image url3333", imageUrl);
 
       const pathParts = s3Key.split("/");
+      // if (pathParts.length < 3) {
+      //     return badRequestResponse(res, false, "Invalid image path format");
+      // }
+
       if (pathParts.length < 3) {
-          return badRequestResponse(res, false, "Invalid image path format");
-      }
+        // return badRequestResponse(res, false, "Invalid image path format");
+        await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: s3Key }));
+
+        const deleteQuery = `DELETE FROM tbl_property_gallery WHERE id = ?`;
+        await connection.query(deleteQuery, [sid]);
+        await connection.commit();
+
+        return successResponse(res, true, "Image deleted successfully.");
+    }
 
       const monthFolder = pathParts[0] + "/";
       const propertyFolder = pathParts[0] + "/" + pathParts[1] + "/";
@@ -882,7 +927,7 @@ export const deletePropertyImageAdmin = async (req, res) => {
       await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: s3Key }));
 
       const deleteQuery = `DELETE FROM tbl_property_gallery WHERE id = ?`;
-      await connection.query(deleteQuery, [id]);
+      await connection.query(deleteQuery, [sid]);
 
       const listPropertyObjects = await s3.send(new ListObjectsV2Command({
           Bucket: bucketName,
@@ -920,8 +965,8 @@ export const deletePropertyImageAdmin = async (req, res) => {
 };
 
 export const uploadPropertyConfigurationAdmin = async (req, res) => {
+
   upload.array('images') (req, res, async (err) => {
-    console.log(req.file);
 
     if (err) {
       console.error("SQFT Multer error:", err);
@@ -946,7 +991,6 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
     } = req.body;
 
     const files = req.files;
-    // console.log(files);
 
     let imageUrls = [];
     let connection;
@@ -958,8 +1002,10 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
       const propertyFolder = `${monthFolder}${property_id}/`;
 
       async function ensureFolderExists(folderKey) {
+        console.log("objects: ", folderKey);
         const listParams = { Bucket: bucketName, Prefix: folderKey, MaxKeys: 1 };
         const listObjects = await s3.send(new ListObjectsCommand(listParams));
+
 
         if (!listObjects.Contents || listObjects.Contents.length === 0) {
           await s3.send(
@@ -987,7 +1033,7 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
         const fileName = `${unit_name ? unit_name.toLowerCase().replace(/ /g, "-") : "configuration"}-${uniqueSuffix}${extension}`;
         const fileKey = `${propertyFolder}${fileName}`;
 
-        await s3.send(
+        const awsresult = await s3.send(
           new PutObjectCommand({
             Bucket: bucketName,
             Key: fileKey,
@@ -997,13 +1043,28 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
           })
         );
 
+        console.log('aws', awsresult);
         const imageUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
 
         const insertQuery = `INSERT INTO tbl_property_unit_configuration 
             (property_id, unit_name, carpet_area, length, width, width_unit, length_unit, carpet_price, unit_img_url, file_type, file_size)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-        const insertValues = [property_id, unit_name, carpet_area, length, width, width_unit, length_unit, carpet_price, imageUrl, file.mimetype, file.size];
+          const insertValues = [
+            property_id, 
+            unit_name ? sanitizedField(unit_name, true, 'UPPERCASE') : null, 
+            carpet_area !== '' ? sanitizedNumber(carpet_area, { allowDecimal: true }) : null, 
+            length !== '' ? sanitizedNumber(length, { allowDecimal: true }) : null, 
+            width !== '' ? sanitizedNumber(width, { allowDecimal: true }) : null, 
+            width_unit || null, 
+            length_unit || null, 
+            carpet_price !== '' ? sanitizedNumber(carpet_price, { allowDecimal: true }) : null, 
+            imageUrl, 
+            file.mimetype || null, 
+            file.size || null 
+          ];
+        
+        console.log("config::", insertValues);
 
         const [dbResponse] = await connection.query(insertQuery, insertValues);
 
@@ -1013,6 +1074,7 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
       await connection.commit();
 
       const data = { [unit_name || "configuration"]: imageUrls };
+
       return successWithDataResponse(res, true, "Configuration added successfully.", data);
     } catch (error) {
       if (connection) {
@@ -1029,9 +1091,9 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
 };
 
 export const deletePropertyConfigurationAdmin = async (req, res) => {
-  const { id } = req.params;
-
-  if (!id) {
+  const { id, sid } = req.params;
+  console.log(id, sid);
+  if (!id && !sid) {
       return badRequestResponse(res, false, "Missing required field: image_id");
   }
 
@@ -1042,19 +1104,30 @@ export const deletePropertyConfigurationAdmin = async (req, res) => {
       await connection.beginTransaction();
 
       const selectQuery = `SELECT unit_img_url FROM tbl_property_unit_configuration WHERE id = ?`;
-      const [rows] = await connection.query(selectQuery, [id]);
+      const [rows] = await connection.query(selectQuery, [sid]);
 
       if (!rows.length) {
           return badRequestResponse(res, false, "Configuration setting not found.");
       }
-
+      
       const imageUrl = rows[0].unit_img_url;
+      if(!imageUrl) {
+        return badRequestResponse(res, false, "No image found.");
+      }
       const bucketName = process.env.AWS_S3_BUCKET_NAME;
       const s3Key = imageUrl.replace(`https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/`, "");
 
       const pathParts = s3Key.split("/");
+      // console.log("paths: ", pathParts)
       if (pathParts.length < 3) {
-          return badRequestResponse(res, false, "Invalid image path format");
+          
+          await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: s3Key }));
+
+          const deleteQuery = `DELETE FROM tbl_property_unit_configuration WHERE id = ?`;
+          await connection.query(deleteQuery, [sid]);
+          await connection.commit();
+
+          return successResponse(res, true, "Configuration deleted successfully.");
       }
 
       const monthFolder = pathParts[0] + "/";
@@ -1063,21 +1136,24 @@ export const deletePropertyConfigurationAdmin = async (req, res) => {
       await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: s3Key }));
 
       const deleteQuery = `DELETE FROM tbl_property_unit_configuration WHERE id = ?`;
-      await connection.query(deleteQuery, [id]);
+      await connection.query(deleteQuery, [sid]);
 
-      const listPropertyObjects = await s3.send(new PutObjectCommand({
+      const listPropertyObjects = await s3.send(new ListObjectsV2Command({
           Bucket: bucketName,
           Prefix: propertyFolder,
       }));
+      
 
       if (!listPropertyObjects.Contents || listPropertyObjects.Contents.length === 0) {
           await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: `${propertyFolder}placeholder.txt` }));
       }
 
-      const listMonthObjects = await s3.send(new PutObjectCommand({
+      const listMonthObjects = await s3.send(new ListObjectsV2Command({
           Bucket: bucketName,
           Prefix: monthFolder,
       }));
+
+      console.log("list objects: ", listMonthObjects);
 
       if (!listMonthObjects.Contents || listMonthObjects.Contents.length === 0) {
           await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: `${monthFolder}placeholder.txt` }));
@@ -1109,13 +1185,15 @@ export const deletePropertyConfigurationAdmin = async (req, res) => {
 export const changePropertyStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, statusText } = req.body;
+    const { status, statusText, publish_date } = req.body;
 
     const data = {
       status, 
-      statusText
+      statusText,
+      publish_date : publish_date ? publish_date : status === '2' ? new Date() : null
     };
 
+    console.log(data)
     if (!status || status < 1 || status > 5) {
       return badRequestResponse(res, false, "Invalid status value. Must be between 1 and 5.");
     }
@@ -1283,3 +1361,148 @@ export const getFeatures = async (req, res) => {
         return badRequestResponse(res, false, 'Error fetching features!', error);
       }
 };
+
+export const getCategories = (req, res) => {
+  const query = 'SELECT DISTINCT location_categories FROM tbl_master_nearby_locations';
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+};
+
+// Nearby location section
+export const getNearbyLocationsByCategory = async (req, res) => {
+    try {
+    const { location_categories } = req.query;
+    const data = {
+      location_categories : location_categories || null
+    }
+    const result = await getAllPropertyNearbyCategoryAdmin(data);
+
+    if(result) {
+        return successWithDataResponse(res, true, 'Property nearby list!', result);
+    }
+ 
+  } catch (error) {
+    console.error("Database Error:", error);
+    return badRequestResponse(res, false, 'Failed to get nearby categories!', error);
+  }
+};
+
+
+export const createNearbyLocationAdmin = async (req, res) => {
+
+  try {
+    console.log(req.body);
+    const {id} = req.params;
+    const errors = propertyNearbyValidator(req.body);
+
+    if(!id) {
+      return badRequestResponse(res, false, "Property id is required.")
+    }
+
+    if(id && !validator.isNumeric(id)) {
+      return badRequestResponse(res, false, "Property id is not valid.")
+    }
+
+    if(errors.length > 0) {
+      return badRequestResponse(res, false, "Validation Message", errors)
+    }
+
+    const { nearby_id, location_value, location_title, distance, time, latitude, longitude } = req.body;
+
+    const data = {
+      property_id : id,
+      nearby_id: nearby_id || null,
+      location_value : location_value || null,
+      location_title : location_title || null,
+      distance : distance || null,
+      time: time || null,
+      latitude : latitude || null,
+      longitude : longitude || null
+    }
+
+    console.log(data);
+    const result = await createPropertyNearbyAdminDb(data);
+    if(result) {
+        return successResponse(res, true, 'Property nearby created!', result);
+    }
+ 
+  } catch (error) {
+    console.error("Database Error:", error);
+    return badRequestResponse(res, false, 'Failed to create nearby property!', error);
+  } 
+};
+
+
+export const updatePropertyNearbyAdmin = async (req, res) => {
+  try {
+    const { id, sid } = req.params;
+    if(!sid || !id) {
+      return badRequestResponse(res, false, "Nearby id required with query.")
+    }
+
+    const { nearby_id, location_value, location_title, distance, time, latitude, longitude } = req.body
+
+    const data = {
+      nearby_id: nearby_id || null,
+      location_value : location_value || null,
+      location_title : location_title || null,
+      distance : distance || null,
+      time: time || null,
+      latitude : latitude || null,
+      longitude : longitude || null
+    }
+
+    // console.log(data);
+    const result = await updatePropertyNearbyAdminDb(sid, data);
+    if(result.affectedRows <= 0)
+    {
+      return badRequestResponse(res, false, 'Nearby entry not found or failed to update.')
+    }
+    if(result) {
+        return successResponse(res, true, 'Property nearby updated!', result);
+    }
+
+  } catch (error) {
+    console.error("Database Error:", error);
+    return badRequestResponse(res, false, 'Failed to update nearby property!', error);
+  }
+};
+
+export const deletePropertyNearbyAdmin = async (req, res) => {
+    
+  try {
+    const { id, sid } = req.params;
+
+    if (!id || !sid) {
+      return badRequestResponse(res, false, 'id or nearby id required with request.');
+    }
+    
+    const result = await delPropertyNearbyByIdAdminDb(sid);
+    if(result.afftectedRows <= 0) {
+      return badRequestResponse(res, false, 'Nearby not found or unable to delete!');
+    }
+    if(result) {
+        return successWithDataResponse(res, true, 'Property nearby deleted!', result);
+    }
+ 
+  } catch (error) {
+    console.error("Database Error:", error);
+    return badRequestResponse(res, false, 'Failed to delete nearby!', error);
+  }
+};
+
+export const generatePropertyNearbyAdmin = async (req, res) => {
+  try {
+
+    console.log(req.query)
+    return successResponse(res, true, 'Property nearby generated!');
+
+  } catch (error) {
+    console.error("Database Error:", error);
+    return badRequestResponse(res, false, 'Failed to generate nearby locations!', error);
+  }
+}

@@ -3,27 +3,37 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const app_header = process.env.APP_HEADER;
+const encodedAuth = Buffer.from(`${process.env.AADHAR_API_KEY}:${process.env.AADHAR_SECRETE_KEY}`).toString("base64");
+
 
 const BASE_URL = "https://ippocloud.com/api/v1/uidai/aadhaar-authentication";
 
 async function initiateTransaction() {
     try {
+        console.log("Initiating transaction...");
+
         const response = await axios.get(`${BASE_URL}/initiate-transaction`, {
-            headers: { Authorization: app_header },
+            headers: {
+                "Authorization": `Basic ${encodedAuth}`,
+                "Content-Type": "application/json",
+            },
         });
+
+        console.log("Transaction Response:", response.data);
         return response.data;
     } catch (error) {
-        throw new Error("Error initiating transaction: " + error.message);
+        console.error("Transaction API Error:", error.response?.data || error.message);
+        throw new Error("Error initiating transaction: " + JSON.stringify(error.response?.data || error.message));
     }
 }
 
-export const requestOtp = async (req, res) => {
 
+export const requestOtp = async (req, res) => {
+    console.log("Response Check", req.body);
     try {
         const { aadhaarNumber } = req.body;
         const transaction = await initiateTransaction();
-        console.log(transaction);
+      
         const data = {
             transaction_id: transaction.transaction_id,
             aadhaar_number: aadhaarNumber,
@@ -31,7 +41,7 @@ export const requestOtp = async (req, res) => {
         };
         const response = await axios.post(`${BASE_URL}/request-otp`, data, {
             headers: {
-                Authorization: app_header,
+                "Authorization" : `Basic ${encodedAuth}`,
                 "Content-Type": "application/json",
             },
         });
@@ -47,7 +57,7 @@ export const verifyOtp = async (req, res) => {
         const data = { transaction_id, otp_value };
         const response = await axios.post(`${BASE_URL}/verify-otp`, data, {
             headers: {
-                Authorization: app_header,
+                "Authorization" : `Basic ${encodedAuth}`, 
                 "Content-Type": "application/json",
             },
         });

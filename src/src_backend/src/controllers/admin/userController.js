@@ -7,6 +7,10 @@ import {
     getMemberUsersById,
     updateUser
 } from "../../models/memberModel.js";
+import  { 
+    getAllPropertyListAdminByMemberId,
+    getAllPropertyCountAdminByMemberId
+} from "../../models/propertyModels.js";
 
 import { badRequestResponse, successWithDataResponse, successResponse } from "../../utils/response.js";
 import validator from 'validator';
@@ -139,5 +143,55 @@ export const deleteUser = async (req, res) => {
         return successWithDataResponse(res, true, 'User deleted successfully', result);
     } catch (error) {
         return badRequestResponse(res, false, 'Error deleting user', error );
+    }
+};
+
+
+// properties by user section.
+
+// List all properties members
+export const listPropertiesByMemberId = async (req, res) => {
+    try {
+        let data = {};
+        const { page, limit } = req.query;
+        const { id } = req.params;
+
+        const pageCount = parseInt(page) || 1;
+        const limitCount = parseInt(limit) || 5;
+        const offset = (pageCount - 1) * limitCount;
+
+        const filters = req.query;
+        let whereClauses = [];
+
+        whereClauses.push(` tp.is_deleted = '0' `);
+        whereClauses.push(` tp.user_id = '${id}' `);
+
+        let baseQuery = '';
+        if (whereClauses.length > 0) {
+            baseQuery = ` WHERE ` + whereClauses.join(' AND ');
+        }
+        
+        const allowedColumns = ['id', 'property_title', 'city_name', 'property_type', "user_type"];
+        const allowedOrders = ['ASC', 'DESC'];
+        // console.log(whereClauses)
+        const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'id';
+        const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase()) ? filters.sortOrder?.toUpperCase() : 'DESC';
+
+        const propertiesResult = await getAllPropertyListAdminByMemberId(baseQuery, sortColumn, sortOrder, pageCount, limitCount);
+        const totalCount = await getAllPropertyCountAdminByMemberId(baseQuery);
+        console.log(propertiesResult, totalCount, offset), "result";
+        data['properties'] = propertiesResult;
+        data['totalCounts'] = totalCount;
+        const totalPages = Math.ceil(totalCount / limitCount);
+        const startIndex = offset + 1;
+        const endIndex = Math.min(offset + limitCount, totalCount);
+        data['totalPages'] = totalPages;
+        data['startIndex'] = startIndex;
+        data['endIndex'] = endIndex;
+        
+        return successWithDataResponse(res, true, "properties list.", data);
+
+    } catch (error) {
+        return badRequestResponse(res, false, 'Error fetching properties!', error);
     }
 };
