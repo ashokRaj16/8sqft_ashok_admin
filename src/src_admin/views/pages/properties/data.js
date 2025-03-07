@@ -15,13 +15,62 @@ export const mailTypes = [
   { id: 4, title: 'Porperty Notification' },
 ]
 
+export const availableMonths = [
+  { id: 1, title: "January" },
+  { id: 2, title: "February" },
+  { id: 3, title: "March" },
+  { id: 4, title: "April" },
+  { id: 5, title: "May" },
+  { id: 6, title: "June" },
+  { id: 7, title: "July" },
+  { id: 8, title: "August" },
+  { id: 9, title: "September" },
+  { id: 10, title: "October" },
+  { id: 11, title: "November" },
+  { id: 12, title: "December" }
+];
+
+export const availableYears = [
+  { id: 1, title: "2010" },
+  { id: 2, title: "2011" },
+  { id: 3, title: "2012" },
+  { id: 4, title: "2013" },
+  { id: 5, title: "2014" },
+  { id: 6, title: "2015" },
+  { id: 7, title: "2016" },
+  { id: 8, title: "2017" },
+  { id: 9, title: "2018" },
+  { id: 10, title: "2019" },
+  { id: 11, title: "2020" },
+  { id: 12, title: "2021" },
+  { id: 13, title: "2022" },
+  { id: 14, title: "2023" },
+  { id: 15, title: "2024" },
+  { id: 16, title: "2025" },
+  { id: 17, title: "2026" },
+  { id: 18, title: "2027" },
+  { id: 19, title: "2028" },
+  { id: 20, title: "2029" },
+  { id: 21, title: "2030" },
+  { id: 22, title: "2031" },
+  { id: 23, title: "2032" },
+  { id: 24, title: "2033" },
+  { id: 25, title: "2034" },
+  { id: 26, title: "2035" },
+  { id: 27, title: "2036" },
+  { id: 28, title: "2037" },
+  { id: 29, title: "2038" },
+  { id: 30, title: "2039" },
+  { id: 31, title: "2040" }
+];
+
 export const propertyStatus = [
   { id: 1, title: constant.PROPERTY_STATUS.PENDING },
   { id: 2, title: constant.PROPERTY_STATUS.APPROVED },
   { id: 3, title: constant.PROPERTY_STATUS.REJECTED },
   { id: 4, title: constant.PROPERTY_STATUS.DELISTED },
   { id: 5, title: constant.PROPERTY_STATUS.SOLD_OUT },
-  { id: 5, title: constant.PROPERTY_STATUS.RENT_OUT },
+  { id: 6, title: constant.PROPERTY_STATUS.RENT_OUT },
 ]
 
 export const otherAmenties = [
@@ -111,7 +160,7 @@ export const configurationUnit = [
 ]
 
 export const projectAreaUnit = [
-  { id: 1, title: 'Acre' , value : 'Acre' },
+  { id: 1, title: 'ACRE' , value : 'ACRE' },
   { id: 2, title: 'SQ FT' , value : 'SQ FT' }
 ]
 
@@ -130,6 +179,41 @@ export const doorFacingOptions = [
 export const NegotiableType = [
   { id: 1, title: 'Negotiable' , value : '1' },
   { id: 2, title: 'Non-Negotiable' , value : '0' }
+]
+
+export const ImageOptions = [
+  { id: 1, title: 'Main Image', category : 'Images', propertyType : [] },
+  { id: 2, title: 'Entrance Photo', category : 'Images', propertyType : [] },
+  { id: 3, title: 'Plot Photo', category : 'Images', propertyType : [] },
+  { id: 4, title: 'Road Photo', category : 'Images', propertyType : [] },
+  { id: 5, title: 'Garden Photo', category : 'Images', propertyType : [] },
+  { id: 6, title: 'Temple Photo', category : 'Images', propertyType : [] },
+  { id: 7, title: 'Others', category : 'Images', propertyType : [] },
+  { id: 8, title: 'Video', category : 'Video', propertyType : [] },
+  { id: 9, title: 'Layout Plan', category : 'Document', propertyType : [] },
+  { id: 10, title: 'Property Agreement', category : 'Document', propertyType : [] },
+  { id: 11, title: 'DA & PA', category : 'Document', propertyType : [] },
+  { id: 12, title: '7/12 or 8A', category : 'Document', propertyType : [] },
+  { id: 13, title: 'RERA', category : 'RERA', propertyType : [] },
+  { id: 14, title: 'Broucher', category : 'Broucher', propertyType : [] },
+  { id: 15, title: 'Youtube', category : 'Youtube', propertyType : [] },
+  { id: 16, title: 'Youtube Short', category : 'Youtube Short', propertyType : [] }
+]
+
+export const NearbyOptions = [
+  { id: 1, title: 'Railway Station' , value : '1' },
+  { id: 2, title: 'Airways' , value : '2' }
+]
+
+export const unitNameConfigOption = [
+  { id: 1, title: 'Studio', value: 'Studio', varietyType: [ constant.PROJECT_VARIETY.APARTMENT ]},
+  { id: 1, title: '1 RK', value: '1 RK', varietyType: [ constant.PROJECT_VARIETY.APARTMENT, constant.PROJECT_VARIETY.ROW_HOUSE, constant.PROJECT_VARIETY.VILLA, constant.PROJECT_VARIETY.BUNGALOW,  ]},
+  { id: 2, title: '1 BHK', value: '1 BHK', varietyType: [ constant.PROJECT_VARIETY.APARTMENT, constant.PROJECT_VARIETY.PENTHOUSE, constant.PROJECT_VARIETY.ROW_HOUSE, constant.PROJECT_VARIETY.VILLA, constant.PROJECT_VARIETY.BUNGALOW, ]},
+  { id: 3, title: '2 BHK', value: '2 BHK', varietyType: [ constant.PROJECT_VARIETY.APARTMENT, constant.PROJECT_VARIETY.PENTHOUSE, constant.PROJECT_VARIETY.ROW_HOUSE, constant.PROJECT_VARIETY.VILLA, constant.PROJECT_VARIETY.BUNGALOW, constant.PROJECT_VARIETY.OTHER ]},
+  { id: 4, title: '3 BHK', value: '3 BHK', varietyType: [ constant.PROJECT_VARIETY.APARTMENT, constant.PROJECT_VARIETY.PENTHOUSE, constant.PROJECT_VARIETY.ROW_HOUSE, constant.PROJECT_VARIETY.VILLA, constant.PROJECT_VARIETY.BUNGALOW, constant.PROJECT_VARIETY.OTHER  ]},
+  { id: 5, title: '4 BHK', value: '4 BHK', varietyType: [ constant.PROJECT_VARIETY.APARTMENT, constant.PROJECT_VARIETY.PENTHOUSE, constant.PROJECT_VARIETY.ROW_HOUSE, constant.PROJECT_VARIETY.VILLA, constant.PROJECT_VARIETY.BUNGALOW, constant.PROJECT_VARIETY.OTHER ]},
+  { id: 6, title: '5+ BHK', value: '5+ BHK', varietyType: [ constant.PROJECT_VARIETY.APARTMENT, constant.PROJECT_VARIETY.PENTHOUSE, constant.PROJECT_VARIETY.ROW_HOUSE, constant.PROJECT_VARIETY.VILLA, constant.PROJECT_VARIETY.BUNGALOW, constant.PROJECT_VARIETY.OTHER ]},
+  { id: 7, title: 'Other', value: 'Other', varietyType: [ constant.PROJECT_VARIETY.APARTMENT, constant.PROJECT_VARIETY.PENTHOUSE, constant.PROJECT_VARIETY.ROW_HOUSE, constant.PROJECT_VARIETY.VILLA, constant.PROJECT_VARIETY.BUNGALOW, constant.PROJECT_VARIETY.OTHER ]},
 ]
 
 export let initialPropertyDetailsValues = {
@@ -197,6 +281,8 @@ export let initialPropertyDetailsValues = {
   property_current_status: '',
   possession_status: '',
   possession_date: '',
+  possession_month : '',
+  possession_year : '',
   total_towers: '',
   total_units: '',
   project_area: '',
@@ -230,4 +316,22 @@ export let initialPropertyConfigurationValues = {
   width_unit: '',
   length_unit: '',
   image : '',
+}
+
+export let initialPropertyImagesValues = {
+  property_id : '',
+  img_title : '',
+  image_category : '',
+  images : '',
+  images_type: ''
+}
+
+export let initialPropertyNearbyValues = {
+  nearby_id : '',
+  location_value : '',
+  location_title : '',
+  distance : '',
+  time : '',
+  latitude : '',
+  longitude : ''
 }

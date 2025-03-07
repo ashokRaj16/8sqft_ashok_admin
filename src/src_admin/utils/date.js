@@ -9,7 +9,7 @@
 // return formatted date eg. "01-01-2023"
 export function formattedDate(isoString = new Date().toISOString()) {
     const date = new Date(isoString); // Parse the ISO string to a Date object
-    console.log(isoString, date);
+    // console.log(isoString, date);
     if (isNaN(date)) {
       throw new Error('Invalid date input');
     }

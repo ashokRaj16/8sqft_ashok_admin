@@ -16,8 +16,8 @@ export const listEnquiry = async (req, res) => {
     const { page, limit } = req.query;
 
     const pageCount = parseInt(page) || 1;
-    const limitCount = parseInt(limit) || 100;
-    const offset = (page - 1) * limit;
+    const limitCount = parseInt(limit) || 10;
+    const offset = (pageCount - 1) * limitCount;
 
     const filters = req.query;
     let whereClauses = [];

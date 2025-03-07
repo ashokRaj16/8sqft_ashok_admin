@@ -11,6 +11,7 @@ import {
   deleteCategoryAdmin,
   updateCategoryAdmin,
 } from "../../models/blogModel.js";
+import { formattedDate, sanitizedField } from "../../utils/commonHelper.js";
 import {
   badRequestResponse,
   successWithDataResponse,
@@ -33,14 +34,19 @@ export const listBlogs = async (req, res) => {
       const newSearchfilter = `tb.title like '%${validator.escape(
         filters.searchFilter.trim()
       )}%' OR 
-                          tb.author_name like '%${validator.escape(
-                            filters.searchFilter.trim()
-                          )}%' OR
-                          tb.short_description like '%${validator.escape(
-                            filters.searchFilter.trim()
-                          )}%' `;
+      tb.author_name like '%${validator.escape(
+        filters.searchFilter.trim()
+      )}%' OR
+      tb.short_description like '%${validator.escape(
+        filters.searchFilter.trim()
+      )}%' OR
+      tbc.title like '%${validator.escape(
+        filters.searchFilter.trim()
+      )}%'
+      `;
       whereClauses.push(newSearchfilter);
     }
+
 
     whereClauses.push(` tb.is_deleted = '0' `);
 
@@ -48,7 +54,7 @@ export const listBlogs = async (req, res) => {
     if (whereClauses.length > 0) {
       baseQuery = ` WHERE ` + whereClauses.join(" AND ");
     }
-
+    console.log(baseQuery,"baseee")
     const allowedColumns = [
       "id",
       "title",
@@ -60,7 +66,7 @@ export const listBlogs = async (req, res) => {
 
     const sortColumn = allowedColumns.includes(filters.sortColumn)
       ? filters.sortColumn
-      : "id";
+      : "tb.id";
 
     const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase())
       ? filters.sortOrder?.toUpperCase()
@@ -113,6 +119,7 @@ export const addBlog = async (req, res) => {
     short_description,
     banner_image,
     banner_video,
+    youtube_url,
     cat_id,
     tags,
     comment_enabled,
@@ -120,15 +127,17 @@ export const addBlog = async (req, res) => {
     meta_title,
     meta_description,
     meta_keyword,
+    publish_date,
   } = req.body;
 
   try {
     const data = {
-      title: title || null,
-      description: description || null,
-      short_description: short_description || null,
+      title: title && sanitizedField( title, true, 'CAPITALIZE', {replaceMultipleSpaces: true}) || null,
+      description: description && sanitizedField(description, true) || null,
+      short_description: short_description && sanitizedField(short_description, true) || null,
       banner_image: banner_image || null,
       banner_video: banner_video || null,
+      youtube_url : youtube_url || null,
       cat_id: cat_id || 0,
       tags: tags || null,
       comment_enabled: comment_enabled || null,
@@ -136,6 +145,7 @@ export const addBlog = async (req, res) => {
       meta_title: meta_title || title || null,
       meta_description: meta_description || null,
       meta_keyword: meta_keyword || null,
+      publish_date : publish_date || null,
       user_id: req.userId,
     };
 
@@ -159,6 +169,7 @@ export const updateBlog = async (req, res) => {
     short_description,
     banner_image,
     banner_video,
+    youtube_url,
     cat_id,
     tags,
     comment_enabled,
@@ -166,24 +177,17 @@ export const updateBlog = async (req, res) => {
     meta_title,
     meta_description,
     meta_keyword,
+    publish_date
   } = req.body;
 
   try {
-    // const [result] = await pool.execute(
-    //     `UPDATE tbl_blogs SET title = ?, description = ?, short_description = ?, banner_image = ?,
-    //         banner_video = ?, cat_id = ?, tags = ?, user_id = ?, comment_enabled = ?,
-    //         author_name = ?, meta_title = ?, meta_description = ?, meta_keyword = ?,
-    //         canonical_url = ?, updated_by = CURRENT_TIMESTAMP WHERE id = ?`,
-    //     [title, description, short_description, banner_image, banner_video, cat_id, tags,
-    //         user_id, comment_enabled, author_name, meta_title, meta_description,
-    //         meta_keyword, canonical_url, id]
-    // );
     const data = {
       title: title || null,
       description: description || null,
       short_description: short_description || null,
       banner_image: banner_image || null,
       banner_video: banner_video || null,
+      youtube_url : youtube_url || null,
       cat_id: cat_id || 0,
       tags: tags || null,
       comment_enabled: comment_enabled || null,
@@ -191,6 +195,7 @@ export const updateBlog = async (req, res) => {
       meta_title: meta_title || title || null,
       meta_description: meta_description || null,
       meta_keyword: meta_keyword || null,
+      publish_date : publish_date || null,
       added_by: req.userId,
     };
 
@@ -266,7 +271,7 @@ export const listCategory = async (req, res) => {
 
     const sortColumn = allowedColumns.includes(filters.sortColumn)
       ? filters.sortColumn
-      : "id";
+      : "tbc.id";
 
     const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase())
       ? filters.sortOrder?.toUpperCase()

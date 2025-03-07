@@ -679,8 +679,9 @@ export const getAllProperty = async (req, res) => {
       whereClauses.push(`tp.pincode = '${validator.escape(filters.pincode) }'`);
     }
 
-    if (filters?.is_rera_number && filters?.is_rera_number === '1') {
-      whereClauses.push(`tp.is_rera_number = '${validator.escape(filters.is_rera_number) }'`);
+    if (filters?.is_rera_number !== undefined && filters?.is_rera_number !== null) {
+      console.log(filters.is_rera_number, "date")
+      whereClauses.push(`tp.is_rera_number = '${filters.is_rera_number }'`);
     }
     
     if (filters?.property_current_status) {
@@ -741,8 +742,7 @@ export const getAllProperty = async (req, res) => {
       }
       
       whereClauses.push(`
-        tp.project_area BETWEEN ${sanitizedNumber(min, { allowDecimal: 2, allowNegative: false })} 
-        AND ${sanitizedNumber(max, { allowDecimal: 2, allowNegative: false })}
+        tpuc.carpet_price BETWEEN ${sanitizedNumber(min, { allowDecimal: 2, allowNegative: false })} AND ${sanitizedNumber(max, { allowDecimal: 2, allowNegative: false })}
       `);
     }
 
@@ -757,7 +757,7 @@ export const getAllProperty = async (req, res) => {
       const allowedColumns = ['id', 'rent_amount', 'availability_date', '	created_at'];
       const allowedOrders = ['ASC', 'DESC'];
 
-      const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'id';
+      const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'tp.id';
       const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase()) ? filters.sortOrder?.toUpperCase() : 'DESC';
 
       const propertyResult = await getAllPropertyList(baseQuery, pageCount, limitCount, sortColumn, sortOrder);

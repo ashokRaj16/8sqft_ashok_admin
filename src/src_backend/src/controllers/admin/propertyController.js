@@ -543,7 +543,6 @@ export const updatePropertyFeaturesAdmin = async (req, res) => {
             updated_by : req.userId || null
         };
 
-        console.log(id, data)
         const result = await updatePropertyFeaturesDb( id, data);
         if(result) {
             return successResponse(res, true, 'Property updated!', result);

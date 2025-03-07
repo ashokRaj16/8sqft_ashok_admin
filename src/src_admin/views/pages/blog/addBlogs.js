@@ -29,16 +29,18 @@ import { useNavigate } from 'react-router-dom'
 import { uploadBlogImage } from '../../../models/blogModel'
 import { constant } from '../../../utils/constant'
 
-// import ReactQuill from "react-quill";
-// import "react-quill/dist/quill.snow.css";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const AddBlog = () => {
   // Validation Schema
   const [toast, addToast] = useState(0)
   const [category, setCategory] = useState([])
-  const [ previewImage, setPreviewImage] = useState('');
+  const [previewImage, setPreviewImage] = useState('');
   const [uploading, setUploading] = useState(false);
-
+  const [savedRange, setSavedRange] = useState({ index: 0, length: 0 });
+  
+  const quillRef = useRef(null);
   const navigate = useNavigate()
   const toaster = useRef()
 
@@ -100,6 +102,62 @@ const AddBlog = () => {
     setUploading(false);
   }
 
+  const EditorOptions = {
+    toolbar : {
+      container :
+     [
+      [ { header: [1, 2, 3, 4, 5, false]}],
+      ['bold', 'italic', 'underline'],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link"]
+      // ["link", "image"]
+     ],
+      // handlers : {
+      //   image: () => handleImageInsert(),
+      // },
+    },
+  }
+
+  function handleImageInsert() {
+    const editor = quillRef.current.getEditor();
+    const range = editor.getSelection();
+  
+    if (!range) {
+      alert("Place the cursor where you want the image before inserting.");
+      return;
+    }
+  
+    const updateSavedRange = { index: range.index, length: range.length }; // ✅ Save the range safely
+    // setSavedRange(updateSavedRange);
+  
+    const url = prompt("Enter the image URL:");
+    if (url) {
+      insertImage(url, updateSavedRange); // Pass the range directly
+    }
+  }
+  
+  console.error("inserting image:", savedRange);
+  
+  function insertImage(url, range) {
+    const editor = quillRef.current.getEditor();
+    editor.focus(); // Refocus to restore cursor
+  
+  
+    try {
+      // const response = await fetch(url);
+      // const blob = await response.blob();
+  
+      const length = editor.getLength();
+      const index = Math.min(range.index, length - 1); // Prevent index out of bounds
+  
+      editor.setSelection(index, range.length); // Restore the saved selection
+      editor.insertEmbed(index, "image", url); // You can use the URL directly here, unless you handle blobs
+    } catch (error) {
+      console.error("Error inserting image:", error);
+      alert("Could not insert the image.");
+    }
+  }
+
   // get blog categories & tags.
   useEffect(() => {
     ;(async () => {
@@ -120,6 +178,7 @@ const AddBlog = () => {
       {/* <CContainer> */}
       {/* <CRow> */}
       {/* <CCol> */}
+
       <CCard className="mb-4">
         <CCardHeader>
           <strong>Add Blog</strong>
@@ -137,6 +196,7 @@ const AddBlog = () => {
               }}
             >
               {({ setFieldValue, setFieldError, values, handleChange, handleBlur, isSubmitting }) => (
+                console.log(values, "values"),
                 <Form>
                   <CRow className="mb-3">
                     <CCol lg={8} md={8} sm={12} className="mb-2">
@@ -145,7 +205,7 @@ const AddBlog = () => {
                           {/* Blog Details Section */}
                           <CRow className="mb-3">
                             <CCol md="12">
-                              <CFormLabel>Blog Title</CFormLabel>
+                              <CFormLabel>Title</CFormLabel>
                               <Field
                                 name="title"
                                 as={CFormInput}
@@ -158,7 +218,29 @@ const AddBlog = () => {
                             </CCol>
                           </CRow>
 
-                          <CRow className="mb-3">
+                          <CRow className="mb-4">
+                            <CCol md="12">
+                              <CFormLabel>Description</CFormLabel>
+                              {/* <CFormTextarea /> */}
+                              
+                              <ReactQuill
+                                ref={quillRef}
+                                name="description"
+                                theme="snow"
+                                value={values.description}
+                                modules={EditorOptions}
+                                // onChangeSelection={(range) => {
+                                //   if (range) setSavedRange(range); // Save the cursor position
+                                // }}
+                                onChange={(content) => setFieldValue("description", content)}
+                                placeholder="Write the blog content..."
+                              />
+                              <ErrorMessage name="description" component="div" className="text-danger" />
+                            </CCol>
+                          </CRow>
+
+
+                          {/* <CRow className="mb-3">
                             <CCol md="12">
                               <CFormLabel>Description</CFormLabel>
                               <Field
@@ -177,7 +259,7 @@ const AddBlog = () => {
                                 className="text-danger"
                               />
                             </CCol>
-                          </CRow>
+                          </CRow> */}
 
                           <CRow className="mb-3">
                             <CCol md="12">
@@ -203,7 +285,7 @@ const AddBlog = () => {
                           {/* upload image seperately and set image url */}
                           <CRow className="mb-3">
                             <CCol md="12">
-                              <CFormLabel>Blog Image</CFormLabel>
+                              <CFormLabel>Banner Image</CFormLabel>
                               <CFormInput
                                 type="file"
                                 className='mb-2'
@@ -235,6 +317,25 @@ const AddBlog = () => {
 
                           <CRow className="mb-3">
                             <CCol md="6">
+                              <CFormLabel>Youtube Url</CFormLabel>
+                              <Field
+                                name="youtube_url"
+                                as={CFormInput}
+                                value={values.youtube_url}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                placeholder="Enter the youtube video link"
+                              />
+                              <ErrorMessage
+                                name="youtube_url"
+                                component="div"
+                                className="text-danger"
+                              />
+                            </CCol>
+                          </CRow>
+
+                          <CRow className="mb-3">
+                            <CCol md="6">
                               <CFormLabel>Author</CFormLabel>
                               <Field
                                 name="author_name"
@@ -255,15 +356,12 @@ const AddBlog = () => {
                           <CRow className="mb-3">
                             <CCol md="12">
                               <CFormCheck
-                                id="commentEnabled"
+                                id="comment_enabled"
                                 label="Enable Comments"
-                                value={values.comment_enabled}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                // checked={values.commentEnabled}
-                                // onChange={() =>
-                                //   setFieldValue('commentEnabled', !values.commentEnabled)
-                                // }
+                                checked={values.comment_enabled === '1' }
+                                onChange={() =>
+                                  setFieldValue('comment_enabled', values.comment_enabled === '1' ? '0' : '1')
+                                }
                               />
                             </CCol>
                           </CRow>
@@ -370,15 +468,16 @@ const AddBlog = () => {
 
                           <CCol>
                             <CFormLabel>Category</CFormLabel>
-                            <Field name="category" as={CFormSelect} placeholder="Select category">
+                            <Field 
+                              name="cat_id" 
+                              as={CFormSelect} 
+                              placeholder="Select category">
                               <option value="-1">Select a category</option>
                               {category.map((item, index) => (
-                                <option value={item.id}>{item.title}</option>
+                                <option key={item.id} value={item.id}>{item.title}</option>
                               ))}
-                              {/* <option value="Technology">Technology</option>
-                                  <option value="Education">Education</option> */}
                             </Field>
-                            <ErrorMessage name="category" component="div" className="text-danger" />
+                            <ErrorMessage name="cat_id" component="div" className="text-danger" />
                           </CCol>
                           <CCol>
                             <CFormLabel>Tags</CFormLabel>

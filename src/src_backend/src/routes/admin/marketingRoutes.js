@@ -1,9 +1,8 @@
 import express from 'express';
 import { 
-    sendPromotionMessage, 
-    listPromotionData, 
-    
-    sendPromotionPropertyMessage,
+    listPromotionData,
+    sendWAPromotionPropertyMessage,
+    sendWAPromotionWithImageMessage,
     deleteMarketingById,
     deleteMarketingDetailsById,
     getMarketingLogById} from '../../controllers/admin/marketingController.js';
@@ -11,8 +10,9 @@ import { getAllProperty } from '../../controllers/admin/propertyController.js';
 
 const router = express.Router();
 
-router.route('/').post( sendPromotionMessage );
-router.route('/marketing_temp').post( sendPromotionPropertyMessage );
+// router.route('/').post( sendPromotionMessage );
+router.route('/marketing_wa').post( sendWAPromotionPropertyMessage );
+router.route('/marketing_wa_image').post( sendWAPromotionWithImageMessage );
 
 router.route('/').get( listPromotionData );
 router.route('/:id').get( getMarketingLogById ).delete(deleteMarketingById)

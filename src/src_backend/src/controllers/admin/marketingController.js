@@ -9,137 +9,81 @@ import { createMarketingAdmin, deleteMarketingByIdAdmin, deleteMarketingDetailsR
 import { formattedDate } from '../../utils/commonHelper.js';
 import validator from 'validator';
 
-export const sendPromotionMessage = async (req, res) => {
-  try {
+export const sendWAPromotionWithImageMessage = async (req, res) => {
+    const {full_name, mobile, email, property_id } = req.body;
+    if(!full_name || !mobile || !property_id) {
+      return badRequestResponse(res, false, "Missing required parameter.")
+    }
 
-     
-  //   const marketingPayload = new URLSearchParams({ 
-  //     channel: 'whatsapp',
-  //     'src.name': '8sqftwebApp',
-  //     source: process.env.GUPSHUP_WHATSAPP_NUMBER,
-  //     destination: `7767944781`,
-  //     type: "template",
-  //     template: JSON.stringify({
-  //         id: 'c9ddbb6a-f9a2-4a0a-b7c7-a77e0612ef84', // Your template ID
-  //         language: { code: "en" }, // Ensure the language matches the template
-  //         components: [
-  //             {
-  //                 type: "header", // Header contains the image
-  //                 parameters: [
-  //                     {
-  //                         type: "image", // Image type
-  //                         image: { 
-  //                             link: "https://8sqft-images.s3.eu-north-1.amazonaws.com/feb-2025/137/main-image-1739424532922-873800268.png"
-  //                         }
-  //                     }
-  //                 ]
-  //             },
-  //             {
-  //                 type: "body", // Body contains the text variables
-  //                 parameters: [
-  //                     { type: "text", text: "Hello Pune" }, // {{1}} - City
-  //                     { type: "text", text: "New TestProperty" }, // {{2}} - Property Name
-  //                     { type: "text", text: "Pune" } // {{3}} - City
-  //                 ]
-  //             },
-  //             {
-  //                 type: "button",
-  //                 sub_type: "URL", // URL button type
-  //                 index: 0,
-  //                 parameters: [
-  //                     { type: "text", text: "https://www.8sqft.com/" } // Visit Website Button
-  //                 ]
-  //             },
-  //             {
-  //                 type: "button",
-  //                 sub_type: "PHONE_NUMBER", // Phone number button
-  //                 index: 1,
-  //                 parameters: [
-  //                     { type: "text", text: "+917030000031" } // Contact Us Button
-  //                 ]
-  //             }
-  //         ]
-  //     })
-  // });
-      
-    const marketingPayload = new URLSearchParams({ 
-      channel: 'whatsapp',
-      'src.name': '8sqftwebApp',
-      source: process.env.GUPSHUP_WHATSAPP_NUMBER,
-      destination: `7767944781`,
-      type: "template",
-      template: JSON.stringify({
-          id: 'c9ddbb6a-f9a2-4a0a-b7c7-a77e0612ef84',
-          components: [
-            {
-              type: "header", // Image should go in header, not body
-              parameters: [
-                  { type: "media", image: { link: "https://8sqft-images.s3.eu-north-1.amazonaws.com/feb-2025/137/main-image-1739424532922-873800268.png" } }
-              ]
-          },
-            {
-                type: "body",
-                parameters: [
-                    { type: "text", text: "Test " }, // {{1}} - Image URL as text
-                    { type: "text", text: "New TestProperty" }, // {{2}} - Property Name
-                    { type: "text", text: "Pune" } // {{3}} - City
-                ]
-            },
-            {
-              type: "buttons",
-              parameters: [
-                  { type: "url", url: "New TestProperty" }, // {{2}} - Property Name
-                  { type: "button", phone_number: "Pune" } // {{3}} - City
-              ]
+    try {
+      const userJoin = `LEFT JOIN tbl_users tu ON tu.id = tp.user_id`;
+      const galleryJoin = `LEFT JOIN tbl_property_gallery tpg ON tpg.property_id = tp.id`;
+
+      const propertyQuery = `SELECT tp.id, tp.property_title, tp.title_slug, tp.locality, tp.city_name,
+        tu.fname, tu.lname, tu.mobile,
+        tp.property_title, tp.rent_amount, tp.city_name, tp.property_type,
+        tp.status ,
+        MIN(tpg.property_img_url) as property_img_url
+        FROM tbl_property as tp
+        ${userJoin}
+        ${galleryJoin}
+        WHERE tp.id = ?
+        `;
+
+      const [properties] = await pool.query(propertyQuery, [property_id]);
+
+      console.log(properties,"propsss")
+      //#region working
+      const marketingPayload = new URLSearchParams({ 
+        channel: 'whatsapp',
+        'src.name': '8sqftwebApp',
+        source: process.env.GUPSHUP_WHATSAPP_NUMBER,
+        destination: `9172860511`,
+        type: "template",
+        // destination: `${properties[0].mobile}`,
+        // params with id
+        template: JSON.stringify({
+            id: 'e5a51646-055b-429c-bc31-a0da0f2d0aba',
+            params : [
+              `${properties[0].property_title}`, 
+              `${properties[0].locality}, ${properties[0].city_name}`,
+              `http://www.8sqft.com/${properties[0].title_slug}`
+            ]
+        }),
+        // for images
+        // link: 'https://8sqft-images.s3.eu-north-1.amazonaws.com/feb-2025/136/entrance-photo-1739367703178-396797635.jpg'
+        message : JSON.stringify({      
+          type: 'image',
+          image: {
+            link: `${properties[0].property_img_url}`
           }
-        ]
-      }),
-      // buttons: JSON.stringify([
-      //     { 
-      //         type: "visit_website", 
-      //         text: "Visit Website", 
-      //         url: "https://www.8sqft.com/"
-      //     }, 
-      //     {   
-      //         type: "call_phone_number", 
-      //         text: "Contact Us", 
-      //         phone_number: "+917030000031"
-      //     } 
-      // ])
-  });
-  
-        
-        console.log("result::: ", marketingPayload )
+        }),      
+      });
 
-          try {
-              const gupshupResponse = await axios.post(
-                  'https://api.gupshup.io/wa/api/v1/template/msg',
-                  marketingPayload,
-                  {
-                      headers: {
-                          'Content-Type': 'application/x-www-form-urlencoded',
-                          'Cache-Control': 'no-cache',
-                          apikey: process.env.GUPSHUP_API_KEY,
-                      },
-                  }
-              );
-
-              console.log("response:::", gupshupResponse.data)
-              if (gupshupResponse.data.status === 'submitted') {
-                  console.log(`Message sent to ${user.mobile}`);
-              } else {
-                  console.error(`Failed to send message to ${user.mobile}:`, gupshupResponse.data);
-              }
-          } catch (error) {
-              console.error(`Error sending message`, error);
+      const gupshupResponse = await axios.post(
+          'https://api.gupshup.io/wa/api/v1/template/msg',
+          marketingPayload,
+          {
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Cache-Control': 'no-cache',
+                  apikey: process.env.GUPSHUP_API_KEY,
+              },
           }
-      
+      );
+
+      console.log("response:::", gupshupResponse.data)
+      if (gupshupResponse.data.status === 'submitted') {
+          console.log(`Message sent.`);
+      } else {
+          console.error(`Failed to send message to:`, gupshupResponse.data);
+      }
       return successResponse(res, true, 'Marketing messages sent successfully');
   } catch (error) {
-      console.error('Error in sendMessage:', error);
+      console.error('Error in send Message:', error);
       return badRequestResponse(res, false, 'Failed to send marketing messages', error);
   }
-};
+}
 
 /**
  * Working
@@ -147,10 +91,9 @@ export const sendPromotionMessage = async (req, res) => {
  * @param {*} res 
  * @returns 
  */
-export const sendPromotionPropertyMessage = async (req, res) => {
+export const sendWAPromotionPropertyMessage = async (req, res) => {
 
     const {full_name, mobile, email, property_id } = req.body;
-    console.log(req.body)
     if(!full_name || !mobile || !property_id) {
       return badRequestResponse(res, false, "Missing required parameter.")
     }
