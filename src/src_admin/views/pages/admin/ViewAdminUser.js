@@ -227,19 +227,19 @@ const ViewAdminUser = () => {
                                 <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
                                   <p className='fw-bold m-2' >Name: </p>
                                   <p className="m-2"> 
-                                    {`${userDetails?.fname} ${userDetails?.mname} ${userDetails?.lname} `}
+                                    {`${userDetails?.fname || ''} ${userDetails?.mname || ''} ${userDetails?.lname || ''} `}
                                   </p>
                                   {/* <small>3 days ago</small> */}
                                 </CCol>
                                 <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
                                   <p className='fw-bold m-2' >Mobile: </p>
-                                  <p className="m-2">{userDetails?.mobile}</p>
+                                  <p className="m-2">{userDetails?.mobile || '-'}</p>
                                 </CCol>
                               </CRow>
                               <CRow>
                                 <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
                                   <p className='fw-bold m-2' >Email: </p>
-                                  <p className="m-2">{userDetails.email}</p>
+                                  <p className="m-2">{userDetails.email || '-'}</p>
                                   {/* <small>3 days ago</small> */}
                                 </CCol>
                               </CRow>
@@ -247,32 +247,13 @@ const ViewAdminUser = () => {
                               <CRow>
                                 <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
                                   <p className='fw-bold m-2' >Role: </p>
-                                  <p className="m-2">{userDetails.role_id}</p>
+                                  <p className="m-2">{userDetails.role_id || '-'}</p>
                                   {/* <small>3 days ago</small> */}
                                 </CCol>
                               </CRow>
 
-                              <CRow className="align-items-center">
-                                {/* <CCol lg="3" md="6" className="text-center border rounded p-3 m-1">
-                                  <CHeader className="fw-bold">{userDetails?.property_type || "-"}</CHeader>
-                                  <small className="text-secondary">Property Added</small>
-                                </CCol>
-
-                                <CCol lg="3" md="6" className="text-center border rounded p-3 m-1">
-                                  <CHeader className="fw-bold text-center">{userDetails?.property_variety || "-"}</CHeader>
-                                  <small className="text-secondary">User Added</small>
-                                </CCol>
-
-                                <CCol lg="3" md="6" className="text-center border rounded p-3 m-1">
-                                  <CHeader className="fw-bold text-center">{userDetails?.property_rent_buy || "-"}</CHeader>
-                                  <small className="text-secondary">Variety Visited</small>
-                                </CCol>
-
-                                <CCol lg="2" md="6" className="text-center border rounded p-3 m-1">
-                                  <CHeader className="fw-bold text-center">{userDetails?.property_availibility_type || "-"}</CHeader>
-                                  <small className="text-secondary">LEASE/RENT</small>
-                                </CCol> */}
-                              </CRow>
+                              {/* <CRow className="align-items-center">
+                              </CRow> */}
 
                             </CAccordionBody>
                           </CAccordionItem>

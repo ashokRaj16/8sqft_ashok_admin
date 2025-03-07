@@ -301,16 +301,15 @@ export const contactSendWhatsApp = async (req, res) => {
     const owner = ownerResult[0];
 
     const gupshupApiKey = process.env.GUPSHUP_API_KEY;
-    console.log(gupshupApiKey, process.env.GUPSHUP_SOURCE_NUMBER);
 
     
     const userPayload = new URLSearchParams({
       channel: 'whatsapp',
-      'src.name': '8sqftwebApp',
-      source: process.env.GUPSHUP_WHATSAPP_NUMBER,
+      'src.name': 'pramoton8sqft',
+      source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
       destination: `91${userResult[0].mobile}`,
       template: JSON.stringify({
-        id: '94e50d82-a0ff-4c19-87b3-5b8504348b94',
+        id: 'f2a6532e-6b32-483b-b8d7-7e801afed7d0',
         params: [
           userResult[0].fname, 
           ownerResult[0].property_title,
@@ -322,11 +321,11 @@ export const contactSendWhatsApp = async (req, res) => {
 
     const ownerPayload = new URLSearchParams({
       channel: 'whatsapp',
-      'src.name': '8sqftwebApp', 
-      source: process.env.GUPSHUP_WHATSAPP_NUMBER,
+      'src.name': 'pramoton8sqft', 
+      source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
       destination: 91 +""+ ownerResult[0].mobile ,
       template: JSON.stringify({
-        id: '840ffd0d-aca8-4cb2-8ae8-36a863f27ecb',
+        id: '62820aa7-2f74-4566-bf9f-4107269f1992',
         params: [
           ownerResult[0].fname,
           ownerResult[0].property_title, 

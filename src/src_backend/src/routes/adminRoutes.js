@@ -18,6 +18,7 @@ import contactUsRoutes from '../routes/admin/contactUsRoutes.js';
 import sponsaredRoutes from '../routes/admin/sponsaredRoutes.js';
 
 import enquiryRoutes from '../routes/admin/enquiryRoutes.js';
+import gallleryRoutes from '../routes/admin/galleryRoutes.js';
 
 const router = express.Router();
 
@@ -44,10 +45,13 @@ router.use('/blog', blogRoutes)
 router.use('/category', categoryRoutes)
 router.use('/contact_us', contactUsRoutes)
 
-// ### update with get id by params             // done
+// property
 router.use('/property', propertyRoutes );
 router.use('/promotion', sponsaredRoutes );
 router.use('/enquiry', enquiryRoutes );
+
+// ### gallery
+router.use('/gallery', gallleryRoutes );
 
 router.route('/profile')
         .get(adminController.getProfile)

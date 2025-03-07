@@ -85,7 +85,7 @@ const Profile = () => {
             <CCol md="2" className="text-center">
               <CImage
                 roundedCircle
-                src={`${users?.img_url || '/src/assets/images/avatars/profile.png'}`}
+                src={`${users?.img_url || '/assets/images/avatars/profile.png'}`}
                 alt="Profile"
                 width={100}
                 height={100}

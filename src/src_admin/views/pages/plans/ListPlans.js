@@ -61,7 +61,6 @@ const ListPlans = () => {
   const [actionValue, setActionValue] = useState('');
   const [modalVisible, setModalVisible] = useState({});
 
-
   const [toast, addToast] = useState(0);
   const navigate = useNavigate();
   const toaster = useRef();

@@ -27,31 +27,109 @@ const formatPhoneNumber = (mobile) => {
 
 export const sendOtpToMobile = async (req, res) => {
   const { mobile } = req.body;
+ 
+  if (!mobile) {
+  return badRequestResponse(res, "Mobile number is required.")
+  }
+ 
+  try {
+ 
+  const formattedMobile = formatPhoneNumber(mobile);
+ 
+  const otp = generateOtp();
+  otpStore[formattedMobile] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+ 
+  const payload = new URLSearchParams({
+  channel: 'whatsapp',
+  'src.name': '8sqftwebApp', // Customize as per your app
+  source: process.env.GUPSHUP_WHATSAPP_NUMBER, // Your WhatsApp number in Gupshup
+  destination: formattedMobile, // Customer's phone number
+  // app_id: process.env.GUPSHUP_APP_ID, // Your Gupshup app ID
+  template: JSON.stringify({
+  id: '3bb3fa08-6958-427e-82ea-91026982980c', // Gupshup template ID (Authentication OTP template)
+  params: [otp, otp], // OTP as the parameter to replace {{1}} in the template
+  }),
+  });
+ 
+  const gupshupResponse = await axios.post(
+  'https://api.gupshup.io/wa/api/v1/template/msg',
+  payload,
+  {
+  headers: {
+  'Content-Type': 'application/x-www-form-urlencoded',
+  'Cache-Control': 'no-cache',
+  apikey: process.env.GUPSHUP_API_KEY,
+  },
+  }
+  );
+ 
+  console.log('Gupshup API Response:', gupshupResponse);
+ 
+  if (gupshupResponse.data.status === 'submitted') {
+ 
+  return successWithDataResponse(res, true, 'OTP sent to WhatsApp.', gupshupResponse.data)
+ 
+  } else {
+  console.error('Error from Gupshup API:', gupshupResponse.data);
+  throw new Error(gupshupResponse.data.message || 'Failed to send OTP');
+  }
+  } catch (error) {
+  console.error('Error while sending OTP:', error);
+  return internalServerResponse(res, false, 'Failed to send OTP due to an internal error..', error.message);
+  }
+ };
+
+
+export const sendOtpToMobile_test = async (req, res) => {
+  const { mobile } = req.body;
+
+  let templateType = 'authentication';
 
   if (!mobile) {
-    return badRequestResponse(res, "Mobile number is required.")
+    return badRequestResponse(res, "Mobile number is required.");
   }
 
   try {
-
-    const formattedMobile = formatPhoneNumber(mobile);
+   // const formattedMobile = formatPhoneNumber(mobile);
+    const formattedMobile = mobile
     console.log(`Formatted mobile number: ${formattedMobile}`);
 
-    const otp = generateOtp();
-    otpStore[formattedMobile] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
-    console.log(`Generated OTP: ${otp}`);
-    console.log(`Stored OTP with expiry: ${JSON.stringify(otpStore[formattedMobile])}`);
+    let otp = null;
+    let expiry = null;
+
+    let templateId;
+    if (templateType === 'authentication') {
+      templateId = '3bb3fa08-6958-427e-82ea-91026982980c';
+      otp = generateOtp();
+      expiry = Date.now() + OTP_EXPIRY_TIME;
+    } else if (templateType === 'marketing') {
+      templateId = 'd2c4fa06-78b1-439b-a2df-829b98234567';
+    } else {
+      return badRequestResponse(res, "Invalid template type.");
+    }
+
+    otpStore[formattedMobile] = {
+      otp,
+      expiry,
+      templateId,
+      messageType: templateType
+    };
+    console.log(`Stored Message Data: ${JSON.stringify(otpStore)}`);
+
+    // const keys = Object.keys(otpStore);
+    // console.log(keys);
+
+    const templatePayload = {
+      id: templateId,
+      params: templateType === 'authentication' ? [otp, otp] : []
+    };
 
     const payload = new URLSearchParams({
       channel: 'whatsapp',
-      'src.name': '8sqftwebApp',  // Customize as per your app
-      source: process.env.GUPSHUP_WHATSAPP_NUMBER,  // Your WhatsApp number in Gupshup
-      destination: formattedMobile,  // Customer's phone number
-      // app_id: process.env.GUPSHUP_APP_ID,  // Your Gupshup app ID
-      template: JSON.stringify({
-        id: '3bb3fa08-6958-427e-82ea-91026982980c',  // Gupshup template ID (Authentication OTP template)
-        params: [otp, otp],  // OTP as the parameter to replace {{1}} in the template
-      }),
+      'src.name': '8sqftwebApp',
+      source: process.env.GUPSHUP_WHATSAPP_NUMBER,
+      destination: formattedMobile,
+      template: JSON.stringify(templatePayload),
     });
 
     console.log(`Final payload (URL-encoded): ${payload}`);
@@ -68,21 +146,25 @@ export const sendOtpToMobile = async (req, res) => {
       }
     );
 
-    console.log('Gupshup API Response:', gupshupResponse);
+    console.log('Gupshup API Response:', gupshupResponse.data);
 
     if (gupshupResponse.data.status === 'submitted') {
+      const gsId = gupshupResponse.data.messageId;
 
-      return successWithDataResponse(res, true, 'OTP sent to WhatsApp.', gupshupResponse.data)
+      otpStore[formattedMobile].gsId = gsId;
+      console.log(`Updated Stored Data with gsId: ${JSON.stringify(otpStore[formattedMobile])}`);
 
+      return successWithDataResponse(res, true, 'Message sent to WhatsApp.', gupshupResponse.data);
     } else {
       console.error('Error from Gupshup API:', gupshupResponse.data);
-      throw new Error(gupshupResponse.data.message || 'Failed to send OTP');
+      throw new Error(gupshupResponse.data.message || 'Failed to send message');
     }
   } catch (error) {
-    console.error('Error while sending OTP:', error);
-    return internalServerResponse(res, false, 'Failed to send OTP due to an internal error..', error.message);
+    console.error('Error while sending message:', error);
+    return internalServerResponse(res, false, 'Failed to send message due to an internal error.', error.message);
   }
 };
+
 
 export const verifyMobileOtp = async (req, res) => {
   const { mobile, otp } = req.body;
@@ -140,7 +222,7 @@ export const verifyMobileOtp = async (req, res) => {
 // Mobile verification for dashboard profile
 export const verifyMobile = async (req, res) => {
   const { mobile, otp } = req.body;
-  let data = {};
+  let userId = req.userId;
 
   if (!mobile) {
     return badRequestResponse(res, false, 'Please enter mobile number.');
@@ -166,9 +248,42 @@ export const verifyMobile = async (req, res) => {
 
   try {
     if (parseInt(otp, 10) === storedOtp) {
-      const updateQuery = `UPDATE tbl_users SET is_mobile_verified = '1' WHERE mobile = ?`;
-      await pool.query(updateQuery, [mobile]);
+
+      const updateUserQuery = `UPDATE tbl_users SET is_mobile_verified = '1' WHERE mobile = ?`;
+      await pool.query(updateUserQuery, [mobile]);
+
+     const [user] = await pool.query(
+        'SELECT mobile, is_mobile_verified FROM tbl_users WHERE id = ?',
+        [userId]
+      );
+
+      if (user.length === 0) {
+        return badRequestResponse(res, false, 'User not found.');
+      }
+
+      const existingMobile = user[0].mobile;
+      const isVerified = user[0].is_mobile_verified;
+      let updateQuery;
+      let queryParams;
       
+      if (existingMobile && existingMobile !== mobile) {
+        updateQuery = `UPDATE tbl_users SET mobile = ?, is_mobile_verified = '1' WHERE id = ?`;
+        queryParams = [mobile, userId];
+      }
+
+
+      if (existingMobile && !isVerified) {
+       updateQuery = `UPDATE tbl_users SET is_mobile_verified = '1' WHERE id = ?`;
+        queryParams = [userId];
+      } else if (!existingMobile) {
+        updateQuery = `UPDATE tbl_users SET is_mobile_verified = '1' WHERE id = ?`;
+        queryParams =  [userId];
+      } else {
+        return badRequestResponse(res, false, 'Mobile number is already verified.');
+      }
+
+      await pool.query(updateQuery, queryParams);
+
       return res.status(200).json({
         status: true,
         message: 'Mobile Verified Successfully',
@@ -182,6 +297,7 @@ export const verifyMobile = async (req, res) => {
     return internalServerResponse(res, false, 'Failed to verify OTP due to an internal error.', error.message);
   }
 };
+
 
 export const sendOtpToEmail = async (req, res) => {
   const { email } = req.body;
@@ -278,24 +394,23 @@ export const verifyEmailOtp = async (req, res) => {
 // email verification for dashboard profile
 export const verifyEmail = async (req, res) => {
   const { email, otp } = req.body;
-  const data = {}
-  console.log(email, otp)
+  const userId = req.userId;
 
   if (!email) {
     return badRequestResponse(res, false, 'Please enter email.');
   }
 
   if (!otp) {
-    return badRequestResponse(res, false, 'Please enter otp.');
+    return badRequestResponse(res, false, 'Please enter OTP.');
   }
 
-  if (email && !validator.isEmail(email)) {
-    return badRequestResponse(res, false, 'Please enter valid email.');
+  if (!validator.isEmail(email)) {
+    return badRequestResponse(res, false, 'Please enter a valid email.');
   }
 
   const storedOtpData = otpStore[email];
   if (!storedOtpData) {
-    return badRequestResponse(res, false, 'OTP not found or expired');
+    return badRequestResponse(res, false, 'OTP not found or expired.');
   }
 
   const { otp: storedOtp, expiry } = storedOtpData;
@@ -307,9 +422,40 @@ export const verifyEmail = async (req, res) => {
 
   try {
     if (parseInt(otp, 10) === storedOtp) {
-      const updateQuery = `UPDATE tbl_users SET is_email_verified = '1' WHERE email = ?`;
-      await pool.query(updateQuery, [email]);
-      
+
+      const updateUserQuery = `UPDATE tbl_users SET is_email_verified = '1' WHERE email = ?`;
+      await pool.query(updateUserQuery, [email]);
+      const [user] = await pool.query(
+        'SELECT email, is_email_verified FROM tbl_users WHERE id = ?',
+        [userId]
+      );
+
+      if (user.length === 0) {
+        return badRequestResponse(res, false, 'User not found.');
+      }
+
+      const existingEmail = user[0].email;
+      const isVerified = user[0].is_email_verified;
+      let updateQuery;
+      let queryParams;
+
+      if (existingEmail && existingEmail !== email) {
+        updateQuery = `UPDATE tbl_users SET email = ? WHERE id = ?`;
+        queryParams = [email, userId];
+      }
+
+      if (existingEmail && !isVerified) {
+        updateQuery = `UPDATE tbl_users SET is_email_verified = '1' WHERE id = ?`;
+        queryParams = [userId];
+      } else if (!existingEmail) {
+        updateQuery = `UPDATE tbl_users SET is_email_verified = '1' WHERE id = ?`;
+        queryParams = [userId];
+      } else {
+        return badRequestResponse(res, false, 'Email is already verified.');
+      }
+
+      await pool.query(updateQuery, queryParams);
+
       return res.status(200).json({
         status: true,
         message: 'Email Verified Successfully',
@@ -319,11 +465,10 @@ export const verifyEmail = async (req, res) => {
       return badRequestResponse(res, false, 'Invalid OTP.');
     }
   } catch (error) {
-    console.error('Database error:', error);
-    return internalServerResponse(res, false, 'Error checking user in database.');
+    console.error('Error while verifying email:', error);
+    return internalServerResponse(res, false, 'Failed to verify email due to an internal error.', error.message);
   }
 };
-
 
 export const resendOtpToEmail = async (req, res) => {
   const { email } = req.body;
@@ -419,7 +564,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
 export const resendOtpToMobile = async (req, res) => {
   const { mobile } = req.body;
 
@@ -483,62 +627,163 @@ export const resendOtpToMobile = async (req, res) => {
   }
 };
 
+// export const messageCallback = (req, res) => {
+//     console.log("Valid Webhook Call:", req.body);
+
+//     const { app, timestamp, version, type, payload } = req.body;
+//     const { id, gsId, type: eventType, destination, payload: eventPayload } = payload;
+
+//     switch (eventType) {
+//         case "enqueued":
+//             console.log(`Message to ${destination} has been queued.`);
+//             break;
+//         case "failed":
+//             console.log(`Message to ${destination} failed to send.`);
+//             if (destination) {
+//                 const otp = generateOtp();
+//                 otpStore[destination] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+//                 sendTextMessage(destination, otp);
+//             }
+//             break;
+//         default:
+//             console.log(`Unknown event type: ${eventType}`);
+//     }
+
+//     res.status(200).json({ success: true, message: "Webhook received" });
+// };
+
+// export const messageCallback = (req, res) => {
+//   console.log("Valid Webhook Call:", req.body);
+
+//   const { app, timestamp, version, type, payload } = req.body;
+
+//   if (!payload) {
+//     console.error("Error: Webhook payload is undefined");
+//     return res.status(400).json({ success: false, message: "Invalid webhook data: missing payload" });
+//   }
+
+//   const { id, gsId, type: eventType, destination, payload: eventPayload } = payload;
+
+//   console.log("App:", app);
+//   console.log("Timestamp:", new Date(timestamp).toISOString());
+//   console.log("Version:", version);
+//   console.log("Event Type:", type);
+//   console.log("Message ID:", id);
+//   console.log("Gupshup Message ID:", gsId || "N/A");
+//   console.log("Status:", eventType);
+//   console.log("Destination:", destination);
+//   console.log("Additional Payload:", eventPayload);
+
+//   if (!destination) {
+//     console.error("Error: Missing destination in webhook data");
+//     return res.status(400).json({ success: false, message: "Invalid webhook data: missing destination" });
+//   }
+
+//   const storedData = otpStore[destination] || {};
+//   const { templateId } = storedData;
+//   console.log(`Stored Data: ${JSON.stringify(storedData)}`);
+
+//   if (templateId && templateId === id) {
+//     console.log("Template ID matched. Setting response to true.");
+//     return res.status(200).json({ success: true, message: "Webhook received" });
+//   } else {
+//     console.log("Template ID mismatch or not found. Handling else case.");
+//   }
+
+//   switch (eventType) {
+//     case "enqueued":
+//       console.log(`Message to ${destination} has been queued.`);
+//       break;
+//     case "failed":
+//       console.log(`Message to ${destination} failed to send.`);
+//       if (destination) {
+//         const otp = generateOtp();
+//         otpStore[destination] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+//         sendTextMessage(destination, otp);
+//       }
+//       break;
+//     default:
+//       console.log(`Unknown event type: ${eventType}`);
+//   }
+
+//   res.status(200).json({ success: true, message: "Webhook received" });
+// };
+
 
 export const messageCallback = (req, res) => {
-    console.log("Valid Webhook Call:", req.body);
+  console.log("Valid Webhook Call:::", req.body);
 
-    const { app, timestamp, version, type, payload } = req.body;
-    const { id, gsId, type: eventType, destination, payload: eventPayload } = payload;
+  const { app, timestamp, version, type, payload } = req.body;
+  const { id, gsId, type: eventType, destination, payload: eventPayload } = payload;
+  console.log(id, gsId, type, eventType, destination, "testttt log");
+  switch (eventType) {
+      case "enqueued":
+          console.log(`Message to ${destination} has been queued.`);
+          break;
+      case "failed":
+          console.log(`Message to ${destination} failed to send.`);
+          // if (destination) {
+              //const otp = generateOtp();
+              // otpStore[destination] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+              const keys = Object.keys(otpStore);
+              console.log(keys, ":::testt keyss");
+              sendTextMessage(keys[0]);
+          // }
+          break;
+      default:
+          console.log(`Unknown event type: ${eventType}`);
+  }
 
-    // console.log("App:", app);
-    // console.log("Timestamp:", new Date(timestamp).toISOString());
-    // console.log("Version:", version);
-    // console.log("Event Type:", type);
-    // console.log("Message ID:", id);
-    // console.log("Gupshup Message ID:", gsId || "N/A");
-    // console.log("Status:", eventType);
-    // console.log("Destination:", destination);
-    // console.log("Additional Payload:", eventPayload);
-
-    switch (eventType) {
-        case "enqueued":
-            console.log(`Message to ${destination} has been queued.`);
-            break;
-        case "failed":
-            console.log(`Message to ${destination} failed to send.`);
-            if (destination) {
-                const otp = generateOtp();
-                otpStore[destination] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
-                sendTextMessage(destination, otp);
-            }
-            break;
-        default:
-            console.log(`Unknown event type: ${eventType}`);
-    }
-
-    res.status(200).json({ success: true, message: "Webhook received" });
+  res.status(200).json({ success: true, message: "Webhook received" });
 };
 
-const sendTextMessage = async (destination, otp) => {
+export const sendTextMessage = async (mobile = '') => {
+  // const { mobile } = req.body;
     try {
-        console.log(`Sending OTP ${otp} to ${destination}`);
+        if (!mobile) {
+            throw new Error("Mobile number is required.");
+        }
 
-        const API_URL = "https://www.textguru.in/api/sendmsg.php";
-        const API_KEY = "YOUR_TEXTGURU_API_KEY"; // Replace with your API Key
-        const SENDER_ID = "YOUR_SENDER_ID"; // Replace with your sender ID
-        const MESSAGE = `Your OTP is: ${otp}. It is valid for 5 minutes.`;
+        const formattedMobile = formatPhoneNumber(mobile);
+        console.log(`Formatted mobile number::::: ${mobile}`);
 
-        const response = await axios.get(API_URL, {
-            params: {
-                api_key: API_KEY,
-                mobile: destination,
-                sender: SENDER_ID,
-                message: MESSAGE
+        const otp = generateOtp();
+        otpStore[formattedMobile] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+        console.log(`Generated OTP: ${otp}`);
+        console.log(`Stored OTP with expiry: ${JSON.stringify(otpStore[formattedMobile])}`);
+
+        const API_URL = 'https://www.textguru.in/api/v22.0/';
+        const USERNAME = process.env.TEXTGURU_USERNAME;
+        const PASSWORD = process.env.TEXTGURU_PASSWORD;
+        const SOURCE = 'ETSQFT';
+        const DLTTEMPID = `${process.env.TEXTGURU_TEMPID}`;
+        // const DLTTEMPID = `-`;
+
+        const MESSAGE = `Your OTP for verification is: ${otp}, Please use this OTP to complete your login/authentication on www.8sqft.com`;
+        const apiEndpoint = `${API_URL}?username=${USERNAME}&password=${PASSWORD}&source=${SOURCE}&dmobile=${formattedMobile}&dlttempid=${DLTTEMPID}&message=${encodeURIComponent(MESSAGE)}`;
+        console.log(apiEndpoint);
+        const response = await axios.get(apiEndpoint);
+        console.log("TextGuru Response:",response, response.data);
+
+        if (response.status === 200 ) {
+          const responseData = response.data;
+            if (responseData.includes('MsgID')) {
+                console.log('SMS sent successfully:', responseData);
+                //  return successWithDataResponse(res, true, 'Message sent successFully', responseData)
+                return 'Message sent successFully';
+            } else {
+                console.log('SMS failed:', responseData);
+                // return successWithDataResponse(res, true, 'failed sent successFully', responseData)
+                return 'Message sent successFully'
             }
-        });
-
-        console.log("TextGuru Response:", response.data);
+        } else {
+            console.error("Error from TextGuru API:", response.data);
+            // return badRequestResponse(res, false, 'Failed to send OTP')
+            return 'Error from TextGuru API'
+        }
     } catch (error) {
-        console.error("Error sending OTP:", error.message);
+        console.error("Error while sending OTP:", error);
+        return { success: false, message: "Failed to send OTP.", error: error.message };
     }
 };
+

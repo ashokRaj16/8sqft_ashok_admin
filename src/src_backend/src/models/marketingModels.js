@@ -48,8 +48,10 @@ export const getAllMarketingCountAdmin = async ( whereClause = null ) => {
 export const getMarketingByIdAdmin = async (id) => {
 
     try {
-        const searchQuery = `SELECT tpm.*
+        const propertyJoin = `LEFT JOIN tbl_property tp ON tp.id = tpm.property_id`
+        const searchQuery = `SELECT tpm.*, tp.property_title, tp.city_name
             FROM tbl_property_marketing tpm
+            ${propertyJoin}
             where tpm.id = ?`
         const [rows] = await pool.execute(searchQuery, [id]);
         return rows;

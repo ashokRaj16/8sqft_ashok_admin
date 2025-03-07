@@ -13,7 +13,10 @@ export const getAllblogListAdmin = async (whereClause = null, sortColumn = "id",
     try {
         const offset = (page - 1) * limit;
         const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
-        const searchQuery = `SELECT * FROM  tbl_blogs tb
+        const categoryJoin = `LEFT JOIN tbl_blog_category tbc ON tb.cat_id = tbc.id`
+        const searchQuery = `SELECT tb.*, tbc.title as category_title
+                    FROM  tbl_blogs tb
+                    ${ categoryJoin}
                     ${whereClause} ${orderQuery}
                     LIMIT ${limit} OFFSET ${offset}`;
 
@@ -28,15 +31,15 @@ export const getAllblogListAdmin = async (whereClause = null, sortColumn = "id",
 
 export const getAllblogCountAdmin = async ( whereClause = null ) => {
     try {
-
+        const categoryJoin = `LEFT JOIN tbl_blog_category tbc ON tb.cat_id = tbc.id`
         const totalCountQuery = `SELECT 
                     COUNT(*) AS count
                 FROM 
-                        tbl_blogs tb
+                    tbl_blogs tb
+                ${categoryJoin}
                 ${whereClause}`;
         
         const [rows] = await pool.query(totalCountQuery);
-        console.log(rows);
         return rows[0].count;
     }
     catch(error) {
@@ -46,21 +49,21 @@ export const getAllblogCountAdmin = async ( whereClause = null ) => {
 
 export const createBlogAdmin = async (data) => {
 
-    const { title, description, short_description, banner_image, banner_video, cat_id,
+    const { title, description, short_description, banner_image, banner_video, youtube_url, cat_id,
         tags, comment_enabled, author_name, meta_title, meta_description,
-        meta_keyword, user_id } = data;
+        meta_keyword, publish_date, user_id } = data;
 
     // console.log(data)
     try {
       const inserQuery = `INSERT INTO tbl_blogs 
-        (title, description, short_description, banner_image, banner_video, 
+        (title, description, short_description, banner_image, banner_video, youtube_url,
         cat_id, tags, comment_enabled, author_name, meta_title, 
-        meta_description, meta_keyword, added_by) 
+        meta_description, meta_keyword, publish_date, added_by) 
         VALUES 
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`;
       const paramsData = [title, description, short_description, banner_image, 
-        banner_video, cat_id, tags, comment_enabled, author_name, meta_title, 
-        meta_description, meta_keyword, user_id ];
+        banner_video, youtube_url, cat_id, tags, comment_enabled, author_name, meta_title, 
+        meta_description, meta_keyword, publish_date, user_id ];
 
       const [result] = await pool.execute( inserQuery, paramsData );
   
@@ -116,7 +119,13 @@ export const deleteBlogAdmin = async (id) => {
 export const getBlogByIdAdmin = async (id) => {
 
     try {
-        const [rows] = await pool.execute('SELECT * FROM tbl_blogs where id = ?', [id]);
+        const categoryJoin = `LEFT JOIN tbl_blog_category tbc ON tb.cat_id = tbc.id`
+        const query = `SELECT tb.*, tbc.title as category_title
+            FROM tbl_blogs tb
+            ${categoryJoin}
+            WHERE tb.id = ?`;
+        
+        const [rows] = await pool.execute(query, [id]);
         console.log(rows)
         return rows;
 
@@ -136,9 +145,12 @@ export const getAllCategoryListAdmin = async ( whereClause = null, sortColumn = 
     try {
         const offset = (page - 1) * limit;
         const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
-        const searchQuery = `SELECT * FROM tbl_blog_category tbc
-                    ${whereClause} ${orderQuery}
-                    LIMIT ${limit} OFFSET ${offset}`;
+        const categoryJoin = `LEFT JOIN tbl_blog_category tbi ON tbi.id = tbc.parent_cat_id`
+        const searchQuery = `SELECT tbc.*, tbi.title as parent_cat_title
+                FROM tbl_blog_category tbc
+                ${categoryJoin}
+                ${whereClause} ${orderQuery}
+                LIMIT ${limit} OFFSET ${offset}`;
 
                     console.log(searchQuery)
         const [rows] = await pool.execute(searchQuery);

@@ -5,7 +5,6 @@ import { errorHandler } from '../utils/errorHandler';
 // setup loader. //done
 export const getAdminUser = async (offset = 0, limit = 10, sortOrder = 'asc', sortColumn = '', searchFilter = '' ) => {
     try {
-        // call to api to get listed user(async request.) & return data
         const result = await axiosInstance.get(`admin/users`, { 
             params : {
                 page: offset,
@@ -19,14 +18,12 @@ export const getAdminUser = async (offset = 0, limit = 10, sortOrder = 'asc', so
         return result.data;
     }
     catch (error) {
-        // throw error;
         throw new Error( errorHandler(error) );
     }
 }
 
 export const downloadExcelAdminUser = async (searchFilter = '') => {
     try {
-        // call to api to get listed single user(async request.) & return data
         const result = await axiosInstance.get(`/export-admin`, { 
             params: { 
                 searchFilter
@@ -86,9 +83,7 @@ export const deleteAdminUser = async (id) => {
 
 export const getAdminUserById = async (id) => {
     try {
-        // call to api to get listed single user(async request.) & return data
         const result = await axiosInstance.get(`/admin/users/${id}`);
-        // console.log("models:::: ",result)
         return result.data;
     }
     catch (error) {
@@ -98,7 +93,6 @@ export const getAdminUserById = async (id) => {
 
 export const createAdminUser = async (data) => {
     try {
-        // call to api to get listed single user(async request.) & return data
         console.log("Sending data to API:", data); 
         const result = await axiosInstance.post(`/admin/users`, { 
             ...data
@@ -106,19 +100,16 @@ export const createAdminUser = async (data) => {
         return result.data;
     }
     catch (error) {
-        // throw error;
         throw new Error(errorHandler(error))
     }
 }
 
 export const getAdminRoles = async () => {
     try {
-        // call to api to get listed single user(async request.) & return data
         const result = await axiosInstance.get(`/admin/admin_roles/`);
         return result.data;
     }
     catch (error) {
-        // throw error;
         throw new Error(errorHandler(error))
     }
 }
@@ -147,14 +138,12 @@ export const getMemberUser = async (offset = 0, limit = 10, sortOrder = 'asc', s
         return result.data;
     }
     catch (error) {
-        // throw error;
         throw new Error(errorHandler(error))
     }
 }
 
 export const getMemberUserById = async (id) => {
     try {
-        // call to api to get listed single user(async request.) & return data
         const result = await axiosInstance.get(`admin/members/${id}`);
         return result.data;
     }
@@ -165,7 +154,6 @@ export const getMemberUserById = async (id) => {
 
 export const createMemberUser = async (data) => {
     try {
-        // call to api to get listed single user(async request.) & return data
         console.log("Sending data to API:", data); 
         const result = await axiosInstance.post(`/admin/members`, { 
             ...data
@@ -174,7 +162,6 @@ export const createMemberUser = async (data) => {
         return result.data;
     }
     catch (error) {
-        // throw error;
         console.log(error)
         throw new Error(errorHandler(error))
     }
@@ -188,5 +175,21 @@ export const deleteMemberUser = async (id) => {
     }
     catch (error) {
         throw new Error( errorHandler(error));
+    }
+}
+
+export const getListedPropertyByMember = async (id = null, data) => {
+    try {
+        const params = new URLSearchParams({
+            limit: data.limit,
+            page: data.page
+        })
+        const result = await axiosInstance.get(`/admin/members/${id}/properties/`, {
+            params
+        });
+        return result.data;
+    }
+    catch (error) {
+       throw new errorHandler(error);
     }
 }

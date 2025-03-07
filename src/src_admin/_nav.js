@@ -25,11 +25,13 @@ const _nav = [
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     role : ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE"]
   },
-  // {
-  //   component: CNavItem,
-  //   name: 'Amenities',
-  //   to: '/manage-amenities',
-  // },
+  {
+    component: CNavItem,
+    name: 'Gallery',
+    to: '/gallery',
+    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    role : ['SUPER ADMIN']
+  },
   {
     component: CNavGroup,
     name: 'Properties',
@@ -44,15 +46,36 @@ const _nav = [
         to: '/properties',
         role : ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE"]
       },
-      // {
-      //   component: CNavItem,
-      //   name: 'Contact View',
-      //   // icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-      //   to: '/contact-view'
-      // }
+      {
+        component: CNavItem,
+        name: 'Enquiry',
+        // icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+        to: '/enquiry',
+        role : ['SUPER ADMIN', 'SUB ADMIN']
+      }
     ]
   },
-  
+  {
+    component: CNavGroup,
+    name: 'Promotion',
+    icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+    to : '/promotion',
+    role : ['SUPER ADMIN', 'SUB ADMIN'],
+    items: [ 
+      {
+        component: CNavItem,
+        name: 'Sponsared',
+        to: '/promotion',
+        role : ['SUPER ADMIN', 'SUB ADMIN']
+      },
+      {
+        component: CNavItem,
+        name: 'Email Marketing',
+        to: '/marketing',
+        role : ['SUPER ADMIN', 'SUB ADMIN']
+      },
+  ]
+  },
   {
     component: CNavGroup,
     name: 'Plans',
@@ -99,7 +122,7 @@ const _nav = [
     name: 'Contact Us',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     to : '/contact-us',
-    role : ['SUPER ADMIN']
+    role : ['SUPER ADMIN', 'SUB ADMIN']
   },
   // {
   //   component: CNavItem,
@@ -113,12 +136,13 @@ const _nav = [
     name: 'Blogs',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     to : '/',
+    role : ['SUPER ADMIN', 'SUB ADMIN'],
     items: [ 
       {
         component: CNavItem,
         name: 'Category',
         to: '/category',
-        role : ['SUPER ADMIN', 'SUB ADMIN']
+        role : ['SUPER ADMIN']
       },
       {
         component: CNavItem,

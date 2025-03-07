@@ -31,22 +31,14 @@ import {
   CSpinner,
   CBadge
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilTrash, cilInfo, cilBed } from '@coreui/icons'
 
-import axios from 'axios'
 import _ from 'lodash'
-import * as dateFns from 'date-fns'
-
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { ToastMessage } from '../../../components/ToastMessage'
 import Loader from '../../../utils/Loader'
 
 import { constant } from '../../../utils/constant'
 import { updateStatusProperty, sendPropertyMails } from '../../../models/propertyModel'
-// import { getblogUserById } from '../../../models/usersModel.js'
-import { getShortlistPropertyByUsers } from '../../../models/shortlistModel.js'
-import { getIntrestedPropertyByUsers } from '../../../models/intrestedModel.js'
 import { getBlogById } from '../../../models/blogModel.js'
 
 const mailTypes = [
@@ -57,13 +49,9 @@ const mailTypes = [
 ]
 
 const userStatus = [
-  { id: 1, title: constant.USER_STATUS.ACTIVE },
-  { id: 2, title: constant.USER_STATUS.INACTIVE },
-  { id: 3, title: constant.USER_STATUS.PENDING },
-  { id: 4, title: constant.USER_STATUS.BLOCK },
-  { id: 5, title: constant.USER_STATUS.DISABLED },
-  { id: 6, title: constant.USER_STATUS.SUSPENDED },
-  { id: 7, title: constant.USER_STATUS.REJECTED },
+  { id: 1, title: constant.GENERAL_STATUS.ACTIVE },
+  { id: 2, title: constant.GENERAL_STATUS.INACTIVE },
+  { id: 3, title: constant.GENERAL_STATUS.DRAFT }
 ]
 
 const ViewBlogs = () => {
@@ -219,8 +207,9 @@ const ViewBlogs = () => {
                                 <CCol md={3}>
                                   <p className="fw-bold m-2">Description:</p>
                                 </CCol>
-                                <CCol md={9}>
-                                  <p className="m-2">{blogDetails?.description || '-'}</p>
+                                <CCol md={9} className='border rounded'>
+                                  <div dangerouslySetInnerHTML={{__html:  blogDetails?.description}} />
+                                  {/* <p className="m-2">{ blogDetails?.description || '-'}</p> */}
                                 </CCol>
                               </CRow>
 
@@ -229,7 +218,7 @@ const ViewBlogs = () => {
                                   <p className="fw-bold m-2">Category:</p>
                                 </CCol>
                                 <CCol md={9}>
-                                  <p className="m-2">{blogDetails?.cat_id || '-'}</p>
+                                  <p className="m-2">{blogDetails?.category_title || '-'}</p>
                                 </CCol>
                               </CRow>
 

@@ -11,6 +11,8 @@ import propertyReport from '../routes/frontend/propertyReportRoute.js';
 
 // done
 import homeRoutes from '../routes/frontend/homeRoutes.js';
+import blogRoutes from '../routes/frontend/blogRoutes.js';
+
 import contactDeveloper from "../routes/frontend/contactDeveloperRoutes.js";
 import planRoutes from '../routes/frontend/plansRoutes.js';
 import profileRoutes from '../routes/frontend/profileRoutes.js';
@@ -31,7 +33,12 @@ router.use('/property', propertyRoutes);
 router.use('/plans', planRoutes);
 router.use('/kyc/', aadharAuthRoutes);
 
-// Proptected routes.
+// blog
+router.use('/blog', blogRoutes);
+
+/**
+ * ***Proptected routes.
+ */
 router.use(verifyClientToken);
           // done
 router.use('/agreements', agreementRoutes);       //  check
@@ -54,10 +61,9 @@ router.use('/payments/rpay/', razorPay);        // done
 router.use('/shortlist', shortList);                // done
 router.use('/property_report', propertyReport);     // done
 
-// done
 router.use('/profile', profileRoutes);
 
-// ## check
+// ## check     // done
 router.post('/send_contact_mail', contactSendMail);
 router.post('/send_contact_msg', contactSendWhatsApp);
 

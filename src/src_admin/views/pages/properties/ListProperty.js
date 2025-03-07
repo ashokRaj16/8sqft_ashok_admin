@@ -1,166 +1,3 @@
-//#region
-// import React, { useState, useEffect } from 'react'
-// import {
-//   CButton,
-//   CCard,
-//   CCardBody,
-//   CCardHeader,
-//   CCol,
-//   CContainer,
-//   CRow,
-//   CTable,
-//   CTableHead,
-//   CTableRow,
-//   CTableHeaderCell,
-//   CTableBody,
-//   CTableDataCell,
-//   CPagination,
-//   CPaginationItem,
-// } from '@coreui/react'
-// import { useNavigate } from 'react-router-dom'
-// import axios from 'axios'
-
-// const ManageAmenities = () => {
-//   const [properties, setProperties] = useState([]) // Use correct variable naming
-//   const [totalPages, setTotalPages] = useState(1)
-//   const [currentPage, setCurrentPage] = useState(1)
-
-//   const navigate = useNavigate()
-
-//   // Fetch data from API
-//   useEffect(() => {
-//     const fetchProperties = async () => {
-//       try {
-//         const barier_token = localStorage.getItem('eightsqfttoken')
-//         const response = await axios.get(
-//           `http://localhost:5000/api/v1/admin/property/list_properties?page=${currentPage}&limit=10`,
-//           {
-//             headers: {
-//               'x-api-key': 'A8SQFT7767',
-//               Authorization: `Bearer ${barier_token}`,
-//             },
-//           },
-//         )
-//         console.log('Response Data:', response.data) // Debugging log
-//         setProperties(response.data.data.property || []) // Correct mapping
-//         setTotalPages(response.data.data.totalPages || 1) // Adjust for API structure
-//       } catch (error) {
-//         console.error('Error fetching properties:', error)
-//       }
-//     }
-//     fetchProperties()
-//   }, [currentPage])
-
-//   // Navigate to Add/Edit Property Page
-//   const handleAdd = () => {
-//     navigate('/properties/add')
-//   }
-
-//   const handleEdit = (id) => {
-//     navigate(`/properties/edit/${id}`)
-//   }
-
-//   const handleView = (id) => {
-//     navigate(`/properties/view/${id}`)
-//   }
-
-//   return (
-//     <CContainer>
-//       <CRow>
-//         <CCol>
-//           <CCard>
-//             <CCardHeader>
-//               <strong>Properties Management</strong>
-//               <CButton color="primary" className="float-end" onClick={handleAdd}>
-//                 Add Property
-//               </CButton>
-
-//             </CCardHeader>
-//             <CCardBody>
-//               <CTable bordered hover responsive>
-//                 <CTableHead>
-//                   <CTableRow>
-//                     <CTableHeaderCell>ID</CTableHeaderCell>
-//                     <CTableHeaderCell>Property Title</CTableHeaderCell>
-//                     <CTableHeaderCell>City Name</CTableHeaderCell>
-//                     <CTableHeaderCell>Building Name</CTableHeaderCell>
-//                     <CTableHeaderCell>Status</CTableHeaderCell>
-//                     <CTableHeaderCell>Action</CTableHeaderCell>
-//                   </CTableRow>
-//                 </CTableHead>
-//                 <CTableBody>
-//                   {properties.map((property) => (
-//                     <CTableRow key={property.id}>
-//                       <CTableDataCell>{property.id}</CTableDataCell>
-//                       <CTableDataCell>{property.property_title}</CTableDataCell>
-//                       <CTableDataCell>{property.city_id}</CTableDataCell>
-//                       <CTableDataCell>{property.building_name}</CTableDataCell>
-//                       <CTableDataCell>
-//                         <CButton
-//                           color={
-//                             property.status === '1'
-//                               ? 'warning'
-//                               : property.status === '2'
-//                                 ? 'success'
-//                                 : 'danger'
-//                           }
-//                           size="sm"
-//                           className="me-2"
-//                         >
-//                           {property.status === '1'
-//                             ? 'Pending'
-//                             : property.status === '2'
-//                               ? 'Approved'
-//                               : 'Rejected'}
-//                         </CButton>
-//                       </CTableDataCell>
-//                       <CTableDataCell>
-//                         <CButton color="info" size="sm" onClick={() => handleEdit(property.id)}>
-//                           Edit
-//                         </CButton>{' '}
-//                         &nbsp; | &nbsp;
-//                         <CButton color="primary" size="sm" onClick={() => handleView(property.id)}>
-//                           View
-//                         </CButton>
-//                       </CTableDataCell>
-//                     </CTableRow>
-//                   ))}
-//                 </CTableBody>
-//               </CTable>
-//               <CPagination align="end">
-//                 <CPaginationItem
-//                   disabled={currentPage === 1}
-//                   onClick={() => setCurrentPage((prev) => prev - 1)}
-//                 >
-//                   Previous
-//                 </CPaginationItem>
-//                 {[...Array(totalPages)].map((_, index) => (
-//                   <CPaginationItem
-//                     key={index}
-//                     active={index + 1 === currentPage}
-//                     onClick={() => setCurrentPage(index + 1)}
-//                   >
-//                     {index + 1}
-//                   </CPaginationItem>
-//                 ))}
-//                 <CPaginationItem
-//                   disabled={currentPage === totalPages}
-//                   onClick={() => setCurrentPage((prev) => prev + 1)}
-//                 >
-//                   Next
-//                 </CPaginationItem>
-//               </CPagination>
-//             </CCardBody>
-//           </CCard>
-//         </CCol>
-//       </CRow>
-//     </CContainer>
-//   )
-// }
-
-// export default ManageAmenities
-//#endregion
-
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
@@ -188,6 +25,7 @@ import {
   CToast,
   CToaster,
   CTooltip,
+  CAlert,
 } from '@coreui/react'
 // import { jsPDF } from 'jspdf';
 // import 'jspdf-autotable';
@@ -215,6 +53,8 @@ import { useDebounce } from '../../../hooks/useDebounce'
 import Loader from '../../../utils/Loader'
 import { constant } from '../../../utils/constant'
 import { formStepOptions } from './data'
+import { useSelector } from 'react-redux';
+import { allowedRole } from '@util/allowedRoles'
 
 const getStatusBadge = (status) => {
   switch (status) {
@@ -233,6 +73,9 @@ const ListProperty = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { users } = useSelector((state) => state.auth);
+  
+  console.log("allowed:::", users, allowedRole);
 
   const [searchParams] = useSearchParams();
   const page = searchParams.get('page');
@@ -254,8 +97,7 @@ const ListProperty = () => {
   
   const toaster = useRef()
   const debounceValue = useDebounce(searchTerm, 500)
-  
-  
+    
   const handleSearch = (event) => {
     const value = event.target.value
     setSearchTerm(value)
@@ -269,15 +111,15 @@ const ListProperty = () => {
     }
   }
 
-  const handleVisitExternalLink = (id, project_type = null) => {
+  const handleVisitExternalLink = (id, project_type = null, title_slug = null) => {
     console.log(id, project_type)
     if (_.toUpper(project_type) === constant.PROJECT_ATTR.RENT) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${title_slug}`, '_blank')
     }
     if (_.toUpper(project_type) === constant.PROJECT_ATTR.BUY) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${title_slug}`, '_blank')
     } else {
-      window.open(`${constant.FRONT_BASE_URL}/Builder/${id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/Builder/${title_slug}`, '_blank')
     }
   }
 
@@ -518,8 +360,10 @@ const ListProperty = () => {
                 onChange={handleStepSearch}
               >
                 <option value={-1}>Select</option>
-                {formStepOptions.map((item) => (
-                  <option value={item.value}>{item.title}</option>
+                {formStepOptions.map((item, index) => (
+                  <option 
+                    key={index}
+                    value={item.value}>{item.title}</option>
                 ))}
               </CFormSelect>
             </CCol>
@@ -625,8 +469,17 @@ const ListProperty = () => {
                 <CTableHeaderCell>Action</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
-            {currentMembers.length <= 0 && <CFormLabel>No Property found.</CFormLabel>}
             <CTableBody>
+            {currentMembers.length <= 0 && (
+              <CTableRow >
+                <CTableDataCell colSpan={10} >
+                  <CAlert color="warning">No Property found.</CAlert>
+                </CTableDataCell>
+              </CTableRow>
+              )}
+              {/* {currentMembers.length <= 0 && 
+                <CFormLabel>No Property found.</CFormLabel>
+              } */}
               {currentMembers.length > 0 &&
                 currentMembers.map((property, index) => (
                   <CTableRow key={index}>
@@ -693,7 +546,7 @@ const ListProperty = () => {
                         <CTooltip content="View Property Link" placement="top">
                           <CButton
                             onClick={() =>
-                              handleVisitExternalLink(property.id, property.property_rent_buy)
+                              handleVisitExternalLink(property.id, property.property_rent_buy, property.title_slug)
                             }
                             size="sm"
                             color="info"
