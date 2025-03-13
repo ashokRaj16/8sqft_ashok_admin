@@ -25,6 +25,7 @@ import {
   CToast,
   CToaster,
   CTooltip,
+  CAlert,
 } from '@coreui/react'
 // import { jsPDF } from 'jspdf';
 // import 'jspdf-autotable';
@@ -110,15 +111,15 @@ const ListProperty = () => {
     }
   }
 
-  const handleVisitExternalLink = (id, project_type = null) => {
+  const handleVisitExternalLink = (id, project_type = null, title_slug = null) => {
     console.log(id, project_type)
     if (_.toUpper(project_type) === constant.PROJECT_ATTR.RENT) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${title_slug}`, '_blank')
     }
     if (_.toUpper(project_type) === constant.PROJECT_ATTR.BUY) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${title_slug}`, '_blank')
     } else {
-      window.open(`${constant.FRONT_BASE_URL}/Builder/${id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/Builder/${title_slug}`, '_blank')
     }
   }
 
@@ -359,8 +360,10 @@ const ListProperty = () => {
                 onChange={handleStepSearch}
               >
                 <option value={-1}>Select</option>
-                {formStepOptions.map((item) => (
-                  <option value={item.value}>{item.title}</option>
+                {formStepOptions.map((item, index) => (
+                  <option 
+                    key={index}
+                    value={item.value}>{item.title}</option>
                 ))}
               </CFormSelect>
             </CCol>
@@ -466,8 +469,17 @@ const ListProperty = () => {
                 <CTableHeaderCell>Action</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
-            {currentMembers.length <= 0 && <CFormLabel>No Property found.</CFormLabel>}
             <CTableBody>
+            {currentMembers.length <= 0 && (
+              <CTableRow >
+                <CTableDataCell colSpan={10} >
+                  <CAlert color="warning">No Property found.</CAlert>
+                </CTableDataCell>
+              </CTableRow>
+              )}
+              {/* {currentMembers.length <= 0 && 
+                <CFormLabel>No Property found.</CFormLabel>
+              } */}
               {currentMembers.length > 0 &&
                 currentMembers.map((property, index) => (
                   <CTableRow key={index}>
@@ -534,7 +546,7 @@ const ListProperty = () => {
                         <CTooltip content="View Property Link" placement="top">
                           <CButton
                             onClick={() =>
-                              handleVisitExternalLink(property.id, property.property_rent_buy)
+                              handleVisitExternalLink(property.id, property.property_rent_buy, property.title_slug)
                             }
                             size="sm"
                             color="info"

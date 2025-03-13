@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import usePropertyDetail from "@/hooks/usePropertygetDetail";
 import { FaWhatsapp } from "react-icons/fa";
@@ -12,21 +12,43 @@ import useDialogStore from "@/Store/useDialogStore ";
 import { MdOutlineClose } from "react-icons/md";
 import { Card, CardContent } from "@/ui/card";
 import { Button } from "@/ui/Button";
-import { Download, Phone } from "lucide-react";
+import { Download, Phone, X } from "lucide-react";
 import usePdfStore from "@/Store/fileStore";
+import { ImWhatsapp } from "react-icons/im";
+import { jwtTokenDecodeAll } from "@/lib/jwtTokenDecodeAll";
 
 const BuilderContactSection: React.FC = () => {
-  const [dialogOpen, setDialogOpen] = useState(false); // State to handle dialog visibility
+  // const property = data?.data;
 
+  const [dialogOpen, setDialogOpen] = useState(false); // State to handle dialog visibility
   const params = useParams(); // Retrieve route parameters
-  const propertyId = params?.id; // Get the `id` parameter from the route
-  const propertyIdNumber = Array.isArray(propertyId)
-    ? Number(propertyId[0])
-    : Number(propertyId);
+  const extractId = (url:any) => {
+    if (!url || typeof url !== "string") return null; // Ensure it's a string
+    const match = url.match(/-(\d+)$/);
+    return match ? match[1] : null;
+  };
+  const id = extractId(params.id);
+  
+  const propertyId = params?.id ? Number(id) : null;
+  // const propertyIdNumber = Array.isArray(propertyId)
+  //   ? Number(propertyId[0])
+  //   : Number(propertyId);
   const { data, isLoading, error } = usePropertyDetail(Number(propertyId));
-  const PropertyId = Number(propertyId);
+
+  const property = data?.data;
   // Use the custom hook to share contact details
   const { pdfUrl } = usePdfStore(); // Access the stored PDF URL from Zustand
+  const [selectedButton, setSelectedButton] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState(true);
+  console.log(pdfUrl,'propertyproperty123')
+
+  const handleButtonClick = (
+    button: string,
+    callback: (e: React.MouseEvent<HTMLButtonElement>) => void
+  ) => (e: React.MouseEvent<HTMLButtonElement>) => {
+    setSelectedButton(button); // Update the selected button
+    callback(e); // Execute the original click function
+  };
 
   const handleOpenInNewTab = () => {
     if (pdfUrl && token) {
@@ -36,7 +58,11 @@ const BuilderContactSection: React.FC = () => {
       openDialog();
     }
   };
-  
+
+    useEffect(() => {
+      setShowPopup(true);
+    }, []);
+
   const { mutate: shareContact } = useShareContactDetail({
     onSuccess: (data) => {
       console.log("Successfully sent contact details", data);
@@ -46,7 +72,7 @@ const BuilderContactSection: React.FC = () => {
     },
   });
 
-  
+
   const { mutate: shareWhatsapp } = useShareWhatsappDetail({
     onSuccess: (data) => {
       console.log("Successfully sent contact details", data);
@@ -59,17 +85,14 @@ const BuilderContactSection: React.FC = () => {
   const whatsappNumber = "+7219009062"; // Replace with the desired number
   const whatsappMessage = `Hello, I am interested in your property: ${data?.data.property_title}`; // Replace with the desired message
   const handleClick = () => {
-    shareContact({ propertyId: propertyIdNumber });
-    shareWhatsapp({ propertyId: propertyIdNumber });
+    if (propertyId !== null) {
+      shareContact({ propertyId: propertyId });
+      shareWhatsapp({ propertyId: propertyId });
+    }
     setDialogOpen(true);
   };
 
 
-  const handleWhatsAppClick = () => {
-    const encodedMessage = encodeURIComponent(whatsappMessage);
-    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-    window.open(whatsappURL, "_blank");
-  };
   const handleOwnerContactClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (token) {
@@ -79,30 +102,96 @@ const BuilderContactSection: React.FC = () => {
       openDialog(); // Open login dialog if not logged in
     }
   };
+
+
+  const handleOwnerContactWhatsappClick = (e: React.MouseEvent) => {
+    e.preventDefault();
   
+    const phoneNumber = property?.mobile;
+    console.log("mobile nummmm",phoneNumber)
+    console.log("phoneNumber", phoneNumber);
+  
+    if (!phoneNumber) {
+      console.error("Phone number is missing.");
+      return;
+    }
+  
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=91${phoneNumber}`;
+  console.log(whatsappUrl,'whatsappUrl')
+    if (token) {
+      handleClick();
+      window.open(whatsappUrl, "_blank");
+    } else {
+      openDialog();
+    }
+  };
+  
+
   const token = useAuthStore((state) => state.token);
+  console.log("token")
+ const value = token ? jwtTokenDecodeAll(token) : null;
 
   const { isDialogOpen, openDialog, closeDialog } = useDialogStore();
   return (
     <>
-      <div className="relative flex  gap-2 lg:w-fit">
-        <Button
-          variant="outline"
-          className=" flex items-center gap-2 bg-primary text-white "
-          onClick={handleOpenInNewTab}
-        >
-          <Download className="w-5 h-5 mr-2" />
-          <p className="text-[10px] lg:text-sm">Download Brochure</p>
-        </Button>
+      <div className="relative flex  lg:gap-2  lg:w-fit">
 
+        <div className="flex w-full lg:w-auto flex-row gap-2 m-2 lg:mr-6">
+          {pdfUrl &&(<Button
+            variant="outline"
+            className={`flex items-center gap-[2px] rounded-none lg:rounded w-full lg:w-42 ${selectedButton === "download"
+              ? "text-white bg-primary"
+              : "lg:text-primary lg:bg-white text-white bg-primary"
+              }`}
+            onClick={handleButtonClick("download", handleOpenInNewTab)}
+          >
+            <Download className="w-5 h-5 mr-2" />
+            <p className="text-xs lg:text-sm">Brochure</p>
+          </Button>)}
+
+          {/* Contact Developer Button */}
+          <Button
+            variant="outline"
+            className={`flex items-center gap-2 w-full rounded-none lg:rounded lg:w-42  ${selectedButton === "contact"
+              ? "text-white bg-primary"
+              : "text-primary bg-white"
+              }`}
+            onClick={handleButtonClick("contact", handleOwnerContactClick)}
+          >
+            <Phone className="w-5 h-5 mr-2" />
+            <p className="text-xs lg:text-sm">Builder</p>
+          </Button>
+
+          {/* WhatsApp Button */}
+        <div className="fixed lg:static right-20 bottom-24">
         <Button
-          variant="outline"
-          className="flex items-center gap-2 bg-primary text-white  "
-          onClick={handleOwnerContactClick} // Check if logged in before opening dialog // Check if logged in before opening dialog
-        >
-          <Phone className="w-5 h-5 mr-2" />
-          <p className="text-[10px] lg:text-sm">Contact Developer</p>
-        </Button>
+            variant="outline"
+            className={`fixed lg:static flex items-center gap-3 lg:w-full lg:h-[40px] h-[2.5rem] lg:px-4 lg:py-2 p-1 w-[2.5rem] rounded-full lg:rounded lg:border border-0  ${selectedButton === "whatsapp"
+              ? "text-white bg-primary"
+              : "text-primary lg:bg-white bg-[#65D072]"
+              }`}
+            onClick={handleButtonClick("whatsapp", handleOwnerContactWhatsappClick)}
+          >
+            <ImWhatsapp className="w-5 h-5 lg:text-green text-white" />
+            <p className="text-[10px] lg:text-sm text-[#222222] hidden lg:block">WhatsApp</p>
+          </Button>
+        </div>
+        </div>
+          {/* Pop-up Message */}
+      {showPopup && (
+      <div className="bottom-[108px] lg:bottom-auto absolute bg-black text-white lg:w-fit w-[180px] px-4 py-2 rounded-full  lg:left-1/2 right-4 transform lg:-translate-x-1/2 mt-[3.5rem] lg:ml-12 ml-[6.7rem] z-[1]">
+      <div className="absolute lg:top-0 top-[51px] rotate-180 lg:rotate-0 lg:left-[70%] left-[75%] transform -translate-x-1/2 -translate-y-full border-8 border-transparent border-b-black"></div>
+
+     <div className="flex flex-row gap-1">
+     <span className="text-sm text-center hidden lg:block whitespace-nowrap">Chat with Builder</span>
+     <span className="text-sm text-center block lg:hidden">Chat with Builder</span>
+      <button onClick={() => setShowPopup(false)}>
+        <X className="w-5 h-5 text-white border-2 rounded-full  " />
+      </button>
+     </div>
+    </div>
+      )}
+
 
         <div className="relative  ">
           {dialogOpen && (

@@ -135,6 +135,8 @@ interface useBuilderDetails {
   config_dimenssion:string | null;
   config_carpet_price:string | null;
   configuration: PropertyConfiguration[]; // Array of configurations linked to the property
+  full_address:string;
+  title_slug: any;
 }
 
 
@@ -142,6 +144,7 @@ interface useBuilderDetails {
 interface PropertyListResponse {
   data: {
     property: useBuilderDetails[];
+    totalCounts: number;
   };
   status: boolean;
   message: string;
@@ -157,11 +160,22 @@ interface PropertylistParams {
   city_name?: string;
   page?: number;
   limit?: number;
-  amount_range?: string;
+  amount_range? : string;
+  price_range?: string;
+  project_area?: string;
   locality?: string;
   property_variety?: string;
   property_type?: string;
   property_rent_buy?: string;
+  sortOrder?: string;
+  sortColumn?: string;
+  property_current_status?: string;
+  furnishing?: string;
+  parking?: string;
+  width_facing_road?: string;
+  other_amenities?: string;
+  is_rera_number?: string;
+  property_variety_type?: string;
 }
 
 // Hook definition
@@ -174,15 +188,39 @@ const useBuilderPropertylist = (params: PropertylistParams) => {
         limit = '100',
         locality,
         property_type,
-        property_rent_buy
+        property_rent_buy,
+        sortOrder,
+        sortColumn,
+        price_range,        
+        project_area,
+        property_current_status,
+        furnishing,
+        parking,
+        width_facing_road,
+        other_amenities,
+        is_rera_number,
+        property_variety_type,
+        property_variety,
       } = params;
-      const response = await axios.get(`https://api.8sqft.com/api/v1/front/property/list_properties`, {
+      const response = await axios.get(`/api/v1/front/property/list_properties`, {
         params: {
           limit,
           city_name,
           locality,
           property_type,
-          property_rent_buy
+          property_rent_buy,
+          sortOrder,
+          sortColumn,
+          price_range,
+          project_area,
+          property_current_status,
+          furnishing,
+          parking,
+          width_facing_road,
+          other_amenities,
+          is_rera_number,
+          property_variety_type,
+          property_variety,
         },
         headers: {
           "Content-Type": "application/json",

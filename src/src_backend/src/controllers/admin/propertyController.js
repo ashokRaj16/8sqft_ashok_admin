@@ -392,161 +392,160 @@ export const getPropertyById = async (req, res) => {
     }
 };
 
-// property updates
+// property updates basic feature
 export const updatePropertyFeaturesAdmin = async (req, res) => {
-    
   try {
-    const { id } = req.params;
+      const { id } = req.params;
+      if(!id) {
+          return badRequestResponse(res, false, 'Validation Message', { fields: 'id', message: "Id must required."})
+      }
 
-    console.log(id, req.body)
-    if(!id) {
-        return badRequestResponse(res, false, 'Validation Message', { fields: 'id', message: "Id must required."})
-    }
+      const errors = propertyUpdateFeaturesValidators(req.body);
+      if(errors.length > 0)
+      {
+        return badRequestResponse(res, false, 'Validation Message.', errors)
+      }
 
-    const errors = propertyUpdateFeaturesValidators(req.body);
-    if(errors.length > 0)
-    {
-      return badRequestResponse(res, false, 'Validation Message.', errors)
-    }
+      const { 
+        // basic
+        user_id,
+        property_type,
+        property_rent_buy,
+        company_name,
         
-        const { 
-          // basic
-          property_type,
-          property_rent_buy,
-          company_name,
-          
-          // Owner
-          landmark,
-          locality,
-          city_id,
-          city_name,
-          state_id,
-          state_name,
-          latitude,
-          longitude,
-          pincode,
-          property_title,
-          description,
-          building_name,
-          property_variety,
-          property_variety_type,
-          door_facing,
-          land_area,
-          land_area_unit,
-          builtup_area,
-          builtup_area_unit,
-          rent_amount,
-          rent_is_nogotiable,
-          deposite_amount,
-          deposite_is_negotiable,
-          expected_amount,
-          exected_amount_sqft,
-          monthly_maintenance,
-          ownership_type,
-          dimension_length,
-          dimension_width,
-          width_facing_road,
-          bed_rooms,
-          washrooms,
-          balcony,
-          unit_number,
-          floor_number,
-          total_floors,
-          property_floors,
-          is_wings,
-          total_wing,
-          wing_name,
-          property_availibility_type,
-          preferred_tenent,
-          property_age,
-          is_maintenance,
-          availability_date,
-          availability_duration,
+        // Owner
+        landmark,
+        locality,
+        city_id,
+        city_name,
+        state_id,
+        state_name,
+        latitude,
+        longitude,
+        pincode,
+        property_title,
+        description,
+        building_name,
+        property_variety,
+        property_variety_type,
+        door_facing,
+        land_area,
+        land_area_unit,
+        builtup_area,
+        builtup_area_unit,
+        rent_amount,
+        rent_is_nogotiable,
+        deposite_amount,
+        deposite_is_negotiable,
+        expected_amount,
+        exected_amount_sqft,
+        monthly_maintenance,
+        ownership_type,
+        dimension_length,
+        dimension_width,
+        width_facing_road,
+        bed_rooms,
+        washrooms,
+        balcony,
+        unit_number,
+        floor_number,
+        total_floors,
+        property_floors,
+        is_wings,
+        total_wing,
+        wing_name,
+        property_availibility_type,
+        preferred_tenent,
+        property_age,
+        is_maintenance,
+        availability_date,
+        availability_duration,
 
-          // builder 
-          property_current_status,
-          possession_date,
-          is_rera_number,
-          rera_number,
-          total_towers,
-          total_units,
-          project_area,
-          project_area_unit,
-          per_sqft_amount,
+        // builder 
+        property_current_status,
+        possession_date,
+        is_rera_number,
+        rera_number,
+        total_towers,
+        total_units,
+        project_area,
+        project_area_unit,
+        per_sqft_amount,
 
-        } = req.body;
+      } = req.body;
 
-        let data = { 
-          // basic
-          property_type : property_type || null,
-          property_rent_buy : property_rent_buy || null,
-          company_name : company_name || null,
+      let data = { 
+        // basic
+        user_id : user_id || null,
+        property_type : property_type || null,
+        property_rent_buy : property_rent_buy || null,
+        company_name : company_name || null,
 
-          // owner
-          landmark: landmark || null,
-            locality: locality || null,
-            city_id: city_id && parseInt( city_id) || null,
-            city_name: city_name || null,
-            state_id : state_id && parseInt( state_id ) || null,
-            state_name : state_name || null,
-            latitude : latitude || null,
-            longitude : longitude || null,
-            pincode : pincode || null,
-            property_title : property_title || null,
-            description: description || null,
-            building_name : building_name || null,
-            property_variety : property_variety || null,
-            property_variety_type : property_variety_type || null,
-            door_facing : door_facing || null,
-            land_area : land_area || null,
-            land_area_unit : land_area_unit || null,
-            builtup_area : builtup_area || null,
-            builtup_area_unit : builtup_area_unit || null,
-            rent_amount : rent_amount || null,
-            rent_is_nogotiable: rent_is_nogotiable || null,
-            deposite_amount : deposite_amount || null,
-            deposite_is_negotiable: deposite_is_negotiable || null,
-            expected_amount : expected_amount || null,
-            exected_amount_sqft : exected_amount_sqft || null,
-            monthly_maintenance : monthly_maintenance || null,
-            ownership_type : ownership_type || null,
-            dimension_length: dimension_length || null,
-            dimension_width : dimension_width || null,
-            width_facing_road : width_facing_road || null,
-            bed_rooms : bed_rooms || null,
-            washrooms : washrooms || null,
-            balcony: balcony || null,
-            unit_number: unit_number || null,
-            floor_number: floor_number || null,
-            total_floors : total_floors || null,
-            total_wing : total_wing || null,
-            wing_name : wing_name || null,
-            property_availibility_type : property_availibility_type || null,
-            preferred_tenent : preferred_tenent || null,
-            property_age : property_age || null,
-            property_floors : property_floors || null,
-            is_wings: is_wings || null,
-            is_maintenance : is_maintenance || null ,
-            availability_date: availability_date || null,
-            availability_duration: availability_duration || null,
-            
-            // builder 
-            property_current_status : property_current_status || null,
-            possession_date : possession_date || null,
-            is_rera_number : is_rera_number || null,
-            rera_number : rera_number || null,
-            total_towers : total_towers || null,
-            total_units : total_units || null,
-            project_area : project_area || null,
-            project_area_unit : project_area_unit || null,
-            per_sqft_amount : per_sqft_amount || null,
-            updated_by : req.userId || null
-        };
-
-        const result = await updatePropertyFeaturesDb( id, data);
-        if(result) {
-            return successResponse(res, true, 'Property updated!', result);
-        }
+        // owner
+        landmark: landmark || null,
+        locality: locality || null,
+        city_id: city_id && parseInt( city_id) || null,
+        city_name: city_name || null,
+        state_id : state_id && parseInt( state_id ) || null,
+        state_name : state_name || null,
+        latitude : latitude || null,
+        longitude : longitude || null,
+        pincode : pincode || null,
+        property_title : property_title || null,
+        description: description || null,
+        building_name : building_name || null,
+        property_variety : property_variety || null,
+        property_variety_type : property_variety_type || null,
+        door_facing : door_facing || null,
+        land_area : land_area || null,
+        land_area_unit : land_area_unit || null,
+        builtup_area : builtup_area || null,
+        builtup_area_unit : builtup_area_unit || null,
+        rent_amount : rent_amount || null,
+        rent_is_nogotiable: rent_is_nogotiable || null,
+        deposite_amount : deposite_amount || null,
+        deposite_is_negotiable: deposite_is_negotiable || null,
+        expected_amount : expected_amount || null,
+        exected_amount_sqft : exected_amount_sqft || null,
+        monthly_maintenance : monthly_maintenance || null,
+        ownership_type : ownership_type || null,
+        dimension_length: dimension_length || null,
+        dimension_width : dimension_width || null,
+        width_facing_road : width_facing_road || null,
+        bed_rooms : bed_rooms || null,
+        washrooms : washrooms || null,
+        balcony: balcony || null,
+        unit_number: unit_number || null,
+        floor_number: floor_number || null,
+        total_floors : total_floors || null,
+        total_wing : total_wing || null,
+        wing_name : wing_name || null,
+        property_availibility_type : property_availibility_type || null,
+        preferred_tenent : preferred_tenent || null,
+        property_age : property_age || null,
+        property_floors : property_floors || null,
+        is_wings: is_wings || null,
+        is_maintenance : is_maintenance || null ,
+        availability_date: availability_date || null,
+        availability_duration: availability_duration || null,
+        
+        // builder 
+        property_current_status : property_current_status || null,
+        possession_date : possession_date || null,
+        is_rera_number : is_rera_number || null,
+        rera_number : rera_number || null,
+        total_towers : total_towers || null,
+        total_units : total_units || null,
+        project_area : project_area || null,
+        project_area_unit : project_area_unit || null,
+        per_sqft_amount : per_sqft_amount || null,
+        updated_by : req.userId || null
+      };
+      
+      const result = await updatePropertyFeaturesDb( id, data);
+      if(result) {
+          return successResponse(res, true, 'Property updated!', result);
+      }
  
   } catch (error) {
     console.error("Database Error:", error);

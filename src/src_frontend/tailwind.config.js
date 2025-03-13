@@ -98,6 +98,13 @@ module.exports = {
 		  md: 'calc(var(--radius) - 2px)',
 		  sm: 'calc(var(--radius) - 4px)',
 		},
+		boxShadow: {
+			'custom': '0 0px 4px rgba(0, 0, 0, 0.25)', // Define custom shadow
+			'about_us': '0 0 8px rgba(252, 102, 0, 1)', // Define custom shadow
+			'rating': '0 4px 60px rgba(21, 32, 70, 0.15)', // Define custom shadow
+			'our_story': '0 10px 8px rgba(252, 102, 0, 1)', // Define custom shadow
+			'soft': '0 5px 15px rgba(0, 0, 0, 0.1)', // Softer shadow
+		  },
 		keyframes: {
 			"accordion-down": {
 			  from: { height: "0" },

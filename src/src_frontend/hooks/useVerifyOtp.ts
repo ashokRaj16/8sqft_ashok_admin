@@ -63,9 +63,9 @@ const useVerifyDetail = ({ onSuccess, onError }: UseVerifyOptions) => {
           console.log(sessionStorage.getItem(tokenName), 'this is the token after setting it in local storage')
           // Decode token and update Zustand
           const decoded = decodeToken(token);
-          if (decoded && decoded.id && decoded.email) {
-            const { id, email } = decoded;
-            setAuth(id, email, token);
+          if (decoded && decoded.id && (decoded.email || decoded.mobile)) {
+            const { id, email, mobile } = decoded;
+            setAuth(id, email, mobile, token);
           } else {
             console.error("Failed to decode token. Invalid token structure.");
           }

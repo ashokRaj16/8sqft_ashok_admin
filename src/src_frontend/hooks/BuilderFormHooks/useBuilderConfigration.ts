@@ -7,6 +7,8 @@ import { useAuthStore } from "@/Store/jwtTokenStore";
 interface BuilderData {
     property_id: string;
     carpet_area: string;
+    unit_name?:string;
+    unit_price_type?:string;
     length: string;
     width: string;
     width_unit: string;
@@ -19,6 +21,8 @@ interface Configuration {
     id: string;
     property_id: string;
     carpet_area: string;
+    unit_name?:string;
+    unit_price_type?:string;
     length: string;
     width: string;
     width_unit: string;
@@ -52,6 +56,12 @@ const useBuilderConfigration = ({ onSuccess, onError }: UseuseBuilderOptions) =>
         const formData = new FormData();
         formData.append("property_id", data.property_id);
         formData.append("carpet_area", data.carpet_area);
+        if (data.unit_name) {
+            formData.append("unit_name", data.unit_name);
+        }
+        if (data.unit_price_type) {
+            formData.append("unit_price_type", data.unit_price_type);
+        }
         formData.append("length", data.length);
         formData.append("width", data.width);
         formData.append("width_unit", data.width_unit);

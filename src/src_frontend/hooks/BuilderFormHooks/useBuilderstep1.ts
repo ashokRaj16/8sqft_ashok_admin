@@ -13,6 +13,9 @@ interface useBuilderformData {
     property_rent_buy: string,
     user_type: string,
     company_name: string,
+    phone: string,
+    mobile: string,
+    email: string,
 }
 
 interface useBuilderformResponse {

@@ -6,70 +6,68 @@ import {
   SelectValue,
 } from "@/ui/select";
 import { useState } from "react";
+interface ProjectsTabProps {
+  setPropertyType: (type: string) => void;
+  propertyType: string;
+}
 
-export default function ProjectsTab() {
-  const [propertyType, setPropertyType] = useState<
-    "Residential" | "Commercial" | "Plot"
-  >("Residential");
+export default function ProjectsTab({propertyType, setPropertyType}: ProjectsTabProps) {
+  // const [propertyType, setPropertyType] = useState<
+  //   "Residential" | "Commercial" | "Plot"
+  // >("Residential");
   const [selectedOption, setSelectedOption] = useState<string>("");
 
   return (
     <>
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col">
         {/* Radio Buttons for Property Type */}
-        <div className="flex space-x-4 flex-wrap ">
-          <label>
+        <div className="flex space-x-4  flex-wrap ">
+          <label className="items-center flex">
             <input
               type="radio"
               name="propertyType"
               value="Residential"
               checked={propertyType === "Residential"}
               onChange={(e) =>
-                setPropertyType(
-                  e.target.value as "Residential" | "Commercial" | "Plot"
-                )
+                setPropertyType("Residential")
               }
             />
-            <span className="ml-1">Residential</span>
+            <span className="ml-1 text-xs lg:text-sm">Residential</span>
           </label>
-          <label>
+          <label className="items-center flex">
             <input
               type="radio"
               name="propertyType"
               value="Commercial"
               checked={propertyType === "Commercial"}
               onChange={(e) =>
-                setPropertyType(
-                  e.target.value as "Residential" | "Commercial" | "Plot"
-                )
+                setPropertyType("Commercial")
               }
             />
-            <span className="ml-1">Commercial</span>
+            <span className="ml-1 text-xs lg:text-sm">Commercial</span>
           </label>
-          <label>
+          <label className="items-center flex">
             <input
               type="radio"
               name="propertyType"
-              value="Plot"
-              checked={propertyType === "Plot"}
+              value="Open Land"
+              checked={propertyType === "Open Land"}
               onChange={(e) =>
-                setPropertyType(
-                  e.target.value as "Residential" | "Commercial" | "Plot"
-                )
+                setPropertyType("Open Land")
               }
             />
-            <span className="ml-1">Plot</span>
+            <span className="ml-1 text-xs lg:text-sm">Open Land</span>
           </label>
         </div>
 
         {/* Dropdown for Options */}
 
         {/* Display Selected Option */}
-        {selectedOption && (
+        {/* {propertyType && (
           <p className="text-gray-600">
-            Selected Option: <strong>{selectedOption}</strong>
+            Selected Option: <strong>{propertyType}</strong>
           </p>
-        )}
+        )} */}
       </div>
     </>
   );

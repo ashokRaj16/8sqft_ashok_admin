@@ -37,3 +37,29 @@ $order-info-border: rgb(252, 102, 0);
   border-radius: 50%;
   margin: 2px;
 }
+
+
+
+.ql-container {
+  height: auto !important; /* Allow height to adjust */
+  min-height: 15em; /* Approximate height for 4 lines */
+  max-height: 50em !important; /* Limit the height */
+  overflow: hidden; /* Prevent overflow outside */
+}
+
+.ql-editor {
+  max-height: 15em; /* Approximate height for 4 lines */
+  overflow-y: auto; /* Enable vertical scrolling */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #aaa transparent; /* Firefox */
+}
+
+/* Customize scrollbar for Webkit browsers (Chrome, Edge, Safari) */
+.ql-editor::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ql-editor::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 3px;
+}

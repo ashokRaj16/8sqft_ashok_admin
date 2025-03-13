@@ -20,9 +20,9 @@ export default function BuyTab() {
  
 
   return (
-    <div className="flex flex-col space-y-4 ">
+    <div className="flex flex-col ">
       <div className="flex flex-wrap gap-4">
-        <label className="text-sm sm:text-base">
+        <label className="text-sm sm:text-base items-center flex">
           <input
             type="radio"
             name="propertyType"
@@ -30,9 +30,9 @@ export default function BuyTab() {
             checked={propertyType === "Full House"}
             onChange={(e) => setPropertyType(e.target.value as PropertyType)}
           />
-          Full House
+         <span className="ml-1 text-xs lg:text-sm">Full House</span> 
         </label>
-        <label className="text-sm sm:text-base">
+        <label className="text-sm sm:text-base items-center flex">
           <input
             type="radio"
             name="propertyType"
@@ -40,7 +40,7 @@ export default function BuyTab() {
             checked={propertyType === "Land/Plot"}
             onChange={(e) => setPropertyType(e.target.value as PropertyType)}
           />
-          Land/Plot
+              <span className="ml-1 text-xs lg:text-sm">Land/Plot</span> 
         </label>
       </div>
 

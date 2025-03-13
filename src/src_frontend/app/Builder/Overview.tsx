@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { Tabs, TabsList, TabsTrigger } from "@/ui/tabs";
 import { useState } from "react";
 import BuilderLayout from "./BuilderLayout/page";
@@ -9,12 +9,10 @@ import RatingsContent from "./BuilderLayout/RatingsContent";
 import useBuilderPreviewDetail from "@/hooks/useBuilderPreviewmode";
 // Import the tab content components
 
-
-export default function   OverviewFunction() {
-  
+export default function OverviewFunction() {
   const [activeTab, setActiveTab] = useState("overview");
   const { data, error, isLoading } = useBuilderPreviewDetail(229);
-  
+
   const property = data?.data;
   const navigationTabs = [
     { value: "overview", label: "Overview" },
@@ -29,9 +27,17 @@ export default function   OverviewFunction() {
       case "overview":
         return <BuilderLayout />;
       case "about":
-        return <MoreAbout description={property?.description} city_name={undefined} />;
+        return (
+          <MoreAbout
+          property_title={property?.property_title}
+            description={property?.description}
+            city_name={undefined}
+          />
+        );
       case "floor-plan":
-        return <FloorPlanContent configration={[]} possession_date={undefined} />;
+        return (
+          <FloorPlanContent configration={[]} possession_date={undefined} />
+        );
       case "amenities":
         return <AmenitiesContent />;
       case "ratings":
@@ -58,9 +64,7 @@ export default function   OverviewFunction() {
       </Tabs>
 
       {/* Render content based on active tab */}
-      <div className="p-4">
-        {renderTabContent()}
-      </div>
+      <div className="p-4">{renderTabContent()}</div>
     </div>
   );
 }

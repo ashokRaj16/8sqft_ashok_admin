@@ -1092,32 +1092,29 @@ export const getAllPropertyCountAdminByMemberId = async ( whereClause = null ) =
  * @returns 
  */
 export const updatePropertyFeaturesDb = async (id, data) => {
-
     let connection;
-    console.log("Properities: ",data);
     try{
-    let queryField = [];
-    let queryParams = [];
-    connection = await pool.getConnection();
-    await connection.beginTransaction();
-    for (const [key, value] of Object.entries(data)) {
-        if (value !== undefined && value !== null) {
-            queryField.push(`${key} = ?`);
-            queryParams.push(value);
-        } 
-    }
-    queryParams.push(id);
+        let queryField = [];
+        let queryParams = [];
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+        for (const [key, value] of Object.entries(data)) {
+            if (value !== undefined && value !== null) {
+                queryField.push(`${key} = ?`);
+                queryParams.push(value);
+            } 
+        }
+        queryParams.push(id);
 
-    const query = `
-            UPDATE tbl_property 
-            SET 
-            ${queryField.join(', ') }
-            WHERE id = ?`;
+        const query = `
+                UPDATE tbl_property 
+                SET 
+                ${queryField.join(', ') }
+                WHERE id = ?`;
 
-    const [result] = await connection.execute(query, queryParams);
-    await connection.commit();
-    return { affectedRows: result.affectedRows, ...data };
-
+        const [result] = await connection.execute(query, queryParams);
+        await connection.commit();
+        return { affectedRows: result.affectedRows, ...data };
     }
     catch(error) {
         console.log(error);

@@ -1,10 +1,15 @@
 import axiosInstance from '../config/axiosInstance';
 import { errorHandler } from '../utils/errorHandler';
 
-export const getIntrestedUsersByProperty = async (id = null, params) => {
+export const getIntrestedUsersByProperty = async (id = null, data) => {
     try {
-        const { limit, page} = params;
-        const result = await axiosInstance.get(`/admin/contacted/contact_users/${id}`);
+        const params = new URLSearchParams({
+            limit: data?.limit || 10,
+            page: data?.page || 1
+        })
+        const result = await axiosInstance.get(`/admin/contacted/contact_users/${id}`, {
+            params
+        });
         return result.data;
     }
     catch (error) {
@@ -15,10 +20,9 @@ export const getIntrestedUsersByProperty = async (id = null, params) => {
 export const getIntrestedPropertyByUsers = async (id = null, data) => {
     try {
         console.log(data)
-        // const { limit = 10, page = 0 } = params;
         const params = new URLSearchParams({
-            limit: data.limit,
-            page: data.page
+            limit: data?.limit || 10,
+            page: data?.page || 1
         })
         const result = await axiosInstance.get(`/admin/contacted/contact_property/${id}`, {
             params

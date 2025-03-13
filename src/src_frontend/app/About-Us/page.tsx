@@ -1,10 +1,16 @@
 import React from "react";
+import About from "./About";
+import OurStory from "./OurStory";
+import Achievements from "./Achivments";
+import ClientReview from "./ClientReview";
+import OurTeam from "./OurTeam";
+import CallToAction from "./CallToAction";
 
 export default function PrivacyService() {
   return (
     <div className="bg-gray-50 text-gray-800">
       {/* Header Section */}
-      <header className="bg-gray-900 text-white py-6">
+      {/* <header className="bg-gray-900 text-white py-6">
         <div className="container mx-auto flex justify-between items-center px-4 md:px-8">
           <h1 className="text-xl font-bold">8sqft</h1>
           <nav className="hidden md:flex gap-6">
@@ -14,14 +20,19 @@ export default function PrivacyService() {
             <a href="#contact" className="hover:text-primary transition">Contact</a>
           </nav>
         </div>
-      </header>
+      </header> */}
+<About />
+<OurStory />
+<Achievements/>
+<ClientReview />
+<OurTeam />
+<CallToAction/>
 
-      {/* About Us Section */}
-      <section className="bg-white py-16">
+      {/* <section className="bg-white py-16">
         <div className="container mx-auto px-4 md:px-8">
           <h2 className="text-center text-4xl font-bold text-gray-800 mb-12">About Us</h2>
           <div className="flex flex-col md:flex-row gap-12 items-center">
-            {/* Text Content */}
+          
             <div className="md:w-2/3">
               <h3 className="text-3xl font-bold text-gray-700 mb-4">Find Your Perfect Space</h3>
               <p className="text-lg leading-relaxed text-gray-600 mb-6">
@@ -40,7 +51,7 @@ export default function PrivacyService() {
               </p>
             </div>
 
-            {/* Images */}
+        
             <div className="flex flex-col gap-6 md:w-1/3">
               <img
                 src="/assets/Privacy-Policyassets/annie-spratt-sggw4-qDD54-unsplash.jpg"
@@ -57,12 +68,12 @@ export default function PrivacyService() {
         </div>
       </section>
 
-      {/* Footer Section */}
+    
       <footer className="bg-gray-900 text-white py-6">
-        <div className="container mx-auto px-4 md:px-8 text-center">
+        <div className=" mx-auto px-4 md:px-8 text-center">
           <p>&copy; 2024 Our Company. All rights reserved.</p>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }

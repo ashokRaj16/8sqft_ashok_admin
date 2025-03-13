@@ -1,5 +1,6 @@
 "use client";
 
+import useUpdateViewCount from "@/hooks/updatedViews";
 import usePropertylist from "@/hooks/usepropertylist";
 import useFilterStore from "@/Store/useFilterStore";
 import Image from "next/image";
@@ -27,9 +28,8 @@ const Card = ({ property }: any) => {
           : "Deposit (Negotiable)",
     },
     {
-      label: `${property?.builtup_area || "N/A"} ${
-        property?.builtup_area_unit || ""
-      }`,
+      label: `${property?.builtup_area || "N/A"} ${property?.builtup_area_unit || ""
+        }`,
       subLabel: "Builtup Area",
     },
   ];
@@ -88,40 +88,32 @@ const Card = ({ property }: any) => {
   );
 };
 
+;
+
 // PropertyCard Component
 function PropertyCard() {
+
   const searchParams = useSearchParams();
   const selectedCityName = searchParams.get("city_name") || "this location";
   const selectedlocality = searchParams.get("searchKeyword") || "this location";
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const filters = useFilterStore();
 
-  const router = useRouter();
-  // const updateURLWithFilters = () => {
-  //   // Construct a new query object, starting with existing searchParams
-  //   const query: Record<string, string> = {};
+  const router = useRouter(); 
+  // const { mutate: updateViewCount } = useUpdateViewCount();
 
-  //   searchParams.forEach((value, key) => {
-  //     query[key] = value; // Include existing query params
-  //   });
+  const moveToDetailsHandler = async (id: number) => {
+    // updateViewCount(id, {
+    //   onSuccess: () => {
+    //     console.log(`View count updated for property ID: ${id}`);
+    //   },
+    //   onError: (err) => {
+    //     console.error(`Error updating view count for property ID ${id}:`, err.message);
+    //   },
+    // });
 
-  //   // Add or update new filters
-  //   if (filters.city_name) query.city_name = filters.city_name;
-  //   if (filters.locality) query.locality = filters.locality;
-  //   if (filters.amount_range) query.amount_range = filters.amount_range;
-  //   if (filters.property_variety_type)
-  //     query.property_variety_type = filters.property_variety_type;
-  //   if (filters.availability_date)
-  //     query.availability_date = filters.availability_date;
-  //   if (filters.property_variety)
-  //     query.property_variety = filters.property_variety;
 
-  //   // Convert query object to query string
-  //   const queryString = new URLSearchParams(query).toString();
-
-  //   // Update the URL without reloading the page
-  //   router.replace(`/ListofProperty_List?${queryString}`);
-  // };
+  }
   const { data, isLoading, error } = usePropertylist({
     city_name: selectedCityName,
     locality: selectedlocality,
@@ -134,17 +126,7 @@ function PropertyCard() {
     property_variety: filters.property_variety,
     property_rent_buy: "RENT",
   });
-  // useEffect(() => {
-  //   // Update URL whenever filters change
-  //   updateURLWithFilters();
-  // }, [
-  //   filters.city_name,
-  //   filters.locality,
-  //   filters.amount_range,
-  //   filters.property_variety_type,
-  //   filters.availability_date,
-  //   filters.property_variety,
-  // ]);
+
 
   const properties = data?.data.property || [];
 
@@ -161,7 +143,7 @@ function PropertyCard() {
       <div className="text-center text-gray-600 mt-10">
         <p className="text-lg font-semibold">
           Oops! We couldn’t find any properties listing in{" "}
-          <span className="text-primary">{selectedlocality}</span>, right now.
+          <span className="text-primary"> {selectedlocality}</span>, right now.
         </p>
         <p className="text-sm mt-2">
           Please try adjusting your search filters or check back later.
@@ -169,6 +151,8 @@ function PropertyCard() {
       </div>
     );
   }
+
+
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -224,9 +208,8 @@ function PropertyCard() {
                   : "Deposit (Negotiable)",
             },
             {
-              label: `${property?.builtup_area || "N/A"} ${
-                property?.builtup_area_unit || ""
-              }`,
+              label: `${property?.builtup_area || "N/A"} ${property?.builtup_area_unit || ""
+                }`,
               subLabel: `Builtup`,
             },
           ];
@@ -341,7 +324,7 @@ function PropertyCard() {
                   {/* Bottom Section */}
                   <div className="flex justify-between items-center mt-4 absolute bottom-1 left-0 w-full">
                     <Link href={`/PropertyDetailsPage/${property.id}`}>
-                      <button className="bg-[#FC6600] text-white px-4 py-2 rounded-lg">
+                      <button onClick={() => moveToDetailsHandler(property.id)} className="bg-[#FC6600] text-white px-4 py-2 rounded-lg">
                         View Details
                       </button>
                     </Link>

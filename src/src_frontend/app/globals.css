@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap");
-
+/* @import url("https://cdn.jsdelivr.net/npm/source-sans-pro@3.6.0/source-sans-pro.min.css"); */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,6 +7,7 @@
 
 body {
   font-family: "Poppins", sans-serif;
+  /* font-family: "source-sans-pro"; */
 }
 
 html {
@@ -98,4 +99,39 @@ html {
   -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 -8 26 30" xmlns="http://www.w3.org/2000/svg"><g><path fill="white" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></g></svg>') no-repeat center;
   mask: url('data:image/svg+xml;utf8,<svg viewBox="0 -8 26 30" xmlns="http://www.w3.org/2000/svg"><g><path fill="white" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></g></svg>') no-repeat center;
   background-position: center 3px;
+}
+
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+
+.heroImage {
+  background-image: url('/assets/Home_page/Maskgroup.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transition: 0.4s ease-in-out;
+}
+.heroImage:hover{
+  transform: scale(1.05);
+
+}
+
+
+.about_hero_section{
+  background-image: url('/assets/AboutUs/Background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+@media (max-width: 768px) {
+  .heroImage {
+    background-image: url('/assets/Home_page/Maskgroup_mobile.png');
+  }
+  .about_hero_section{
+    background-position: left;
+  }
 }

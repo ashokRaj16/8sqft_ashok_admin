@@ -22,25 +22,27 @@ export default function PostPropertyformResidential(): JSX.Element {
     [key: string]: boolean;
   }>({
     "Property Details": false,
-    Amenities: false,
+    "Amenities": false,
     "Gallery & Verification": false,
     "Preview Mode": false,
   });
 
-  // Handle the completion of the current tab
-  const handleCompleteTab = (title: string) => {
-    setCompletedTabs((prev) => ({
-      ...prev,
-      [title]: true,
-    }));
-  };
+  const handleCompleteAndNext = (title : string) => {
+    console.log(title, "title");
+    setCompletedTabs((prev) => {
+      const updatedTabs = {
+        ...prev,
+        [title] : true,
+      }
 
-  const handleNext = (): void => {
-    const currentIndex = Tablinks.findIndex(({ title }) => title === activeTab);
-    if (currentIndex < Tablinks.length - 1 && completedTabs[activeTab]) {
-      setActiveTab(Tablinks[currentIndex + 1].title);
-    }
-  };
+      const currentIndex = Tablinks.findIndex(({ title }) => title === activeTab);
+      if (currentIndex < Tablinks.length - 1 && updatedTabs[title]) {
+        setActiveTab(Tablinks[currentIndex + 1].title);
+      }
+
+      return updatedTabs;
+    })
+  }
 
   const Tablinks: TabComponent[] = [
     {
@@ -56,6 +58,7 @@ export default function PostPropertyformResidential(): JSX.Element {
   useEffect(() => {
     hydrateAuthStore();
   }, []);
+  
   const isMobile = useMediaQuery("(max-width: 1024px)");
   return (
     <Tabs value={activeTab} className="w-full flex flex-col items-center">
@@ -115,8 +118,7 @@ export default function PostPropertyformResidential(): JSX.Element {
           >
             <Component
               onNext={() => {
-                handleCompleteTab(title);
-                handleNext();
+                handleCompleteAndNext(title)
               }}
             />
           </TabsContent>

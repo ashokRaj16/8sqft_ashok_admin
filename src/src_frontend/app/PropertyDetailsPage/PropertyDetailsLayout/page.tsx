@@ -172,7 +172,7 @@ const PropertyDetailsLayout = () => {
 
       {/* Right Section (30%) */}
       <div className="hidden lg:block w-[30%]">
-        <ActivityCard />
+        {/* <ActivityCard title={'RENT'} shortlistedCount={property?.shortlistedCount} intrestedCount={property?.intrestedCount} viewCount={property?.unique_view_count} /> */}
       </div>
     </div>
   );

@@ -44,14 +44,51 @@ const stepSchemas = [
   Yup.object().shape({
     firstname: Yup.string().required("First name is required"),
     lastname: Yup.string().required("Last name is required"),
-    email: Yup.string().email("Invalid email").required("Email is required"),
+    email: Yup.string()
+      .email("Invalid email format")
+      .nullable()
+      .test("email-or-mobile", function (value) {
+        const { mobile } = this.parent;
+        if (!value && !mobile) {
+          return this.createError({ path: "email", message: "Either an email or mobile is required." });
+        }
+        return true;
+      }),
+
     mobile: Yup.string()
-      .matches(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits")
-      .required("Mobile number is required"),
+      .matches(/^\d{10}$/, "Mobile number must be 10 digits")
+      .nullable()
+      .test("email-or-mobile", function (value) {
+        const { email } = this.parent;
+        if (!value && !email) {
+          return this.createError({ path: "mobile", message: "Either an email or mobile is required." });
+        }
+        return true;
+      }),
+      
+    // email: Yup.mixed().
+    //         test('email-or-mobile', 
+    //         'Either an email or mobile is required.',
+    //         function (value) {
+    //             const { mobile  } = this.parent;
+    //             return !!value || !!mobile;
+    //         }
+    //     ),
+
+    // mobile: Yup.mixed().
+    //     test('email-or-mobile', 
+    //     'Either an email or mobile is required.',
+    //     function (value) {
+    //         const { email  } = this.parent;
+    //         return !!value || !!email;
+    //     }
+    // ),
   }),
 ];
-
-export default function MultiStepForm() {
+interface MultiStepFormProps {
+  closeDialog: () => void;
+}
+export default function MultiStepForm({closeDialog}:MultiStepFormProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [isEmailFlow, setIsEmailFlow] = useState(false); // Flag for email vs mobile flow
@@ -83,8 +120,8 @@ export default function MultiStepForm() {
       if ("data" in data) {
         // Login successful
         toast.success("Login successful!");
-        window.location.reload();
-        router.push("/");
+        closeDialog();
+        // router.push("/");
       } else if ("needToRegister" in data) {
         // Registration required
         handleNext({ otp: formData.otp });
@@ -100,8 +137,8 @@ export default function MultiStepForm() {
       if ("data" in data) {
         // Login successful
         toast.success("Login successful!");
-        window.location.reload();
-        router.push("/");
+        closeDialog();
+        // router.push("/");
       } else if ("needToRegister" in data) {
         // Registration required
         handleNext({ otp: formData.otp });
@@ -115,7 +152,7 @@ export default function MultiStepForm() {
   const { mutate: signup } = useSignupDetail({
     onSuccess: () => {
       toast.success("Account created successfully!");
-      window.location.reload();
+      closeDialog();
 
       router.push("/");
     },
@@ -157,10 +194,12 @@ export default function MultiStepForm() {
     })); // Reset relevant form fields
     setCurrentStep(useEmail ? 1 : 0); // Email starts at step 1, WhatsApp at step 0
   };
+
   const handleNext = (values: any) => {
     setFormData((prev) => ({ ...prev, ...values }));
     setCurrentStep((prev) => getNextStep(prev));
   };
+  
   return (
     <div className="w-full">
       <Tabs value={`step-${currentStep}`} className="w-full">
@@ -182,14 +221,15 @@ export default function MultiStepForm() {
               }}
             >
               {({ isValid, dirty }) => (
-                <Form className="flex flex-col gap-4 items-center">
+                <Form className="flex flex-col gap-2 items-center">
                   <Image
                     src="/assets/logo/Only-8.svg"
-                    alt="main-logo"
-                    width={30}
-                    height={30}
+                    alt="8sqft-logo"
+                    width={35}
+                    height={35}
                   />
                   <h1 className="text-xl font-bold">Welcome to 8sqft</h1>
+                  <h4 className="text-md">SignIn / SignUp</h4>
 
                   <Field
                     as={Input}
@@ -214,14 +254,14 @@ export default function MultiStepForm() {
                   <p className="text-[#808080] text-xs ">
                     Continue with Email?
                     <Link
-                      className="text-[#053255]"
+                      className="text-[#037FFC]"
                       href="#"
                       onClick={(event) => {
                         event.preventDefault(); // Prevent the default behavior of the anchor tag
                         handleFlowSelection(true); // Call the function with the appropriate boolean value
                       }}
                     >
-                         Click here
+                        {' '} Click here
                     </Link>
                   </p>
                 </Form>
@@ -240,14 +280,15 @@ export default function MultiStepForm() {
               }}
             >
               {({ isValid, dirty }) => (
-                <Form className="flex flex-col gap-4 items-center">
+                <Form className="flex flex-col gap-2 items-center">
                   <Image
                     src="/assets/logo/Only-8.svg"
-                    alt="main-logo"
-                    width={30}
-                    height={30}
+                    alt="8sqft-logo"
+                    width={35}
+                    height={35}
                   />
-                  <h1 className="text-xl font-bold">Welcome to 8sqft</h1>
+                  <h1 className="text-xl font-bold">Welcome to 8sqft</h1>                 
+                  <h4 className="text-md">SignIn / SignUp</h4>
 
                   <Field
                     as={Input}
@@ -271,12 +312,12 @@ export default function MultiStepForm() {
                   </Button>
                   <p className="text-[#808080] text-xs">
                     Continue with Mobile?
-                    <Link className="text-[#053255]" href="#"
+                    <Link className="text-[#037FFC]" href="#"
                       onClick={(event) => {
                         event.preventDefault(); // Prevent the default behavior of the anchor tag
                         handleFlowSelection(false); // Call the function with the appropriate boolean value
                       }}>
-                         Click here
+                        {' '} Click here
                     </Link>
                   </p>
                 </Form>
@@ -294,12 +335,12 @@ export default function MultiStepForm() {
               }}
             >
               {({ isValid, dirty }) => (
-                <Form className="flex flex-col gap-4 items-center">
+                <Form className="flex flex-col gap-2 items-center">
                   <Image
                     src="/assets/logo/Only-8.svg"
-                    alt="main-logo"
-                    width={30}
-                    height={30}
+                    alt="8sqft-logo"
+                    width={35}
+                    height={35}
                   />
                   <h1 className="text-xl font-bold">Please enter your OTP</h1>
                   <Label htmlFor="otp">Enter OTP</Label>
@@ -337,12 +378,12 @@ export default function MultiStepForm() {
               }}
             >
               {({ isValid, dirty }) => (
-                <Form className="flex flex-col gap-4 items-center">
+                <Form className="flex flex-col gap-2 items-center">
                   <Image
                     src="/assets/logo/Only-8.svg"
-                    alt="main-logo"
-                    width={30}
-                    height={30}
+                    alt="8sqft-logo"
+                    width={35}
+                    height={35}
                   />
                   <h1 className="text-xl font-bold">Please enter your OTP</h1>
                   <Label htmlFor="otp">Enter OTP</Label>
@@ -394,9 +435,9 @@ export default function MultiStepForm() {
                 <Form className="flex flex-col gap-4 items-center">
                   <Image
                     src="/assets/logo/Only-8.svg"
-                    alt="main-logo"
-                    width={30}
-                    height={30}
+                    alt="8sqft-logo"
+                    width={35}
+                    height={35}
                   />
                   <h1 className="text-xl font-bold">Create a free account</h1>
                   <Field
@@ -405,11 +446,21 @@ export default function MultiStepForm() {
                     name="firstname"
                     placeholder="First Name"
                   />
+                  <ErrorMessage
+                    name="firstname"
+                    component="div"
+                    className="text-red text-[10px]"
+                  />
                   <Field
                     as={Input}
                     id="lastname"
                     name="lastname"
                     placeholder="Last Name"
+                  />
+                  <ErrorMessage
+                    name="lastname"
+                    component="div"
+                    className="text-red text-[10px]"
                   />
                   <Field
                     as={Input}
@@ -423,6 +474,17 @@ export default function MultiStepForm() {
                     name="mobile"
                     placeholder="Mobile Number"
                     type="text"
+                    
+                  />
+                  <ErrorMessage
+                    name="email"
+                    component="div"
+                    className="text-red text-[10px]"
+                  />
+                  <ErrorMessage
+                    name="mobile"
+                    component="div"
+                    className="text-red text-[10px]"
                   />
                   <Button type="submit" className="bg-[#FC6600] text-white">
                     Submit

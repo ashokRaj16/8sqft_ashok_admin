@@ -11,6 +11,7 @@ type ResidentialComponentProps = {
 type gallaryPostImges = {
   property_id: number;
   img_title: string;
+  image_category? : string;
   images: File;
 };
 const ResidentialComponent: React.FC<ResidentialComponentProps> = ({
@@ -75,8 +76,7 @@ const ResidentialComponent: React.FC<ResidentialComponentProps> = ({
         const payload: gallaryPostImges = {
           property_id: Number(userid), // Replace with the actual property_id
           img_title: selectedType, // Use selectedType as the title
-          images: file, // Add the file itself
-          
+          images: file, // Add the file itself          
         };
 
         // Upload the file using useGallaryPostDetail

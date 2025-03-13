@@ -104,7 +104,7 @@ export const validationPropertyImagesSchema = Yup.object({
 });
 
 export const WrapperValidationPropertyConfigurationSchema = (property_type = null) => {
-    console.log("type:", property_type)
+    
     return Yup.object({
         unit_name : (property_type === constant.PROPERTY_TYPE.RESIDENTIAL )
             ? Yup.string().required('Unit name is required')

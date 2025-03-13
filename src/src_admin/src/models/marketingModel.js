@@ -13,9 +13,21 @@ export const createMarketing = async (data) => {
     }
 }
 
-export const createMarketingTemp = async (data) => {
+export const createMarketingWAOwner = async (data) => {
     try {
-        const result = await axiosInstance.post('/admin/marketing/marketing_temp',
+        const result = await axiosInstance.post('/admin/marketing/marketing_wa',
+            data
+        );
+        return result;
+    }
+    catch (error) {
+        throw new Error(errorHandler(error));
+    }
+}
+
+export const createMarketingWAImageLead = async (data) => {
+    try {
+        const result = await axiosInstance.post('/admin/marketing/marketing_wa_image',
             data
         );
         return result;

@@ -38,7 +38,7 @@ const WhyChooseComponent: React.FC = () => {
   ];
 
   return (
-    <div className='w-FULL flex flex-col justify-center align-middle  items-center mx-auto my-8 p-14 bg-[#FFF4ED] rounded-lg'>
+    <div className='w-FULL flex flex-col justify-center align-middle  items-center mx-auto my-8 lg:p-14 p-5 bg-[#FFF4ED] rounded-lg'>
       <div>
         <h1 className="text-center text-[#222222] text-2xl font-bold mb-12">Why Choose 8Sqft?</h1>
       </div>

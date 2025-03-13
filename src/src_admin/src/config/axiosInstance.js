@@ -16,6 +16,10 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     (config) => {
         const authToken = localStorage.getItem('eightsqfttoken');
+        if (!authToken) {
+            console.warn("No auth token found! API may reject the request.");
+        }
+        
         config.headers = {
             ...config.headers,
             ...HTTP_HEADERS,

@@ -30,7 +30,7 @@ const useSearchQuery = ({ city, searchKeyword }: SearchQueryData) => {
   return useQuery<SearchQueryResponse, SearchQueryError>({
     queryKey: ["searchKeyword", city, searchKeyword], // Add city_name to the queryKey
     queryFn: async () => {
-      const response = await axios.get(`https://api.8sqft.com/api/v1/front/search_dropdown?searchLimit=40`, {
+      const response = await axios.get(`/api/v1/front/search_dropdown?searchLimit=40`, {
         params: { city, searchKeyword }, // Pass both city_name and searchKeyword
         headers: {
           "Content-Type": "application/json",

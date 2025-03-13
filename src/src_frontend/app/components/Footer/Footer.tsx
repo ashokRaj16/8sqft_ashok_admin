@@ -29,7 +29,7 @@ const FooterComponent = () => {
   const quickLinks = [
     { label: "About Us", href: "/About-Us" },
     { label: "Terms & Conditions", href: "/TermsandCondition" },
-    { label: "Blog", href: "#" },
+    { label: "Blog", href: "/blog" },
     { label: "Contact Us", href: "/contact-us" },
     { label: "Privacy Policy", href: "/PrivacyPolicy" },
   ];
@@ -43,7 +43,7 @@ const FooterComponent = () => {
   ];
 
   return (
-    <div className="bg-[#101010] text-white px-5 py-10 flex flex-col items-center space-y-8 mt-10">
+    <div className="bg-[#101010] text-white px-5 py-10 flex flex-col items-center space-y-8 ">
       {/* Main Content */}
       <div className="flex flex-wrap justify-center w-full gap-12 py-5">
         <FooterSection title="Quick Links" links={quickLinks} />
@@ -59,7 +59,7 @@ const FooterComponent = () => {
               placeholder="Enter your email here"
               className="w-full p-2 text-[#222222] rounded-md outline-none focus:ring-2 focus:ring-orange-500"
             />
-            <button className="w-1/4 bg-[#FC6600] text-white p-2 rounded-md hover:bg-orange-600 transition">
+            <button className="lg:w-1/4 bg-[#FC6600] text-white p-2 rounded-md hover:bg-orange-600 transition">
               Subscribe
             </button>
           </div>

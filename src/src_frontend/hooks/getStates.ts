@@ -21,7 +21,8 @@ const useGetCitylist = () => {
     return useQuery<getStatesListResponse>({
         queryKey: ["getStateslist"],
         queryFn: async () => {
-            const response = await axios.get(`https://api.8sqft.com/api/v1/location/cities`, {
+            console.log("city::")
+            const response = await axios.get(`/api/v1/location/cities`, {
                 headers: {
                     "Content-Type": "application/json",
                 },

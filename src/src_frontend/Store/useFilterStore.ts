@@ -3,7 +3,9 @@ import { create } from "zustand";
 interface PropertylistParams {
   city_name: string;
   limit: number;
-  amount_range?: string;
+  price_range?: string;
+  amount_range? :string;
+  project_area?: string;
   locality?: string;
   property_variety_type?: string;
   property_variety?: string;
@@ -11,11 +13,15 @@ interface PropertylistParams {
   availability_date?: string;
   sortOrder?: string;
   sortColumn?: string;
-  preferred_tenent?: string[]
-  property_availibility_type?: string
-  parking?: string
-  property_type?: string,
-  property_rent_buy?: string
+  preferred_tenent?: string[];
+  property_availibility_type?: string;
+  parking?: string;
+  property_type?: string;
+  property_rent_buy?: string;
+  property_current_status?: string;
+  width_facing_road?: string;
+  is_rera_number?: string;
+  other_amenities?: any;
 }
 
 interface FilterStoreState extends PropertylistParams {
@@ -28,7 +34,9 @@ const useFilterStore = create<FilterStoreState>((set) => ({
   city_name: "Default City",
   limit: 100,
   // Optional filters
-  amount_range: undefined,
+  price_range: undefined,
+  amount_range : undefined,
+  project_area: undefined,
   locality: undefined,
   property_variety_type: undefined,
   property_variety: undefined,
@@ -41,6 +49,10 @@ const useFilterStore = create<FilterStoreState>((set) => ({
   parking: undefined,
   property_type:undefined,
   property_rent_buy: undefined,
+  property_current_status: undefined,
+  width_facing_road: undefined,
+  other_amenities: undefined,
+  is_rera_number: undefined,
   // Method to update filters
   setFilter: (newFilters) =>
     set((state) => ({
@@ -51,7 +63,9 @@ const useFilterStore = create<FilterStoreState>((set) => ({
     set(() => ({
       city_name: "Default City",
       limit: 100,
-      amount_range: undefined,
+      price_range: undefined,
+      amount_range : undefined,
+      project_area: undefined,
       locality: undefined,
       property_variety_type: undefined,
       property_variety: undefined,
@@ -62,6 +76,13 @@ const useFilterStore = create<FilterStoreState>((set) => ({
       preferred_tenent: undefined,
       property_availibility_type: undefined,
       parking: undefined,
+      property_current_status: undefined,
+      width_facing_road: undefined,
+      other_amenities: undefined,
+      property_type: undefined,
+      property_rent_buy: undefined,
+      is_rera_number: undefined,
+      
     })),
 }));
 

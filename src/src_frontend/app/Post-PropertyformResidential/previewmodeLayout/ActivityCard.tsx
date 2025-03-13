@@ -1,4 +1,5 @@
 // components/ActivityCard.tsx
+import { formatNumber } from "@/utils/priceFormatter";
 import Image from "next/image";
 interface ActivityItem {
   label: string;
@@ -10,18 +11,20 @@ interface ActivityCard {
   title?: string;
   shortlistedCount?: number;
   intrestedCount?: number;
-  viewCount?:number;
+  viewCount?: number;
 }
-export default function ActivityCard({ title ,shortlistedCount,intrestedCount,viewCount}: ActivityCard) {
+export default function ActivityCard({ title, shortlistedCount, intrestedCount, viewCount }: ActivityCard) {
+  const engagement = viewCount ? viewCount > 0 ? Math.floor(viewCount / 2) : 0 : 0;
+  const isViewCount=viewCount? viewCount>0 :0
   const activityData: ActivityItem[] = [
     {
       label: "Views",
-      icon: "/assets/ActivityCard/UniqueViews.svg",
+      icon: "/assets/ActivityCard/Engagement.svg",
       count: viewCount || 0,
     },
     {
       label: "Shortlisted",
-      icon: "/assets/ActivityCard/Contacted.svg",
+      icon: "/assets/ActivityCard/UniqueViews.svg",
       count: shortlistedCount || 0,
     },
     {
@@ -31,35 +34,35 @@ export default function ActivityCard({ title ,shortlistedCount,intrestedCount,vi
     },
     {
       label: "Engagement",
-      icon: "/assets/ActivityCard/Engagement.svg",
-      count: 0,
+      icon: "/assets/ActivityCard/Contacted.svg",
+      count: isViewCount? engagement+1 : 0,
     },
   ];
   return (
-    <div className="p-0 rounded-lg my-3 w-full mx-w-md">
-      <h2 className="text-lg font-semibold mb-1">
+    <div className="pb-2  my-3 w-full mx-w-md  border-b border-dashed">
+      <h2 className="text-lg font-semibold mb-1 text-[#222222CC]">
         Activity On This  {title || "Property"}
       </h2>
-      <div className="flex  gap-1  items-start">
+      <div className="flex  gap-1 justify-between  items-start">
         {activityData.map((activity, index) => (
-          <div key={index} className="bg-[#FFF0E5] p-2 rounded-md ml-1">
+          <div key={index} className="bg-[#FFF0E5] p-2 rounded-md ml-1 w-full">
             <div className="flex items-center gap-2 ">
               {/* <img
                 src={activity.icon}
                 alt={activity.label}
                 className="w-6 h-6 object-contain self-start flex"
               /> */}
-                <Image
-                                 src={activity.icon}
-                                 alt={activity.label}
-                                 width={20}
-                                 height={20}
-                               />
+              <Image
+                src={activity.icon}
+                alt={activity.label}
+                width={20}
+                height={20}
+              />
               <div className="flex flex-col self-start">
-                <span className="text-sm font-bold ">{activity.count}</span>
+                <span className="text-sm font-bold">{formatNumber(activity.count)}</span>
               </div>
             </div>
-            <span className="text-[10px] font-medium">{activity.label}</span>
+            <span className="text-[10px] font-medium text-[#22222280]">{activity.label}</span>
           </div>
         ))}
       </div>

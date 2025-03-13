@@ -1,4 +1,5 @@
 import axiosInstance from "../config/axiosInstance";
+import { errorHandler } from "../utils/errorHandler";
 
 /**
  * GET :Member User

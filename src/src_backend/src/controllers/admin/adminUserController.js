@@ -1,11 +1,12 @@
 import _ from 'lodash';
 import pool from '../../config/db.js';
-import bcrypt from 'bcryptjs';
 import validator from 'validator';
 
-import { getAllUserListAdmin, getAllUserCountAdmin, createAdminUser } from '../../models/userModel.js';
+import { getAllUserListAdmin, getAllUserCountAdmin, createAdminUser, updateAdminUserAdmin, getUserAdminById } from '../../models/userModel.js';
 import { badRequestResponse, successWithDataResponse, successResponse } from "../../utils/response.js";
 import { readRecordDb } from '../../models/commonModel.js';
+import { sanitizedNumber, sanitizedField, hashPassword } from '../../utils/commonHelper.js';
+import { createAdminValidator, updateAdminValidator } from '../validators/userValiadtor.js';
 
 export const listUsers = async (req, res) => {
     try {
@@ -29,6 +30,8 @@ export const listUsers = async (req, res) => {
         }
 
         whereClauses.push(` tu.is_deleted = '0' `);
+        whereClauses.push(` tu.id <> ${req.userId} `);
+        whereClauses.push(` tu.id <> '1' `);
 
         // ###check current user & super_admin not in list
 
@@ -73,12 +76,15 @@ export const listUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
-        const [user] = await pool.execute("SELECT * FROM tbl_users_admin WHERE id = ? AND is_deleted = '0'", [id]);
-        if (user.length === 0) {
+
+        console.log(id,"ssss")
+        const result = await getUserAdminById(id)
+        // const [user] = await pool.execute("SELECT * FROM tbl_users_admin WHERE id = ? AND is_deleted = '0'", [id]);
+        if ( result.length === 0) {
             return badRequestResponse(res, false, 'Error fetching user.', error);
         }
+        const data = result[0]
         
-        const data = user[0]
         return successResponse(res, true, 'User details.', data)
     } catch (error) {
         return badRequestResponse(res, false, 'Error fetching user.', error);
@@ -88,48 +94,78 @@ export const getUserById = async (req, res) => {
 export const addAdminUser = async (req, res) => {
     try {
         const { fname, mname, lname, email, mobile, phone, password, role_id } = req.body;
-        
-        const password_hash = await bcrypt.hash(password, 10);
+        const validationErrors = createAdminValidator(req.body)
+        if(validationErrors.length > 0) {
+            return badRequestResponse(res, false, validationErrors)
+        }
+
         const userData = { 
-            fname : fname ? _.startCase(_.trim(fname)) : null, 
-            mname: mname ? _.startCase(_.trim(mname)) : null,
-            lname : lname ? _.startCase(_.trim(lname)) : null, 
-            email : email ? _.toLower(_.trim(email)) : null, 
-            mobile : mobile || null, 
-            password_hash: password_hash || null,
-            phone : phone || null,
+            fname : fname ? sanitizedField(fname, true, 'CAPITALIZE') : null, 
+            mname: mname ? sanitizedField(mname, true, 'CAPITALIZE') : null,
+            lname : lname ? sanitizedField(lname, true, 'CAPITALIZE') : null, 
+            email : email ? sanitizedField(email, true, 'LOWERCASE') : null, 
+            mobile : mobile && sanitizedNumber(mobile,  { min: 10 }) || null, 
+            password_hash: password && await hashPassword(password) || null,
+            phone : phone && sanitizedNumber(phone) || null,
             role_id : role_id || null,
             added_by : req.userId || null }
             
+            // console.log(userData)
+
             const whereClauses = 'email = ? OR mobile = ?'
             const userDetailsEmails = await readRecordDb('tbl_users_admin', undefined, whereClauses, [userData.email, userData.mobile]);
-            console.log(userDetailsEmails, "asdasadas");
             
             if(userDetailsEmails.length > 0) {
                 return badRequestResponse(res, false, 'Email or mobile address already in use.');
             }
-        const result = await createAdminUser(userData);
+            const result = await createAdminUser(userData);
         return successWithDataResponse(res, false, 'User added successfully.', result);
     } catch (error) {
+        console.log(error)
         return badRequestResponse(res, false, 'Error adding user', error);
     }
 };
 
-export const updateUser = async (req, res) => {
+export const updateAdminUser = async (req, res) => {
     const { id } = req.params;
+    
+    console.log(req.body, "boddddyyyy");
+    if(!id) {
+        return badRequestResponse(res, false, "Id required with request.")
+    }
+    
     const {
         fname, mname, lname, email, mobile, phone, proof_number, proof_type,
-        state_id, city_id, pincode, address_1, role_id
+        state_id, city_id, pincode, address_1, role_id, password, status
     } = req.body;
 
     try {
-        const [result] = await pool.execute(
-            `UPDATE tbl_users_admin SET fname = ?, mname = ?, lname = ?, email = ?, mobile = ?,
-            phone = ?, proof_number = ?, proof_type = ?, state_id = ?, city_id = ?, pincode = ?, 
-            address_1 = ?, role_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND is_deleted = '0'`,
-            [fname, mname, lname, email, mobile, phone, proof_number, proof_type, state_id, city_id, pincode, address_1, role_id, id]
-        );
+        const data = {
+            fname : fname || null, 
+            mname : mname || null, 
+            lname: lname || null, 
+            email :email || null, 
+            mobile : mobile || null, 
+            phone : phone || null, 
+            proof_number : proof_number || null, 
+            proof_type : proof_type ||null,
+            state_id : state_id || null, 
+            city_id : city_id || null, 
+            pincode: pincode || null, 
+            address : address_1 || null, 
+            role_id : role_id || null,
+            password_hash :  password || null,
+            status: status || null
+        }
 
+        const whereClauses = '( email = ? OR mobile = ?) && id <> ?'
+        const userDetails = await readRecordDb('tbl_users_admin', undefined, whereClauses, [data.email, data.mobile, id]);
+        if( userDetails.length > 0 ) {
+            return badRequestResponse(res, false, 'Email or mobile address already in use with other account.');
+        }
+        
+        const result = await updateAdminUserAdmin(id, data) 
+       
         if (result.affectedRows === 0) {
             return badRequestResponse(res, false, 'User not found or not updatedr.', error);
         }

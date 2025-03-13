@@ -5,7 +5,8 @@ import {
     deleteMemberAdmin,
     createMemberUser,
     getMemberUsersById,
-    updateUser
+    updateUser,
+    updateMemberAdmin
 } from "../../models/memberModel.js";
 import  { 
     getAllPropertyListAdminByMemberId,
@@ -74,7 +75,7 @@ export const listMembers = async (req, res) => {
 };
 
 
-export const listUsersById = async (req, res) => {
+export const listMembersById = async (req, res) => {
     const userId = req.params.id;
     console.log(req.params);
     if (!userId) {
@@ -82,7 +83,9 @@ export const listUsersById = async (req, res) => {
     }
     try {
         const [user] = await getMemberUsersById(userId);
-        console.log("User Data", user)
+        if(user.length === 0) {
+            return badRequestResponse(res, false, 'User not found or user id wrong.')
+        }
         return successWithDataResponse(res, true, 'User list successfully', user );
     } catch (error) {
         return badRequestResponse(res, false, 'Error getting user', error );
@@ -90,7 +93,7 @@ export const listUsersById = async (req, res) => {
 };
 
 
-// Add a new user
+// Add a new user 
 export const addMemberUser = async (req, res) => {
     console.log("body",req.body);
     try {
@@ -101,17 +104,17 @@ export const addMemberUser = async (req, res) => {
             lname : lname || null, 
             email : email || null, 
             mobile : mobile || null, 
-            phone : phone || null }
+            phone : phone || null 
+        }
 
-            const whereClauses = 'email = ? OR mobile = ?'
-            const userDetailsEmails = await readRecordDb('tbl_users', undefined, whereClauses, [email, mobile]);
-            
-            if(userDetailsEmails.length > 0) {
-                return badRequestResponse(res, false, 'Email or mobile address already in use.');
-            }
+        const whereClauses = 'email = ? OR mobile = ?'
+        const userDetailsEmails = await readRecordDb('tbl_users', undefined, whereClauses, [email, mobile]);
+        
+        if(userDetailsEmails.length > 0) {
+            return badRequestResponse(res, false, 'Email or mobile address already in use.');
+        }
 
         const result = await createMemberUser(userData);
-        // const result = {}
 
         return successWithDataResponse(res, false, 'User added successfully.', result);
     } catch (error) {
@@ -120,7 +123,7 @@ export const addMemberUser = async (req, res) => {
 };
 
 
-// Edit a user
+// Edit a user // check if is working
 export const editUser = async (req, res) => {
     const userId = req.params.id;
     const { fname, lname, email, mobile, phone } = req.body;
@@ -128,13 +131,69 @@ export const editUser = async (req, res) => {
         const updatedUser = await updateUser(userId, { fname, lname, email, mobile, phone });
         res.status(200).json({ message: 'User updated successfully', updatedUser });
     } catch (error) {
-        res.status(500).json({ message: 'Error updating user', error });
+        res.status(500).json({ message: 'Error updating member', error });
     }
 };
 
+export const editMemeberAdmin = async (req, res) => {
+    const { id } = req.params;
+    const { 
+        fname, 
+        mname,
+        lname, 
+        email, 
+        mobile, 
+        address_1,
+        phone,
+        profile_picture_url,
+        city_id,
+        city_name,
+        state_id,
+        state_name,
+        instagram_url,
+        facebook_url,
+        youtube_url,
+        whatsapp_notification,
+        status
+      } = req.body;
+    try {
+        const data = {
+            fname : fname || null, 
+            mname : mname || null,
+            lname : lname || null, 
+            email : email || null, 
+            mobile : mobile || null, 
+            phone : phone || null,
+            address_1 : address_1 || null,
+            profile_picture_url : profile_picture_url || null,
+            city_id : city_id || null,
+            city_name : city_name || null,
+            state_id : state_id || null,
+            state_name : state_name || null,
+            instagram_url : instagram_url || null,
+            facebook_url : facebook_url || null,
+            youtube_url : youtube_url || null,
+            whatsapp_notification : whatsapp_notification || null,
+            status : status || null
+        }
+        const whereClauses = '( email = ? OR mobile = ?) && id <> ?'
+        const userDetails = await readRecordDb('tbl_users', undefined, whereClauses, [data.email, data.mobile, id]);
+        if( userDetails.length > 0 ) {
+            return badRequestResponse(res, false, 'Email or mobile address already in use with other account.');
+        }
+        const result = await updateMemberAdmin(id, data)
+        if(result.affectedRows === 0) {
+            return badRequestResponse(res, false, "Unable to update user.")
+        }
+        
+        return successWithDataResponse(res, true, 'User updated successfully', result);
+    } catch (error) {
+        return badRequestResponse(res, false, "Error updating member." , error.message)
+    }
+};
 
 // Delete a user
-export const deleteUser = async (req, res) => {
+export const removeMemberAdmin = async (req, res) => {
     const userId = req.params.id;
     console.log(userId);
     try {

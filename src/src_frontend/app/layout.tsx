@@ -61,7 +61,7 @@ export default function RootLayout({
             <Toaster />
             <LocationFetcher />
             {/* Main Content */}
-            <main className="w-full mx-auto pt-[80px]">{children}</main>
+            <main className="w-full mx-auto pt-[80px] ">{children}</main>
             {/* Footer */}
             <ClientFooter />
           </ProviderComponent>

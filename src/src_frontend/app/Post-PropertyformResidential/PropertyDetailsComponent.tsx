@@ -5,7 +5,7 @@ import { Formik, Field, Form, ErrorMessage, useFormikContext } from "formik";
 import * as Yup from "yup";
 import usePropertyDetails from "@/hooks/Postpropertyhooks/usePropertyDetails";
 import toast from "react-hot-toast";
-import { GoogleMap, Marker, LoadScript } from "@react-google-maps/api";
+import { GoogleMap, Marker, LoadScript, LoadScriptNext } from "@react-google-maps/api";
 import { debounce } from "lodash";
 // import usegetStateslist from "@/hooks/getStates";
 import ReusableRedTagComponent from "../CompoundComponent/ReusableRedTag";
@@ -148,9 +148,10 @@ export default function PropertyDetailsComponent({
   const [searchQuery, setSearchQuery] = useState<string>(""); // User's search input
   const [suggestions, setSuggestions] = useState<
     google.maps.places.AutocompletePrediction[]
-  >([]); // Search suggestions
+  >([]);
   const [loading, setLoading] = useState(false);
-  const GOOGLE_MAPS_API_KEY = "AIzaSyB4mLQjyo8whkMHMHA5mpZ4Y17dS2bjgaM";
+  
+  const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLEMAP || '';
 
   const fetchPlaceSuggestions = useCallback(
     debounce(async (query: string) => {
@@ -267,7 +268,7 @@ export default function PropertyDetailsComponent({
 
   return (
     <>
-      <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
+      <LoadScriptNext googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
         <Formik
           initialValues={{
             landmark: "",
@@ -299,7 +300,7 @@ export default function PropertyDetailsComponent({
           validationSchema={validationSchema}
           onSubmit={(values: any) => {
             console.log(values.city, "this is the city");
-            onNext();
+            
             const FinalPayload = {
               id: Number(userid),
               step_id: 2,
@@ -340,8 +341,8 @@ export default function PropertyDetailsComponent({
             mutate(FinalPayload);
           }}
         >
-          {({ values, setFieldValue, isSubmitting }: any) => (
-            console.log("Payload:", values),
+          {({ values, setFieldValue, isSubmitting, errors }: any) => (
+            // console.log("Payload:", errors),
             (
               // <Form className="lg:max-w-4xl mx-auto p-6 bg-white rounded-lg  space-y-4 ">
               //   <div>
@@ -407,7 +408,7 @@ export default function PropertyDetailsComponent({
                   </div>
 
                   <ErrorMessage
-                    name="selectedState"
+                    name="city"
                     component="div"
                     className="text-red text-sm mt-1"
                   />
@@ -1191,17 +1192,20 @@ export default function PropertyDetailsComponent({
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full py-2 px-4 bg-primary text-white rounded-md mt-4"
-                >
-                  {"Save and Next"}
-                </button>
+                <div className="flex flex-row gap-4 justify-center items-center">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="mt-8 w-full max-w-48 flex justify-center items-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
+                  >
+                    {isSubmitting ? "Submitting..." : "SAVE & NEXT"}
+                  </button>
+                </div>
               </Form>
             )
           )}
         </Formik>
-      </LoadScript>
+      </LoadScriptNext>
     </>
   );
 }

@@ -27,9 +27,18 @@ export const validationMarketingSchema = Yup.object({
         })
 });
 
-
 export const validationMarketingTempSchema = Yup.object({
     full_name: Yup.string().required('Full Name is required.'),
-    mobile : Yup.string().required('Mobile is required.'),
+    mobile : Yup.string()
+            .required('Mobile is required.')
+            .matches(/^[0-9]{10}$/, 'Mobile number must be exactly 10 digits'),
+    property_id: Yup.string().required('Property is required.')
+});
+
+export const validationMarketingLeadSchema = Yup.object({
+    full_name: Yup.string().required('Full Name is required.'),
+    mobile : Yup.string()
+            .required('Mobile is required.')
+            .matches(/^[0-9]{10}$/, 'Mobile number must be exactly 10 digits'),
     property_id: Yup.string().required('Property is required.')
 });

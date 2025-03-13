@@ -70,19 +70,19 @@ export const propertyStatus = [
   { id: 3, title: constant.PROPERTY_STATUS.REJECTED },
   { id: 4, title: constant.PROPERTY_STATUS.DELISTED },
   { id: 5, title: constant.PROPERTY_STATUS.SOLD_OUT },
-  { id: 5, title: constant.PROPERTY_STATUS.RENT_OUT },
+  { id: 6, title: constant.PROPERTY_STATUS.RENT_OUT },
 ]
 
 export const otherAmenties = [
   { id: 1, title: 'Lift' , value : 'Lift', userType : [constant.PROPERTY_USER_TYPE.OWNER, constant.PROPERTY_USER_TYPE.BUILDER], categories : [constant.PROPERTY_TYPE.RESIDENTIAL, constant.PROPERTY_TYPE.COMMERCIAL] },
-  { id: 2, title: 'CCTV' , value : 'CCTV' },
+  { id: 2, title: 'CCTV Camera' , value : 'CCTV Camera' },
   { id: 3, title: 'Air Conditioner' , value : 'Air Conditioner'},
   { id: 4, title: 'GYM', value : 'GYM' },
   { id: 5, title: 'Play Area' , value : 'Play Area' },
   { id: 6, title: 'Fire Safety' , value : 'Fire Safety' },
   { id: 7, title: 'Garden' , value : 'Garden'},
   { id: 8, title: 'Boundary Wall', value : 'Boundary Wall' },
-  { id: 9, title: 'Internet Service', value : 'Internet Service' },
+  { id: 9, title: 'Internet Services', value : 'Internet Services' },
   { id: 10, title: 'Club House', value : 'Club House' },
   { id: 11, title: 'Intercom', value : 'Intercom' },
   { id: 12, title: 'Park', value : 'Park' },
@@ -105,11 +105,16 @@ export const otherAmenties = [
   { id: 28, title: 'Mess' , value : 'Mess'},
   { id: 29, title: 'Cooler', value : 'Cooler' },
   { id: 30, title: 'Water Purifier' , value : 'Water Purifier' },
+  
   { id: 31, title: 'Mattress' , value : 'Mattress' },
   { id: 32, title: 'Washing Machine' , value : 'Washing Machine'},
   { id: 33, title: 'Servant Room', value : 'Servant Room' },
   { id: 34, title: 'Amphitheatre', value : 'Amphitheatre' },
   { id: 35, title: 'Rain Water Harvesting', value : 'Rain Water Harvesting' },
+  { id: 36, title: 'Road', value : 'Road' },
+  { id: 37, title: 'Security', value : 'Security' },
+  { id: 38, title: 'Water Storage' , value : 'Water Storage' },
+  { id: 39, title: 'Conference Room' , value : 'Conference Room' },
 ]
 
 export const FurnishingStatusAmenties = [

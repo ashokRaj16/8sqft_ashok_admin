@@ -4,6 +4,8 @@ import React from 'react'
 const Dashboard = React.lazy(() => import('@page/dashboard/Dashboard'))
 const login = React.lazy(() => import('@page/login/Login'))
 
+const Gallery = React.lazy(() => import('@page/gallery/ImageGallery'))
+
 const ListAmenities = React.lazy(() => import('./views/amenities/ManageAmenities'))
 const AddAmenity = React.lazy(() => import('./views/amenities/AddAmenity'))
 const EditAmenity = React.lazy(() => import('./views/amenities/EditAmenity'))
@@ -16,13 +18,13 @@ const Viewproperties = React.lazy(() => import('@page/properties/ViewPropertyDet
 const ListPropertyEnquiry = React.lazy(() => import('@page/enquiry/ListPropertyEnquiry'))
 
 const ListAdminUser = React.lazy(() => import('@page/admin/ListAdminUser'))
-const EditAdminUser = React.lazy(() => import('@page/admin/EditAdminUser'))
+// const EditAdminUser = React.lazy(() => import('@page/admin/EditAdminUser'))
 const AddAdminUser = React.lazy(() => import('@page/admin/AddAdminUser'))
 const ViewAdminUser = React.lazy(() => import('@page/admin/ViewAdminUser'))
 
 const ListMemberUser = React.lazy(() => import('@page/member/ListMemberUser'))
 const AddMemberUser = React.lazy(() => import('@page/member/AddMemberUser'))
-const EditMemberUser = React.lazy(() => import('@page/member/EditMemberUser'))
+// const EditMemberUser = React.lazy(() => import('@page/member/EditMemberUser'))
 const ViewMemberUser = React.lazy(() => import('@page/member/ViewMemberUser'))
 
 const ListPlans = React.lazy(() => import('@page/plans/ListPlans'))
@@ -53,7 +55,9 @@ const PageNotAuthorize = React.lazy(() => import('@page/page404/PageNotAuthorize
 const routes = [
   { path: '/', exact: true, name: 'login', element: login, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard , allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
+  { path: '/gallery', name: 'Gallery', element: Gallery , allowedRole: ['SUPER ADMIN'] },
   
+
   { path: '/properties/ameneties', name: 'Amennities', element: ListAmenities },
   { path: '/properties/ameneties/add', name: 'Add Amennities', element: AddAmenity },
   { path: '/properties/ameneties/edit/:id', name: 'Edit Amennities', element: EditAmenity },
@@ -67,12 +71,12 @@ const routes = [
 
   { path: '/admin', name: 'Admin', element: ListAdminUser, allowedRole: ['SUPER ADMIN']  },
   { path: '/admin/add', name: 'Add Admin', element: AddAdminUser, allowedRole: ['SUPER ADMIN'] },
-  { path: '/admin/edit/:id', name: 'Edit Admin', element: EditAdminUser, allowedRole: ['SUPER ADMIN'] },
+  { path: '/admin/edit/:id', name: 'Edit Admin', element: AddAdminUser, allowedRole: ['SUPER ADMIN'] },
   { path: '/admin/view/:id', name: 'Edit Admin', element: ViewAdminUser, allowedRole: ['SUPER ADMIN'] },
 
   { path: '/member', name: 'Member', element: ListMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
   { path: '/member/add', name: 'Add Member', element: AddMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
-  { path: '/member/edit/:id', name: 'Edit Member', element: EditMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/member/edit/:id', name: 'Edit Member', element: AddMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
   { path: '/member/view/:id', name: 'View Member', element: ViewMemberUser, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
 
   { path: '/subscription', name: 'Subscription', element: ListRegisterPlan, allowedRole: ['SUPER ADMIN'] },
@@ -83,13 +87,13 @@ const routes = [
 
   { path: '/profile', name: 'Profile', element: Profile, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
   
-  { path: '/blogs', name: 'Blogs', element: ListBlogs , allowedRole: ['SUPER ADMIN'] },
-  { path: '/blogs/add', name: 'Add Blogs', element: AddBlog, allowedRole: ['SUPER ADMIN'] },
-  { path: '/blogs/view/:id', name: 'View Blogs', element: ViewBlogs, allowedRole: ['SUPER ADMIN'] },
+  { path: '/blogs', name: 'Blogs', element: ListBlogs , allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/blogs/add', name: 'Add Blogs', element: AddBlog, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/blogs/view/:id', name: 'View Blogs', element: ViewBlogs, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
 
   { path: '/category', name: 'Category', element: BlogCategory, allowedRole: ['SUPER ADMIN'] },
 
-  { path: '/contact-us', name: 'Contact', element: ListContactUs, allowedRole: ['SUPER ADMIN'] },
+  { path: '/contact-us', name: 'Contact', element: ListContactUs, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
   // { path: '/contact-us/view/:id', name: 'View Contact', element: ViewContactUs },
 
   { path: '/marketing', name: 'Marketing', element: ListMarketing, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
@@ -101,6 +105,8 @@ const routes = [
   { path: '/promotion/add', name: 'Add Promotion', element: AddPromtion, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
 
   // { path: '/promotion/edit', name: 'Edit Promotion', element: AddPromtion, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+
+  { path: '/trash', name: 'Trash', element: PageNotAuthorize, allowedRole: ['SUPER ADMIN'] },
 
   { path: '/401', name: '401', element: PageNotAuthorize, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
   { path: '*', name: 'Not Found', element: Page404, allowedRole : ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },

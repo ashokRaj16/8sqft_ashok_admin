@@ -105,7 +105,6 @@ export const deleteMarketingByIdAdmin = async (id) => {
 
 export const deleteMarketingDetailsRowByIdAdmin = async (id) => {
     try {
-
         const query2 = `DELETE FROM tbl_marketing_details 
             where id = ?`
         const [rows2] = await pool.execute(query2, [id]);
@@ -127,36 +126,36 @@ export const createMarketingAdmin = async (data) => {
             status,
             status_text,
             property_id,
+            banner_image,
             promotion_name,
             marketing_type,
             promotion_type,
             publish_date,
             userId,
         } = data
-        console.log(data, "data")
+        
         await connection.beginTransaction();
         const marketingMasterData = [
-            property_id, promotion_name, marketing_type, promotion_type, publish_date, userId, 
+            property_id, banner_image, promotion_name, marketing_type, promotion_type, publish_date, userId, 
         ]
         const query = `INSERT INTO tbl_property_marketing (
             property_id,
+            banner_image,
             promotion_name,
             marketing_type,
             promotion_type,
             publish_date,
             added_by
-        ) VALUES (?, ?, ?, ?, ? ,?)`
+        ) VALUES (?, ?, ?, ?, ? ,?, ?)`
         const [result] = await connection.execute(query, marketingMasterData);
         console.log(result);
-        const marketingDetailData = [
-            result.insertId, full_name, mobile, email, status, status_text
-        ]
+        const marketingDetailData = [ result.insertId, full_name, mobile, email, banner_image, status, status_text ]
         console.log(marketingDetailData, "details:::")
-        const query2 = `INSERT INTO tbl_marketing_details (
-            pm_id, full_name, mobile, email, status, status_text
-        ) VALUES (
-         ?, ?, ?, ?, ?, ?)
-            `
+        const query2 = `INSERT INTO tbl_marketing_details 
+            ( pm_id, full_name, mobile, email, banner_image, status, status_text ) 
+            VALUES 
+            ( ?, ?, ?, ?, ?, ?, ? )
+         `
         const [rows] = await connection.execute(query2, marketingDetailData);
         await connection.commit()
         return {insertId: result.insertId, ...data};
@@ -166,5 +165,3 @@ export const createMarketingAdmin = async (data) => {
         throw new Error('Unable to create marketing log.');
     }
 };
-
-// tbl_property_marketing

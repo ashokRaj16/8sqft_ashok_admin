@@ -8,7 +8,6 @@ import BuilderPropertyDetailsComponent from "./BuilderPropertyDetailsComponent";
 import BuilderAmenitiesComponent from "./BuilderAmenitiesComponent";
 import BuilderGallary from "./BuilderGallary";
 import PreviewModeComponent from "./PreviewMode";
-import { title } from "process";
 
 // Define the Tab component type
 type TabComponent = {
@@ -18,16 +17,14 @@ type TabComponent = {
 };
 
 export default function BuilderPostProperty(): JSX.Element {
-
-  const [activeTab, setActiveTab] = useState<string>("Property Details");
-
+  const [activeTab, setActiveTab] = useState<string>("Project Details");
   const [completedTabs, setCompletedTabs] = useState<{
     [key: string]: boolean;
   }>({
-    "Property Details" : false,
-    "Amenities" : false,
-    "Gallery & Verification" : false,
-    "Preview Mode" : false,
+    "Project Details": false,
+    Amenities: false,
+    "Gallery & Verification": false,
+    "Preview Mode": false,
   });
 
   const handleCompleteAndNext = (title : string) => {
@@ -46,11 +43,8 @@ export default function BuilderPostProperty(): JSX.Element {
     })
   }
 
-  console.log("completed tabs", completedTabs);
-
   // Handle the completion of the current tab
   // const handleCompleteTab = (title: string) => {
-  //   console.log("tab title:", title)
   //   setCompletedTabs((prev) => ({
   //     ...prev,
   //     [title]: true,
@@ -58,9 +52,7 @@ export default function BuilderPostProperty(): JSX.Element {
   // };
 
   // const handleNext = (): void => {
-
   //   const currentIndex = Tablinks.findIndex(({ title }) => title === activeTab);
-  //   console.log('Current index:', currentIndex, Tablinks.length, completedTabs[activeTab]);
   //   if (currentIndex < Tablinks.length - 1 && completedTabs[activeTab]) {
   //     setActiveTab(Tablinks[currentIndex + 1].title);
   //   }
@@ -69,7 +61,7 @@ export default function BuilderPostProperty(): JSX.Element {
   const Tablinks: TabComponent[] = [
     {
       num: "1",
-      title: "Property Details",
+      title: "Project Details",
       Component: BuilderPropertyDetailsComponent,
     },
     { num: "2", title: "Amenities", Component: BuilderAmenitiesComponent },
@@ -80,8 +72,6 @@ export default function BuilderPostProperty(): JSX.Element {
   useEffect(() => {
     hydrateAuthStore();
   }, []);
-
-
   const isMobile = useMediaQuery("(max-width: 1024px)");
   return (
     <Tabs value={activeTab} className="w-full flex flex-col items-center">
@@ -141,8 +131,6 @@ export default function BuilderPostProperty(): JSX.Element {
           >
             <Component
               onNext={() => {
-                // handleCompleteTab(title);
-                //handleNext();
                 handleCompleteAndNext(title)
               }}
             />

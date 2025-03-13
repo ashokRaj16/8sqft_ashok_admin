@@ -13,47 +13,19 @@ interface ReraComponentProps {
 export default function ReraComponent({ reraNumber }: ReraComponentProps) {
   const isMobile = useMediaQuery("(max-width: 640px)");
 
-  if (isMobile) {
-    // Mobile Version
-    return (
-      <Card className="p-1 flex flex-col justify-start items-start border-none">
-        {/* Header Section */}
-        <CardHeader className="w-full p-1 bg-white border-b border-[#fc6600] flex items-center gap-1">
-          <span className="text-[#222222] text-sm font-medium text-start w-full">
-            Information
-          </span>
-        </CardHeader>
-
-        {/* Body Section */}
-        <CardContent className="w-full h-full px-1 py-2 bg-white flex flex-col gap-4">
-          {/* Rera Section */}
-          <div className="flex flex-col gap-2">
-            <span className="text-[#222222] text-xs font-medium">RERA</span>
-            <Link href="https://maharerait.mahaonline.gov.in/">
-              <div className="flex justify-between items-center">
-                <span className="text-[#222222] text-xs font-light">
-                  {reraNumber || "Not Available"}
-                </span>
-              </div>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   // Desktop Version
   if (reraNumber) {
     return (
-      <div className="flex flex-col md:flex-row items-start justify-between bg-white p-5 gap-5">
+      <div className="flex items-start justify-between bg-white lg:border rounded-lg lg:p-5 px-2 lg:gap-5">
         <Image
           src="/assets/rera/RERA.svg"
           alt="RERA Icon"
-          className="w-28 h-28"
+          className="w-28 h-28 hidden lg:block"
           width={28}
           height={28}
         />
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2 lg:gap-4  lg:w-auto w-1/2">
           {/* RERA Approved Section */}
           <div className="flex items-center gap-3">
             <Image
@@ -63,9 +35,9 @@ export default function ReraComponent({ reraNumber }: ReraComponentProps) {
               width={6}
               height={6}
             />
-            <div className="font-semibold text-lg">RERA Approved</div>
+            <div className="font-semibold lg:text-lg text-sm">RERA Approved</div>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-xs lg:text-sm text-[#222222CC] font-light line-clamp-5 lg:line-clamp-none">
             The Real Estate (Regulation and Development) Act, 2016 is an Act of
             the Parliament of India which seeks to protect buyers as well as
             help boost investments in the real estate industry. The Act came
@@ -73,39 +45,33 @@ export default function ReraComponent({ reraNumber }: ReraComponentProps) {
           </p>
 
           {/* ID Information Section */}
-          <div className="flex flex-wrap items-center gap-8">
-            {/* Builder Project RERA ID */}
-            <Card className="w-64 border-none">
-              <CardContent className="p-4">
-                <div className="text-sm font-medium">
+          <div className="flex flex-wrap lg:flex-col justify-start items-center lg:items-start">   
+                <div className="text-[10px] lg:text-sm font-semibold text-[#22222299]">
                   Builder Project RERA ID
                 </div>
-                <Badge className="mt-2 text-primary bg-primary-light px-3 py-1 rounded-md border-none">
+                <Link href={"https://maharera.maharashtra.gov.in/"} className="lg:mt-2 text-primary text-[10px] lg:text-xs font-medium lg:bg-primary-light px-3 w-fit py-1 rounded-md underline">
                   {reraNumber || "Not Available"}
-                </Badge>
-              </CardContent>
-            </Card>
+                </Link>
+           
           </div>
         </div>
 
         {/* Right Section */}
-        <div className="flex flex-col items-center gap-4 text-center">
+        <div className="flex flex-col items-center gap-2 lg:gap-4 text-center lg:w-auto w-1/2">
           <Image
-            src="/assets/rera/QRCode.svg"
+            src="/assets/rera/QRCode.png"
             alt="QR Code"
             className="w-24 h-24"
-            width={6}
-            height={6}
+            width={100}
+            height={100}
           />
-          <div className="text-sm">
-            <p>Scan this code</p>
-            <p>to view Maharera website</p>
-          </div>
-          <Button variant="link" className="text-blue-500 text-xs" asChild>
-            <Link href="https://maharerait.mahaonline.gov.in/">
-              {reraNumber || "Not Available"}
+   
+           <p className="text-xs text-[#222222CC]">Scan this code to view Maharera website</p>
+         
+   
+            <Link className="text-[#1DA5F1] text-[10px] lg:text-xs" href="https://maharerait.mahaonline.gov.in/">
+            https://maharerait.mahaonline.gov.in/
             </Link>
-          </Button>
         </div>
       </div>
     );

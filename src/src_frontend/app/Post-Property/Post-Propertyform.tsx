@@ -4,7 +4,7 @@ import { Button } from "@/ui/Button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/Store/jwtTokenStore";
@@ -14,6 +14,7 @@ import { jwtTokenDecodeAll } from "@/lib/jwtTokenDecodeAll";
 import Link from "next/link";
 import useDialogStore from "@/Store/useDialogStore ";
 import useBuilderform from "@/hooks/BuilderFormHooks/useBuilderstep1";
+import useGetProfileDetails from "@/hooks/useGetProfileDetails";
 
 export const HoverCardComponent = () => {
   const { isDialogOpen, openDialog, closeDialog } = useDialogStore();
@@ -61,6 +62,7 @@ export const HoverCardComponent = () => {
 const ContactInput = () => {
   const token = useAuthStore((state) => state.token);
   const value = token ? jwtTokenDecodeAll(token) : null;
+  console.log(value,'value12')
   return (
     <>
       {token ? (
@@ -94,29 +96,89 @@ const ContactInput = () => {
 };
 interface CompanyInput {
   setCompanyName?: (value: string) => void;
+  setWhatsappNumber?: (value: string) => void;
+  setEmailId?: (value: string) => void;
+  whatsappNumber?: string;
+  emailId?: string;
+  companyName?: string;
 }
-const CompanyInput = ({ setCompanyName }: CompanyInput) => (
-  <div className="flex items-center gap-2 border-b border-gray-300 focus-within:border-[#fc6600] justify-center mt-4">
-    <Image
-      src="/assets/postproperty/C.svg"
-      alt="company-icon"
-      width={15}
-      height={15}
-    />
-    <Input
-      id="company"
-      name="company"
-      type="text"
-      placeholder="Enter Company Name"
-      onChange={(e) => {
-        if (setCompanyName) {
-          setCompanyName(e.target.value); // Call setCompanyName only if it’s defined
-        }
-      }}
-      className="flex-1 bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400 text-sm"
-    />
-  </div>
-);
+const CompanyInput = ({ 
+  setCompanyName, 
+  setWhatsappNumber, 
+  setEmailId,whatsappNumber,emailId,companyName  }: CompanyInput) => {
+    
+    const token = useAuthStore((state) => state.token);
+    const value = token ? jwtTokenDecodeAll(token) : null;
+    return(
+      <div className="flex flex-col items-center gap-2  justify-center">
+        <div className="flex items-center gap-2 w-full border-b border-gray-300 focus-within:border-[#fc6600]">
+          <Image
+            src="/assets/postproperty/C.svg"
+            alt="company-icon"
+            width={15}
+            height={15}
+          />
+          <Input
+            id="company"
+            name="company"
+            type="text"
+            placeholder="Enter Company Name"
+            value={companyName}
+            onChange={(e) => {
+              if (setCompanyName) {
+                setCompanyName(e.target.value); 
+              }
+            }}
+            className="flex-1 bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400 text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2 w-full border-b border-gray-300 focus-within:border-[#fc6600]">
+          <Image
+            src="/assets/postproperty/whatsapp1.svg"
+            alt="email-image"
+            width={15}
+            height={15}
+          />
+          <Input
+            id="whatapp"
+            name="whatapp"
+            type="text"
+            value={whatsappNumber}
+            placeholder="Enter Whatsapp Number"
+            onChange={(e) => {
+              if (setWhatsappNumber) {
+                setWhatsappNumber(e.target.value); 
+              }
+            }}
+            className="flex-1 bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400 text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2 w-full border-b border-gray-300 focus-within:border-[#fc6600]">
+          <Image
+            src="/assets/postproperty/email.svg"
+            alt="email-image"
+            width={15}
+            height={15}
+          />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Enter your email id"
+            value={emailId}
+            onChange={(e) => {
+              if (setEmailId) {
+                setEmailId(e.target.value); 
+              }
+            }}
+            className="flex-1 bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400 text-sm"
+          />
+        </div>
+    
+    
+      </div>
+    );
+  }
 
 const TabsContentWrapper = ({
   propertyType,
@@ -143,18 +205,26 @@ const TabsContentWrapper = ({
       </TabsList>
     </Tabs>
     {propertyType === "Builder" && <CompanyInput />}
-    <ContactInput />
+    {/* <ContactInput /> */}
   </TabsContent>
 );
 
 const PostPropertyFormComponent = () => {
+  const [userData, setUserData] = useState<any>(null)
+  const { profile, loading, error } = useGetProfileDetails();
+
+
+
+  console.log(userData,'datadata')
+  const { isDialogOpen, openDialog, closeDialog } = useDialogStore();
   const [ownerType, setOwnerType] = useState("Owner");
   const [propertyType, setPropertyType] = useState("Residential");
   const [lookingFor, setLookingFor] = useState("Rent");
   const router = useRouter();
   const [companyName, setCompanyName] = useState("");
-
-
+ console.log(companyName,'comname')
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [emailId, setEmailId] = useState("");
   const { mutate: BuilderMutate } = useBuilderform({
     onSuccess: (data: any) => {
       toast.success(`Start your property listing here.`);
@@ -176,20 +246,32 @@ const PostPropertyFormComponent = () => {
     },
   });
 
+
+  
+ 
+console.log(isDialogOpen,'isDialogOpen')
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!token) {
+      openDialog();
       toast.error("You need to login to post a property.");
       return;
     }
 
-    if (!ownerType || !propertyType || !lookingFor) {
+    else if (!token || !ownerType || !propertyType || !lookingFor) {
       toast.error("Please select all required fields.");
       return;
     }
-    if (propertyType === "Builder" && !companyName) {
+    else if (propertyType === "Builder" && !companyName) {
       toast.error("Please enter company name.");
+      return;
+    }
+    else if (propertyType === "Builder" && !whatsappNumber) {
+      toast.error("Please enter whatsapp number.");
+      return;
+    }
+    else if (propertyType === "Builder" && !emailId) {
+      toast.error("Please enter email address.");
       return;
     }
     // console.log(ownerType);
@@ -199,7 +281,10 @@ const PostPropertyFormComponent = () => {
         step_id: "1",
         property_rent_buy: "PROJECT",
         user_type: ownerType,
-        company_name:companyName
+        company_name: companyName,
+        phone: whatsappNumber,
+        mobile: whatsappNumber,
+        email: emailId
       });
     }
     else {
@@ -225,6 +310,12 @@ const PostPropertyFormComponent = () => {
     setIsChecked(event.target.checked); // Update the state with the checkbox value
   };
 
+  useEffect(() => {
+    setUserData(profile?.data)
+    setWhatsappNumber(profile?.data?.mobile?.toString() || "")
+    setCompanyName(profile?.data?.company_name || "")
+    setEmailId(profile?.data?.email || "")
+  }, [isDialogOpen,profile?.data])
   return (
     <form onSubmit={handleSubmit}>
       <Tabs
@@ -232,12 +323,12 @@ const PostPropertyFormComponent = () => {
         className="container min-w-[330px] lg:min-w-[400px] bg-transparent rounded-md mt-5"
         onValueChange={(value) => setOwnerType(value)}
       >
-        <TabsList className="grid w-3/4 grid-cols-2">
+        <TabsList className="grid w-3/4 grid-cols-2 p-0 h-auto">
           {["Owner", "Builder"].map((type) => (
             <TabsTrigger
               key={type}
               value={type}
-              className="bg-white text-primary data-[state=active]:bg-primary data-[state=active]:text-white p-3"
+              className="bg-white text-primary data-[state=active]:bg-primary data-[state=active]:text-white p-3 rounded-t-lg rounded-b-none"
             >
               {type}
             </TabsTrigger>
@@ -247,9 +338,9 @@ const PostPropertyFormComponent = () => {
           <TabsContent
             key={type}
             value={type}
-            className="overflow-hidden bg-white"
+            className="overflow-hidden mt-0"
           >
-            <Card>
+            <Card className="bg-white lg:w-[500px] w-auto lg:h-[400px] border-none  rounded-tl-none rounded-br-lg rounded-tr-lg">
               <CardHeader>
                 <p>
                   New to <span className="font-bold">8SQFT</span>? Let&apos;s
@@ -294,13 +385,16 @@ const PostPropertyFormComponent = () => {
                 )}
                 {type === "Builder" && (
                   <>
-                    <CompanyInput setCompanyName={setCompanyName} />
-                    <ContactInput />
+                    <CompanyInput setCompanyName={setCompanyName} setWhatsappNumber={setWhatsappNumber}
+                    setEmailId={setEmailId}
+                    whatsappNumber={whatsappNumber}
+                    emailId={emailId}
+                    companyName={companyName}
+                    />
+                    {/* <ContactInput /> */}
                   </>
                 )}
-              </CardContent>
-              {token ? (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center pt-2">
                   <input
                     type="checkbox"
                     checked={isChecked}
@@ -308,34 +402,33 @@ const PostPropertyFormComponent = () => {
                   />
                   <p className="text-[10px] ml-3">
                     I accepts the
-                    <Link href="/NewTermsAndCond" className="text-blue">
+                    <Link href="/TermsandCondition" className="text-blue">
                       Terms & Conditions
                     </Link>
                   </p>
                 </div>
-              ) : null}
+              </CardContent>
+        
+                
+  
 
               <CardFooter>
-                {/* {!token ? (
-                  <HoverCardComponent /> // Show login prompt if user is not logged in
-                ) : ( */}
+           
                   <Button
                     variant="default"
-                    className={
-                      isChecked &&
-                      (ownerType !== "Builder" || companyName.trim())
+                    className={                    
+                        (  isChecked && ownerType === "Builder" && companyName?.trim() && emailId?.trim()  && whatsappNumber?.trim())
                         ? "w-full text-white bg-primary"
                         : "bg-primary-light w-full"
                     }
                     type="submit"
-                    disabled={
-                      !isChecked ||
-                      (ownerType === "Builder" && !companyName.trim())
+                    disabled={                     
+                      !isChecked || (ownerType === "Builder" && (!companyName?.trim() || !emailId?.trim() || !whatsappNumber?.trim()))
                     }
                   >
                     Proceed
                   </Button>
-                {/* )} */}
+         
               </CardFooter>
             </Card>
           </TabsContent>

@@ -24,11 +24,11 @@ export default function RentTab() {
   };
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col">
       {/* Radio Buttons for Property Type */}
       <div className="flex space-x-4 flex-wrap">
         {(["Residential", "Commercial", "PG"] as const).map((type) => (
-          <label key={type}>
+          <label key={type} className="items-center flex">
             <input
               type="radio"
               name="propertyType"
@@ -36,7 +36,7 @@ export default function RentTab() {
               checked={propertyType === type}
               onChange={() => setPropertyType(type)}
             />
-            <span className="ml-1">{type}</span>
+            <span className="ml-1 text-xs lg:text-sm">{type}</span>
           </label>
         ))}
       </div>

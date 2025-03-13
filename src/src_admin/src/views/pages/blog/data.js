@@ -4,7 +4,7 @@ export let initialBlogValues = {
     description: '',
     short_description: '',
     author_name: '',
-    category : '',
+    cat_id : '',
     tags : '',
     meta_title: '',
     meta_description: '',
@@ -12,23 +12,9 @@ export let initialBlogValues = {
     comment_enabled: '',
     canonical_url: '',
     banner_image: '',
+    banner_size : '',
+    banner_type : '',
     banner_video : '',
+    youtube_url: '',
     publish_date  :'',
 }
-
-
-
-//   const initialValues = {
-//     title: "",
-//     blogImage: null,
-//     category: "",
-//     tags: "",
-//     commentEnabled: false,
-//     author: "",
-//     publishDate: "",
-//     content: "",
-//     metaTitle: "",
-//     metaDescription: "",
-//     metaKeywords: "",
-//     canonicalUrl: "",
-//   };

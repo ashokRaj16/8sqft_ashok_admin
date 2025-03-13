@@ -12,20 +12,24 @@ type gallaryPostImges = {
   property_id: number;
   img_title: string;
   images: File;
+  image_category:string
+
 };
 
 interface FileUploadComponentProps {
   title?: string;
   label: string;
+  imageCategory: string;
 }
 
 export default function FileUploadComponent({
   title,
+  imageCategory,
   label,
 }: FileUploadComponentProps) {
   const [files, setFiles] = useState<any[]>([]); // Uploaded files
   const [uploadingFiles, setUploadingFiles] = useState<any[]>([]); // Files currently being uploaded
-
+console.log( imageCategory,'imageCategory')
   const { id } = usePropertyIdStore(); // Assume usePropertyIdStore gives property_id
   const propertyId = id!;
 
@@ -83,6 +87,7 @@ export default function FileUploadComponent({
         const payload: gallaryPostImges = {
           property_id: Number(propertyId),
           img_title: "Default", // Fixed type for all files
+          image_category: imageCategory,
           images: file,
         };
 
@@ -137,14 +142,15 @@ export default function FileUploadComponent({
   };
 
   return (
+    <>
     <div className="flex flex-col gap-10 p-8 bg-white rounded-lg shadow-md max-w-4xl mx-auto">
+    
       {/* Header */}
       {title && (
         <div className="flex justify-between items-center">
           <h2 className="font-medium text-2xl text-[#222222]">{label}</h2>
         </div>
       )}
-
       {/* File Upload Card */}
       <Card className="w-[350px] bg-[#f8f8f8] border border-[#b6b6b6] rounded-lg">
         <CardContent className="flex flex-col items-center justify-center gap-4 p-6">
@@ -165,8 +171,10 @@ export default function FileUploadComponent({
         </CardContent>
       </Card>
 
-      {/* Files List */}
-      <div className="flex flex-col gap-6 mt-6">
+    </div>
+
+     {/* Files List */}
+     <div className="flex flex-col gap-6 mt-6">
         {files.map((file, index) => (
           <div
             key={file.id}
@@ -215,6 +223,6 @@ export default function FileUploadComponent({
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }

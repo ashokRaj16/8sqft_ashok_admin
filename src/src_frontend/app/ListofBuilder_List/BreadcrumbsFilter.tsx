@@ -1,30 +1,25 @@
 "use client";
 import useFilterStore from "@/Store/useFilterStore";
+import { useSearchParams } from "next/navigation";
 import React from "react";
+interface BreadcrumbProps {
+  getTotalCount: number;
+}
 
-const BuilderBreadcrumbsFilter = () => {
+const BuilderBreadcrumbsFilter = ({ getTotalCount }: BreadcrumbProps) => {
   const filters = useFilterStore();
-
+  const searchParams = useSearchParams();
+  const city_name = searchParams.get("city_name");
+  const searchKeyword = searchParams.get("searchKeyword");
+  const property_type = searchParams.get("property_type");
   return (
-    <div className="hidden lg:flex justify-between items-center p-4 border-b border-gray-200">
-      <nav aria-label="breadcrumb" className="text-sm text-gray-600">
-        {/* <ol className="flex space-x-2">
-          <li>
-            <a href="/" className="hover:underline">
-              Home
-            </a>
-          </li>
-          <span>/</span>
-          <li>
-            <a href="/pune" className="hover:underline">
-              Pune
-            </a>
-          </li>
-          <span>/</span>
-          <li>Multiple</li>
-        </ol> */}
-      </nav>
+    <div className="hidden lg:flex justify-between items-center p-2 rounded-md mx-1 border border-gray-200">
+     
 
+      <p className="text-sm text-[#222222E5]">
+        {/* {getTotalCount} -  */}
+        {property_type} properties for {searchKeyword}, {city_name}{" "}
+      </p>
       {/* Sort Dropdown */}
       <div className="flex items-center space-x-2">
         <label htmlFor="sort" className="text-sm font-medium text-gray-700">
@@ -39,14 +34,14 @@ const BuilderBreadcrumbsFilter = () => {
         >
           <option value="asc">Posted On (Newest first)</option>
           <option value="desc">Posted On (Oldest first)</option>
-          <option value="rent-high">Rent (High to Low)</option>
-          <option value="rent-low">Rent (Low to High)</option>
-          <option value="available-earliest">
+          {/* <option value="rent-high">Rent (High to Low)</option>
+          <option value="rent-low">Rent (Low to High)</option> */}
+          {/* <option value="available-earliest">
             Available from (Earliest first)
           </option>
           <option value="available-latest">
             Available from (Oldest first)
-          </option>
+          </option> */}
         </select>
       </div>
     </div>

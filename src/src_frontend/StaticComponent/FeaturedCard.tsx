@@ -156,7 +156,7 @@ const FeaturedCard: React.FC<FeaturedCardProps> = ({
   return (
   
 
-<Card className="w-[348px] h-[420px] rounded-lg overflow-hidden shadow-lg flex-shrink-0 mb-4 relative bg-white">
+<Card className="lg:w-[348px] h-[420px] rounded-lg overflow-hidden shadow-lg flex-shrink-0 mb-4 relative bg-white">
 <CardContent className="p-4 flex flex-col justify-between h-full">
   {/* Image */}
   <Image

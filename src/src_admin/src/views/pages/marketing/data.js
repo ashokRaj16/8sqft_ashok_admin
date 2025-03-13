@@ -15,6 +15,13 @@ export let initialPromotionTempValues = {
     property_id: ''
 }
 
+export let initialPromotionLeadValues = { 
+    full_name: '',
+    mobile: '',
+    property_id: '',
+    banner_image : ''
+}
+
 export const marketingTypeOption = [
     { id: 1, title: 'Email', value: 'Email'},
     { id: 2, title: 'Mobile', value: 'Mobile'},

@@ -14,38 +14,45 @@ import {
     CFormLabel,
     CButton, 
     CFormText,
-    CToaster } from '@coreui/react';
+    CToaster, 
+    CFormTextarea} from '@coreui/react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { validationAdminSchema } from './adminValidation';
 import { createAdminUser, getAdminRoles } from '@model/usersModel';
 import { ToastMessage } from '@component/ToastMessage';
 import { getAllCities } from '@model/locationModel';
 import { initialAdminValues } from './data';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { usePushToastHelper } from '../../../utils/toastHelper'
+import { getAdminUserById, updateAdminUser } from '../../../models/usersModel';
 
 const AddAdminUser = () => {
   
+    const { id } = useParams();
     const [ cities, setCities ] = useState([]);
-    const [ toast, addToast ] = useState(0);
-    const [roles, setRoles] = useState([]);
+    const [ roles, setRoles ] = useState([]);
+    const [ adminUserDetails, setAdminUserDetails ] = useState(initialAdminValues);
 
-    const navigate = useNavigate();
     const toaster = useRef();
+    const navigate = useNavigate();
+    const { toasts, pushToastsMessage } = usePushToastHelper();
 
     const handleSubmit = async (values, resetForm, setSubmitting) => {
         try {
-            const result = await createAdminUser(values);
+            let result;
+            if(id) {
+                result = await updateAdminUser(id, values);
+            }
+            else {
+                result = await createAdminUser(values);
+                resetForm();
+            }
             console.log(result)
             if(result) {
-                addToast(<ToastMessage
-                    type="success"
-                    message={result.message} />)
+                pushToastsMessage('success', result.message)
             }
-            resetForm();
         } catch ( error ) {
-            addToast(<ToastMessage
-                type="error"
-                message={error.message} />)
+            pushToastsMessage('error', error.message)            
         } finally {
             setSubmitting(false);
         }
@@ -55,28 +62,69 @@ const AddAdminUser = () => {
 
       (async () => {
         try{
-            const result = await getAllCities();
-            const rolesResult = await getAdminRoles();
-            console.log(result.data, rolesResult)
-            setCities(result.data)
+            const [cityResult, rolesResult] = await Promise.all([
+                getAllCities(),
+                getAdminRoles()
+            ])
+            // const result = await getAllCities();
+            // const rolesResult = await getAdminRoles();
+            console.log(cityResult.data, rolesResult)
+            setCities(cityResult.data)
             setRoles(() => (rolesResult.data));
+
+            if(id) {
+                const result = await getAdminUserById(id)
+                console.log(id, result, "user Id");
+                if(!result) {
+                pushToastsMessage('error', error.message)
+                }
+                setAdminUserDetails((prev) => ({
+                ...prev,
+                ...result.data
+                }))
+            }
         }
         catch(error) {
-          addToast(<ToastMessage
-            type="error"
-            message={error.message} />)
+          pushToastsMessage('error', error.message)
         }
       })();
 
       // return () => {}
     }, [])
 
+    useEffect( () => {
+
+        (async () => { if(id) {
+            try{
+                const result = await getAdminUserById(id)
+                console.log(id, result, "user Id");
+                if(!result) {
+                pushToastsMessage('error', error.message)
+                }
+                setAdminUserDetails((prev) => ({
+                    ...prev,
+                    ...result.data
+                }))
+            } catch(error) {
+                pushToastsMessage('error', error.message)
+
+                setTimeout(() => {
+                navigate(-1)
+                }, 1000)
+            }
+            
+            }})()
+  
+        // return () => {}
+      }, [id])
 
   return (
     <>
         <CCard className="mb-4">
         <CCardHeader className='d-flex'>
-            <strong>Add Admin</strong>
+            <strong>
+                { id ? 'Edit Admin' : 'Add Admin' }
+            </strong>
             <CCol className="d-flex justify-content-end">
                                 
                 <CButton
@@ -87,13 +135,17 @@ const AddAdminUser = () => {
         </CCardHeader>
         <CCardBody>
             <Formik
-                initialValues={initialAdminValues}
-                validationSchema={validationAdminSchema}
+                enableReinitialize
+                initialValues={adminUserDetails}
+                validationSchema={
+                    validationAdminSchema(id)
+                }
                 onSubmit={(values, { setSubmitting, resetForm }) => {
-                        handleSubmit(values, resetForm, setSubmitting);
-                    }}
+                    handleSubmit(values, resetForm, setSubmitting);
+                }}
             >
-                {({ values, handleChange, handleBlur, isSubmitting  }) => (
+                {({ values, errors, setFieldValue, handleChange, handleBlur, isSubmitting  }) => (
+                    console.log(values, errors, "errr"),
                 <Form>
                     {/* <CForm> */}
                     <CRow className="mb-3">
@@ -155,13 +207,14 @@ const AddAdminUser = () => {
                         <CCol sm={10} md={6} lg={4}>
 
                         <Field
-                        name="address"
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter address"
-                        value={values.address}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
+                            name="address"
+                            type="text"
+                            as={CFormTextarea}
+                            className="form-control"
+                            placeholder="Enter address"
+                            value={values.address}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                         <ErrorMessage name="address" component={CFormText} className="text-danger" />
                         </CCol>
@@ -215,41 +268,37 @@ const AddAdminUser = () => {
                         </CCol>
                     </CRow>
 
-                    {/* <CRow className="mb-3">
-                        <CFormLabel htmlFor="status" className="col-sm-2 col-form-label">Status</CFormLabel>
-                        <CCol sm={10} md={6} lg={4}>
-
-                        <Field
-                        name="status"
-                        as="select"
-                        className="form-control"
-                        >
-                        <option value="" label="Select status" />
-                        <option value="active" label="Active" />
-                        <option value="inactive" label="Inactive" />
-                        </Field>
-                        <ErrorMessage name="status" component={CFormText} className="text-danger" />
-                            </CCol>
-                    </CRow> */}
-
                     <CRow className="mb-3">
                         <CFormLabel htmlFor="city" className="col-sm-2 col-form-label">City: </CFormLabel>
                         <CCol sm={10} md={6} lg={4}>
                         <Field
-                            name="city"
+                            name="city_id"
                             as={CFormSelect}
+                            type='select'
+                            value={values.city_id }
                             className="form-control"
+                            onChange={(e) => {
+                                let cityName = e.target.selectedOptions[e.target.selectedIndex]
+                                if(e.target.value === '-1') {
+                                    setFieldValue('city_id' , '')
+                                    setFieldValue('city_name' , '')
+                                    return;
+                                }
+                                setFieldValue('city_id' , e.target.value)
+                                setFieldValue('city_name' , cityName)
+                            }}
                             >
                         <option value="-1" label="Select city" />
                         {
                             cities.length > 0 && 
-                            cities.map((item, index) => (
-                            
-                            <option value={item.id} label={item.city_name} />
+                            cities.map((item, index) => (                            
+                            <option key={item.id} value={item.id} >
+                                {item.city_name}
+                            </option>
                             ))
                         }
                         </Field>
-                        <ErrorMessage name="city" component={CFormText} className="text-danger" />
+                        <ErrorMessage name="city_id" component={CFormText} className="text-danger" />
                             </CCol>
                     </CRow>
 
@@ -260,12 +309,20 @@ const AddAdminUser = () => {
                             name="role_id"
                             as={CFormSelect}
                             className="form-control"
+                            value={values.role_id}
+                            onChange={(e) => {
+                                if(e.target.value === '-1') {
+                                    setFieldValue('role_id' , '')
+                                    return;
+                                }
+                                setFieldValue('role_id' , e.target.value)
+                            }}
                             >
                         <option value="-1" label="Select Role" />
                         {
                             roles.length > 0 && 
                             roles.map((item, index) => (
-                            <option value={item.id} label={item.role_name} />
+                                <option value={item.id} label={item.role_name} />
                             ))
                         }
                         </Field>
@@ -312,7 +369,10 @@ const AddAdminUser = () => {
                         color="primary"
                         className='me-2'
                         disabled={isSubmitting}>
-                        {  isSubmitting ? (  <> <CSpinner size='sm' /> Submit  </> ) : 'Submit' }
+                        {  
+                            isSubmitting ? (  <> <CSpinner size='sm' /> Submit  </> ) : 
+                            id ? 'Update' : 'Submit' 
+                        }
                     </CButton>
                     
                     <CButton 
@@ -326,7 +386,7 @@ const AddAdminUser = () => {
             </Formik>
         </CCardBody>
       </CCard>
-      <CToaster ref={toaster} push={toast} placement="top-end" />
+      <CToaster ref={toaster} push={toasts} placement="top-end" />
     </>
   );
 };

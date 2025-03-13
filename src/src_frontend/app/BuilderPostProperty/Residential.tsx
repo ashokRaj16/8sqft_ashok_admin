@@ -7,15 +7,18 @@ import { FiTrash } from "react-icons/fi";
 import usePropertyIdStore from "@/Store/propertyid";
 type ResidentialComponentProps = {
   options?: string[]; // Dropdown options
+  imageCategory:string
 };
 type gallaryPostImges = {
   property_id: number;
   img_title: string;
+  image_category:string
   images: File;
 };
 const ResidentialComponent: React.FC<ResidentialComponentProps> = ({
-  options,
+  options,imageCategory
 }) => {
+ 
   const [files, setFiles] = useState<any[]>([]);
   const [selectedType, setSelectedType] = useState(""); // Determines the current type based on dropdown selection
   const { id } = usePropertyIdStore();
@@ -41,7 +44,7 @@ const ResidentialComponent: React.FC<ResidentialComponentProps> = ({
       toast.error(error.message || "File upload failed.");
     },
   });
-
+console.log(selectedType,'selectedType')
   // Use hook for deleting files
   const { mutate: deleteFile } = useGallaryPostDeleteDetail({
     onSuccess: (data) => {
@@ -75,6 +78,7 @@ const ResidentialComponent: React.FC<ResidentialComponentProps> = ({
         const payload: gallaryPostImges = {
           property_id: Number(userid), // Replace with the actual property_id
           img_title: selectedType, // Use selectedType as the title
+          image_category:imageCategory,
           images: file, // Add the file itself
           
         };
@@ -104,6 +108,7 @@ const ResidentialComponent: React.FC<ResidentialComponentProps> = ({
 
   return (
     <div id="main" className="p-7 flex flex-col items-center font-sans">
+      
       {/* Dropdown Section */}
       <div
         id="first"

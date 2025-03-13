@@ -32,77 +32,46 @@ import {
 
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilTrash, cilInfo, cilBed } from '@coreui/icons';
-
-
-import axios from 'axios'
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { getPropertyById } from '../../../models/propertyModel'
-import { ToastMessage } from '../../../components/ToastMessage';
-import Loader from '../../../utils/Loader';
 import _ from 'lodash';
-// import { formattedDate } from '../../../utils/date';
-import * as dateFns from 'date-fns';
-import { constant } from '../../../utils/constant';
-import { updateStatusProperty, sendPropertyMails } from '../../../models/propertyModel';
-import { getAdminUserById } from '../../../models/usersModel';
+import { cilTrash, cilInfo, cilBed } from '@coreui/icons';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 
-const mailTypes = [
-  { id: 1, title: 'Porperty Approved' },
-  { id: 2, title: 'Porperty Rejected' },
-  { id: 3, title: 'Porperty Pending' },
-  { id: 4, title: 'Porperty Notification' },
-]
-
-const userStatus = [
-  { id: 1, title: constant.USER_STATUS.ACTIVE },
-  { id: 2, title: constant.USER_STATUS.INACTIVE },
-  { id: 3, title: constant.USER_STATUS.PENDING },
-  { id: 4, title: constant.USER_STATUS.BLOCK },
-  { id: 5, title: constant.USER_STATUS.DISABLED },
-  { id: 6, title: constant.USER_STATUS.SUSPENDED },
-  { id: 7, title: constant.USER_STATUS.REJECTED },
-]
+import Loader from '../../../utils/Loader';
+import { ToastMessage } from '../../../components/ToastMessage';
+import { sendPropertyMails } from '../../../models/propertyModel';
+import { getAdminUserById, updateAdminUser } from '../../../models/usersModel';
+import { userStatus } from './data';
+import { usePushToastHelper } from '../../../utils/toastHelper';
+import { useCallback } from 'react';
 
 const ViewAdminUser = () => {
 
   const { id } = useParams() // Get property ID from the URL
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams();
-  const isEditParam = searchParams.get('isEdit');
 
   const [userDetails, setUserDetails] = useState(null)
   const [mailOption, setMailOptions] = useState(null)
-  const [statusOption, setStatusOption] = useState({ statusText: '', status: '' })
-
-  const [isEdit, setIsEdit] = useState(isEditParam)
+  const [statusOption, setStatusOption] = useState({ status: '' })
   const [loading, setLoading] = useState(false);
-  const [toast, addToast] = useState(0);
 
   const toaster = useRef();
+  const { toasts, pushToastsMessage } = usePushToastHelper()
 
-  console.log(isEdit, id);
 
   const loadAdminUserData = async () => {
     try {
       setLoading(true);
       // const offset = (currentPage);
       const result = await getAdminUserById(id);
-      console.log("UI:", result.data);
+      console.log("UI from users:", result.data);
       setUserDetails(() => result.data)
-      // setStatusOption({ statusText: result.data.status_text, status: result.data.status });
+      setStatusOption({ status: result.data.status });
 
       setLoading(false);
     }
     catch (error) {
       console.log("Error: ", error);
-      const toastContent = (
-        <ToastMessage
-          type="error"
-          message={error.message}
-          onClick="close" />
-      )
-      addToast(toastContent)
+      pushToastsMessage("error",error.message)      
       setLoading(false);
       setTimeout(() => {
         navigate(-1)
@@ -111,6 +80,7 @@ const ViewAdminUser = () => {
   }
 
   useEffect(() => {
+
     loadAdminUserData()
 
     return () => { };
@@ -123,45 +93,27 @@ const ViewAdminUser = () => {
   };
 
   const changeUserStatus = (event) => {
-    // console.log(value, name)
     const { value } = event.target;
-    const selectedText = event.target.options[event.target.selectedIndex];
-    console.log(event.target, selectedText.text)
-    setStatusOption({ statusText: selectedText.text, status: value });
+    setStatusOption(prev => ({ ...prev, status: value }));
   };
 
-  // console.log(userDetails?.status, mailOption, statusOption);
 
-  const handleStatusSubmit = async (e) => {
+  const handleStatusSubmit = useCallback(async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const result = await updateStatusProperty(id, statusOption);
+      const result = await updateAdminUser(id, statusOption);
       console.log("UI:", result);
       if (result) {
-        // loadPropertyData();
-        const toastContent = (
-          <ToastMessage
-            type="success"
-            message={result.data.message}
-            onClick="close" />
-        )
-        addToast(toastContent)
+        pushToastsMessage("success", result.message)
       }
       setLoading(false);
     }
     catch (error) {
-      console.log("Error: ", error);
-      const toastContent = (
-        <ToastMessage
-          type="error"
-          message={error.message}
-          onClick="close" />
-      )
-      addToast(toastContent)
+      pushToastsMessage("error", error.message)
       setLoading(false);
     }
-  }
+  }, [statusOption])
 
   const handleMailSubmit = async (e) => {
     e.preventDefault();
@@ -171,25 +123,12 @@ const ViewAdminUser = () => {
       console.log("UI:", result.data.property);
       if (result) {
         loadPropertyData();
-        const toastContent = (
-          <ToastMessage
-            type="success"
-            message={result.data.message}
-            onClick="close" />
-        )
-        addToast(toastContent)
+        pushToastsMessage("success", result.data.message)
       }
       setLoading(false);
     }
-    catch (error) {
-      console.log("Error: ", error);
-      const toastContent = (
-        <ToastMessage
-          type="error"
-          message={error.message}
-          onClick="close" />
-      )
-      addToast(toastContent)
+    catch (error) {      
+      pushToastsMessage("error", error.message)
       setLoading(false);
     }
   }
@@ -311,14 +250,15 @@ const ViewAdminUser = () => {
                           <strong>Status</strong>
                           <CFormSelect
                             name="propertyStatus"
+                            value={statusOption?.status ?? "-1"}
                             onChange={(e) => changeUserStatus(e)}
                             className="mb-2" >
-                            <option value="-1">Select Status</option>
                             {
                               userStatus.map(item => (
                                 <option
                                   value={item.id}
-                                  selected={userDetails?.status == item.id ? true : ''}
+                                  key={item.id}
+                                  // selected={userDetails?.status == item.id ? true : ''}
                                 >
                                   {item.title}
                                 </option>
@@ -355,7 +295,7 @@ const ViewAdminUser = () => {
           </CCol>
         </CRow>
       
-      <CToaster ref={toaster} push={toast} placement="top-end" />
+      <CToaster ref={toaster} push={toasts} placement="top-end" />
     </>
   )
 }

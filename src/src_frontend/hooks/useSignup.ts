@@ -42,7 +42,7 @@ const useSignupDetail = ({ onSuccess, onError }: UseuseSignupOptions) => {
           "Content-Type": "application/json",
         },
       });
-
+      console.log("response:::",response);
       const token = response.data.data.token;
       if (!token) {
         throw new Error("Token not found in response");
@@ -54,10 +54,11 @@ const useSignupDetail = ({ onSuccess, onError }: UseuseSignupOptions) => {
       const decoded = decodeToken(token);
       
 
-      if (decoded && decoded.id && decoded.email) {
+      if (decoded && decoded.id && (decoded.email || decoded.mobile)) {
         setAuth(
           decoded.id,
-          decoded.email,
+          decoded.email, 
+          decoded.mobile,
           token,
         );
       } else {
