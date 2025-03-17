@@ -10,6 +10,7 @@ export const postImageStart = async (fileName = '', mimetype = '') => {
         if(!fileName) {
             throw new Error('FileName is required.')
         }
+
         const body = { fileName, mimetype }
         const result = await axiosInstance.post(`/admin/gallery/start`, 
             body 
@@ -22,7 +23,9 @@ export const postImageStart = async (fileName = '', mimetype = '') => {
     }
 }
 
+
 const postImageChunk = async (formData = null) => {
+
     try {
         if(!formData) {
             throw new Error('Missing required fields.')
@@ -37,7 +40,6 @@ const postImageChunk = async (formData = null) => {
                 }
             }
         )
-
         return result.data;
     }
     catch (error) {

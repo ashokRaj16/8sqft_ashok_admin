@@ -1,6 +1,5 @@
 
-
-const errorHandler = (error = null) => {
+export const errorHandler = (error = null) => {
 
     if (error.response) {
         const { status, data } = error.response;
@@ -48,5 +47,3 @@ const errorHandler = (error = null) => {
         return `Unexpected Error: ${error.message}`;
     }
 }
-
-export default errorHandler;

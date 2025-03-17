@@ -6,6 +6,7 @@ import {
     CFormCheck,
     CNav,
     CButton, CModal, CModalHeader, CModalBody, CModalFooter, CModalTitle, CTab, CTableHead, CTableBody, CNavItem, CNavLink, CTabContent, CTabPane,
+
     CToaster,
     CSpinner
 } from "@coreui/react"
@@ -15,6 +16,7 @@ import { postImageComplete, postImageStart, uploadChunkWithRetry } from "../../.
 import { ToastMessage } from "../../../components/ToastMessage";
 import { data } from "autoprefixer";
 import { usePushToastHelper } from "../../../utils/toastHelper";
+
 
 const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages = () => {}, acceptedFormat = null }) => {
 
@@ -42,6 +44,7 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
         
 
     // }
+
 
     useEffect(() => {
         if(activeTab === 'gallery') {
@@ -229,6 +232,88 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
     //     }
     // }
 
+    const startImageUpload = async (files) => {
+        console.log(files[0], "filessss");
+        let partNumber = 0;
+        let parts = [];
+        try {
+            const file = files[0].orgFile;
+            const fileName = files[0].name;
+            const response = await postImageStart(fileName)
+            console.log(response, file, "reponsesss start")
+            // ### divide file into chunk and sent with requires
+            const uploadId = response.data.uploadId;
+            const totalSize = file?.size     //calculate total size
+            const chunkSize = 2 * 1024 * 1024;      // 2MB
+            const totalParts = Math.ceil(totalSize / chunkSize);
+
+            for (let start = 0; start < totalSize; start += chunkSize) {
+                partNumber += 1;
+                const chunk = file.slice(start, start + chunkSize);
+    
+                const formData = new FormData();
+                formData.append('fileName', fileName);
+                formData.append('uploadId', uploadId);
+                formData.append('partNumber', partNumber);
+                formData.append('file', chunk);
+    
+                console.log(`Uploading part ${partNumber} of ${totalParts}...`);
+                const result = await postImageChunk(formData);
+                console.log(result, `Response for part ${partNumber}`);
+    
+                if (result?.data) {
+                    parts.push({
+                        ETag: result.data.Etag.replace(/"/g, ""), // Remove extra quotes
+                        partNumber: Number(result.data.PartNumber),
+                    });
+                }
+            }
+            // ### loop to send file 
+            // while( chunkSize > 0) {
+
+            // }
+                // partNumber = partNumber + 1;
+                // // let response = {
+                // //     data : { uploadId: 'xyz'}
+                // // }
+                // const formData = new FormData();
+                // formData.set('fileName', fileName)
+                // formData.set('uploadId', response.data.uploadId)
+                // formData.set('partNumber', partNumber)
+                // formData.set('file', files[0].orgFile)
+                // // fileName, response.data.uploadId, partNumber, files[0].orgFile
+                // const result = await postImageChunk(formData )
+                // console.log(result, "reponsesss chunk")
+                // if(result) {
+                //     parts.push({ 
+                //         ETag: result.data?.Etag || null, 
+                //         partNumber : Number(result.data?.PartNumber) || 1
+                //     })
+                // }
+
+            const resultFinish = await postImageComplete(fileName, response.data.uploadId, parts)
+            console.log(resultFinish, "reponsesss complete")
+
+        }
+        catch(error) {
+            console.log(error, "error uploading...")
+            addToast('error', error.message);
+        }
+    }
+
+    const chunkImageUpload = async (files) => {
+
+        try {
+            const fileName = files[0].name;
+            const result = await postImageStart(fileName)
+            console.log(result, "reponsesss")
+        }
+        catch(error) {
+            console.log(error, "error uploading...")
+            addToast('error', error.message);
+        }
+    }
+
     const handleDelete = (id) => {
         // console.log(gallery, selectedImages)
         setGallery((prev) => prev.filter((file) => file.id !== id));
@@ -332,7 +417,7 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
                             <CRow className="mt-3">
                                 {gallery.length > 0 ? (
                                     gallery.map((file) => (
-                                        
+
                                     <CCol key={file.id} md={4} lg={3} sm={6} xs={6} className="mb-3 text-center">
                                         <div className="position-relative p-3 rounded shadow-sm d-flex flex-column align-items-center justify-content-center" style={{ border: "2px solid #ccc", borderRadius: "10px", maxWidth: "180px", minHeight: "200px", backgroundColor: "#f8f9fa" }}>
                                             { uploadingFiles[file.name]?.isUploading ? '' :

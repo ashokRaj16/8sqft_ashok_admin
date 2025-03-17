@@ -156,7 +156,6 @@ const ViewPropertyDetails = () => {
 
   const [loading, setLoading] = useState(false)
   const [userMemberList, setUserMemberList] = useState([])
-
   const toaster = useRef()
   const [toast, setToasts] = useState(0)
 
@@ -170,7 +169,7 @@ const ViewPropertyDetails = () => {
     // if (toaster.current) {
     //   toaster.current.push(newToast.component);
     // }
-  }
+  };
 
   const changeEditSectionHandler = (editable = true, tabId = activeTab || 1) => {
     console.log(editable, tabId)
@@ -224,6 +223,7 @@ const ViewPropertyDetails = () => {
         property_current_status: values.property_current_status,
         possession_date: values.possession_month
           ? `${values.possession_month ? _.startCase(values.possession_month) : ''}, ${values.possession_year ? values.possession_year : ''} `
+
           : '',
         is_rera_number: values.is_rera_number,
         rera_number: values.rera_number,
@@ -237,13 +237,14 @@ const ViewPropertyDetails = () => {
       console.log('update details:', updatedPropertyData)
 
       const result = await updatePropertyDetails(values.id, updatedPropertyData)
-
+      
       if (result) {
         addToast('success', result.message)
       }
       changeEditSectionHandler(false)
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -276,6 +277,7 @@ const ViewPropertyDetails = () => {
       changeEditSectionHandler(false)
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -301,6 +303,7 @@ const ViewPropertyDetails = () => {
       resetForm()
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -325,6 +328,7 @@ const ViewPropertyDetails = () => {
       resetForm()
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -373,6 +377,7 @@ const ViewPropertyDetails = () => {
       resetForm()
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -402,6 +407,7 @@ const ViewPropertyDetails = () => {
       resetForm()
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -418,6 +424,7 @@ const ViewPropertyDetails = () => {
       loadPropertyData()
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -457,6 +464,7 @@ const ViewPropertyDetails = () => {
       setPreviewImage('')
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -485,6 +493,7 @@ const ViewPropertyDetails = () => {
       resetForm()
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -500,6 +509,7 @@ const ViewPropertyDetails = () => {
       loadPropertyData()
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -534,6 +544,7 @@ const ViewPropertyDetails = () => {
       setPreviewImageGalllery('')
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -578,6 +589,7 @@ const ViewPropertyDetails = () => {
       loadPropertyData()
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -620,6 +632,7 @@ const ViewPropertyDetails = () => {
       })
     } catch (error) {
       addToast('error', error.message)
+
     } finally {
       // setSubmitting(false)
     }
@@ -642,6 +655,7 @@ const ViewPropertyDetails = () => {
           possession_month = possessionDate.split(',')[0].trim().toLowerCase()
           possession_year = possessionDate.split(',')[1].trim()
         }
+
         return {
           ...result.data,
           possession_month,
@@ -759,6 +773,7 @@ const ViewPropertyDetails = () => {
       setLoading(true)
       const result = await updateStatusProperty(id, statusOption)
       if (result) {
+
         addToast('success', result.data.message)
       }
       setLoading(false)
@@ -825,6 +840,7 @@ const ViewPropertyDetails = () => {
         `${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`,
         '_blank',
       )
+
     } else {
       window.open(`${constant.FRONT_BASE_URL}/Builder/${propertyDetails.title_slug}`, '_blank')
     }
@@ -1089,6 +1105,7 @@ const ViewPropertyDetails = () => {
                                 isSubmitting,
                                 resetForm,
                               }) => (
+
                                 <Form>
                                   {/* Property Title */}
                                   <CRow className="align-items-center">
@@ -1172,6 +1189,7 @@ const ViewPropertyDetails = () => {
                                                 onBlur={handleBlur}
                                               />
                                               <p className="fw-bold m-2">Landmark: </p>
+
                                               <Field
                                                 name="landmark"
                                                 type="text"
@@ -1226,6 +1244,7 @@ const ViewPropertyDetails = () => {
                                               <Field
                                                 name="pincode"
                                                 type="text"
+
                                                 className="form-control"
                                                 placeholder="Pincode"
                                                 onChange={handleChange}
@@ -1297,6 +1316,7 @@ const ViewPropertyDetails = () => {
                                                   className="text-danger"
                                                 />
                                               </CCol>
+
                                             </CCol>
 
                                             {/* Longitude Field */}
@@ -1452,6 +1472,7 @@ const ViewPropertyDetails = () => {
                                         <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
                                           <CCol md={3}>
                                             <p className="fw-bold m-2">Land Area: </p>
+
                                           </CCol>
                                           <CCol md={9}>
                                             {isEdit && activeTab == 1 ? (
@@ -1568,6 +1589,7 @@ const ViewPropertyDetails = () => {
                                                 {`${values?.project_area} ${values?.project_area_unit} `}
                                               </p>
                                             )}
+
                                           </CCol>
                                         </CCol>
                                       </CRow>
@@ -1594,6 +1616,7 @@ const ViewPropertyDetails = () => {
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
+
 
                                                   <Field
                                                     name="rent_is_nogotiable"
@@ -1637,6 +1660,7 @@ const ViewPropertyDetails = () => {
                                                   ${values?.rent_is_nogotiable == 0 ? 'Non Negotiable' : 'Negotiable'} `}
                                               </p>
                                             )}
+
                                           </CCol>
                                         </CCol>
                                       </CRow>
@@ -1752,6 +1776,7 @@ const ViewPropertyDetails = () => {
                                             ) : (
                                               <p className="m-2">{values?.door_facing || '-'}</p>
                                             )}
+
                                           </CCol>
                                         </CCol>
                                       </CRow>
@@ -1761,11 +1786,13 @@ const ViewPropertyDetails = () => {
                                     (propertyDetails.user_type ===
                                       constant.PROPERTY_USER_TYPE.BUILDER ||
                                       propertyDetails.user_type ===
+
                                         constant.PROPERTY_USER_TYPE.OWNER) && (
                                       <CRow className="d-flex align-items-center">
                                         <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
                                           <CCol md={3}>
                                             <p className="fw-bold m-2">Property Age: </p>
+
                                           </CCol>
                                           <CCol md={9}>
                                             {isEdit && activeTab == 1 ? (
@@ -1821,6 +1848,7 @@ const ViewPropertyDetails = () => {
                                                       )
                                                     }}
                                                   >
+
                                                     <option value="-1">Select Date</option>
                                                     {availableMonths.map((item, index) => (
                                                       <option
@@ -1854,6 +1882,7 @@ const ViewPropertyDetails = () => {
                                                   >
                                                     <option value="-1">Select Year</option>
                                                     {availableYears.map((item, index) => (
+
                                                       <option key={index} value={item.value}>
                                                         {item.title}
                                                       </option>
@@ -2096,6 +2125,7 @@ const ViewPropertyDetails = () => {
                                                     name="total_units"
                                                     type="text"
                                                     className="form-control"
+
                                                     placeholder="Total Units"
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
@@ -2134,6 +2164,7 @@ const ViewPropertyDetails = () => {
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
+
                                                   <ErrorMessage
                                                     name="total_wing"
                                                     component={CFormText}
@@ -2165,6 +2196,7 @@ const ViewPropertyDetails = () => {
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
+
                                                   <ErrorMessage
                                                     name="wing_name"
                                                     component={CFormText}
@@ -2195,10 +2227,12 @@ const ViewPropertyDetails = () => {
                                                     name="total_floors"
                                                     type="text"
                                                     className="form-control"
+
                                                     placeholder="Total Floors"
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
+
                                                   <ErrorMessage
                                                     name="total_floors"
                                                     component={CFormText}
@@ -2232,6 +2266,7 @@ const ViewPropertyDetails = () => {
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
+
                                                   <ErrorMessage
                                                     name="floor_number"
                                                     component={CFormText}
@@ -2279,6 +2314,7 @@ const ViewPropertyDetails = () => {
                                             </CCol>
                                           </>
                                         )}
+
 
                                       {(values?.balcony || isEdit) &&
                                         propertyDetails.user_type ===
@@ -3102,6 +3138,7 @@ const ViewPropertyDetails = () => {
                                         <CCol md={12}>
                                           <p className="m-2">
                                             {values.other_amenities &&
+
                                               values?.other_amenities
                                                 .split(',')
                                                 .map((item, index) => (
@@ -3116,6 +3153,7 @@ const ViewPropertyDetails = () => {
                                                     {item}
                                                   </CButton>
                                                 ))}
+
                                           </p>
                                         </CCol>
                                       </CRow>
@@ -3240,6 +3278,7 @@ const ViewPropertyDetails = () => {
                                                       {item.title}
                                                     </option>
                                                   ))}
+
                                                 </Field>
                                                 <ErrorMessage
                                                   name="img_title"
@@ -3271,6 +3310,7 @@ const ViewPropertyDetails = () => {
                                                   className="form-control"
                                                   placeholder="Title"
                                                 >
+
                                                   <option value="-1">Select</option>
                                                   {[
                                                     ...new Set(
@@ -3283,6 +3323,7 @@ const ViewPropertyDetails = () => {
                                                       {item}
                                                     </option>
                                                   ))}
+
                                                 </Field>
                                                 <ErrorMessage
                                                   name="image_category"
@@ -3447,6 +3488,7 @@ const ViewPropertyDetails = () => {
                                     )}
                                   </p>
 
+
                                   {propertyDetails.images.map((item, index) => {
                                     return (
                                       <CCol key={index} xs="12" md="4" lg="4">
@@ -3487,6 +3529,7 @@ const ViewPropertyDetails = () => {
                                             </video>
                                           ) : item.file_type === constant.FILE_TYPE.PDF ? (
                                             <iframe
+
                                               src={item.property_img_url}
                                               style={{
                                                 position: 'relative',
@@ -3658,6 +3701,7 @@ const ViewPropertyDetails = () => {
                                       setFieldValue,
                                       errors,
                                     }) => (
+
                                       <Form>
                                         <CRow className="mt-2">
                                           <CCol md={2} className="fw-bold">
@@ -3934,6 +3978,7 @@ const ViewPropertyDetails = () => {
                                                   label="Delete property"
                                                   className="me-2 mb-1"
                                                 >
+
                                                   <FaTrash color="white" />
                                                 </CButton>
                                               </CTooltip>
@@ -4445,6 +4490,7 @@ const ViewPropertyDetails = () => {
                                 </CRow>
                               )}
 
+
                               {propertyDetails.configuration &&
                                 propertyDetails.configuration.length > 0 && (
                                   <>
@@ -4694,7 +4740,9 @@ const ViewPropertyDetails = () => {
                           name="propertyStatus"
                           onChange={(e) => changePropertyStatus(e)}
                           className="mb-2"
+
                           value={statusOption?.status || '-1'}
+
                         >
                           <option value="-1">Select Status</option>
                           {propertyStatus.map((item) => (
@@ -4765,6 +4813,7 @@ const ViewPropertyDetails = () => {
       </CRow>
 
       <CToaster ref={toaster} push={toast} placement="top-end" />
+      
     </>
   )
 }

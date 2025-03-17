@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+
 import { CToast, CToastBody, CToastHeader } from "@coreui/react";
 import { FaBan } from "react-icons/fa";
 import { CiCircleCheck, CiWarning } from "react-icons/ci";
@@ -26,6 +26,7 @@ export const ToastMessage = ({ title, message, type }) => {
         <div 
           className="fw-bold me-auto ms-2" 
           style={{ color: "white" }}>
+
           {title || (type === "success" ? "Success" : "Warning")}
         </div>
 
@@ -41,4 +42,4 @@ export const ToastMessage = ({ title, message, type }) => {
       <CToastBody>{message || "Toast message."}</CToastBody>
     </CToast>
   );
-};
+}

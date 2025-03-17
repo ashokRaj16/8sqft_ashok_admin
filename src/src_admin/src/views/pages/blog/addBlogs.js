@@ -32,9 +32,8 @@ import GalleryModal from '../Component/GalleryModal';
 
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-
-
 import { usePushToastHelper } from '../../../utils/toastHelper'
+
 
 const AddBlog = () => {
   const [category, setCategory] = useState([])
@@ -133,6 +132,7 @@ const AddBlog = () => {
     },
   }
 
+
   // function handleImageInsert() {
   //   const editor = quillRef.current.getEditor();
   //   const range = editor.getSelection();
@@ -208,6 +208,7 @@ const AddBlog = () => {
         setVisible={setIsVisible} 
         selectImageCount={1}
         onSelectImages={setSelectedImages} />
+
       <CCard className="mb-4">
         <CCardHeader>
           <strong>Add Blog</strong>
@@ -227,6 +228,7 @@ const AddBlog = () => {
             >
               {({ setFieldValue, setFieldError, values, errors, handleChange, handleBlur, isSubmitting }) => (
                 console.log(values, errors, "values"),
+
                 <Form>
                   <CRow className="mb-3">
                     <CCol lg={8} md={8} sm={12} className="mb-2">
@@ -314,8 +316,7 @@ const AddBlog = () => {
 
                           {/* upload image seperately and set image url */}
                           <CRow className="mb-3">
-                            <CCol md="12">
-                              
+                            <CCol md="12">                              
                               <CButton 
                                 onClick={ () => setIsVisible(true)}
                                 className='btn btn-info mb-2'
@@ -324,6 +325,7 @@ const AddBlog = () => {
                                 Select Banner
                               </CButton>
                               </CCol>
+
                               {/* Show server uploaded image url. */}
                               <CCol md="12">
                               { 
