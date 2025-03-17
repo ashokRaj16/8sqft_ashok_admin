@@ -4,6 +4,8 @@ import React from 'react'
 const Dashboard = React.lazy(() => import('@page/dashboard/Dashboard'))
 const login = React.lazy(() => import('@page/login/Login'))
 
+const Gallery = React.lazy(() => import('@page/gallery/ImageGallery'))
+
 const ListAmenities = React.lazy(() => import('./views/amenities/ManageAmenities'))
 const AddAmenity = React.lazy(() => import('./views/amenities/AddAmenity'))
 const EditAmenity = React.lazy(() => import('./views/amenities/EditAmenity'))
@@ -53,7 +55,9 @@ const PageNotAuthorize = React.lazy(() => import('@page/page404/PageNotAuthorize
 const routes = [
   { path: '/', exact: true, name: 'login', element: login, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard , allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
+  { path: '/gallery', name: 'Gallery', element: Gallery , allowedRole: ['SUPER ADMIN'] },
   
+
   { path: '/properties/ameneties', name: 'Amennities', element: ListAmenities },
   { path: '/properties/ameneties/add', name: 'Add Amennities', element: AddAmenity },
   { path: '/properties/ameneties/edit/:id', name: 'Edit Amennities', element: EditAmenity },
@@ -83,13 +87,13 @@ const routes = [
 
   { path: '/profile', name: 'Profile', element: Profile, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },
   
-  { path: '/blogs', name: 'Blogs', element: ListBlogs , allowedRole: ['SUPER ADMIN'] },
-  { path: '/blogs/add', name: 'Add Blogs', element: AddBlog, allowedRole: ['SUPER ADMIN'] },
-  { path: '/blogs/view/:id', name: 'View Blogs', element: ViewBlogs, allowedRole: ['SUPER ADMIN'] },
+  { path: '/blogs', name: 'Blogs', element: ListBlogs , allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/blogs/add', name: 'Add Blogs', element: AddBlog, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/blogs/view/:id', name: 'View Blogs', element: ViewBlogs, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
 
   { path: '/category', name: 'Category', element: BlogCategory, allowedRole: ['SUPER ADMIN'] },
 
-  { path: '/contact-us', name: 'Contact', element: ListContactUs, allowedRole: ['SUPER ADMIN'] },
+  { path: '/contact-us', name: 'Contact', element: ListContactUs, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
   // { path: '/contact-us/view/:id', name: 'View Contact', element: ViewContactUs },
 
   { path: '/marketing', name: 'Marketing', element: ListMarketing, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },

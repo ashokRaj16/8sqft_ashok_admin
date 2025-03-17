@@ -1,5 +1,5 @@
 import axios from 'axios';
-import errorHandler from '../utils/errorHandler';
+import {errorHandler} from '../utils/errorHandler';
 
 // const SERVER_BASE_URL = 'https://api.8sqft.com/api/v1';
 const SERVER_BASE_URL = 'https://www.kidzalaya.com/test/kidzalaya_api/';

@@ -198,9 +198,9 @@ export const getPropertyNearbyAllCategory = async (id) => {
 // Config model
 export const createPropertyConfiguration = async (id, data) => {
     try {
-        for (let [key, value] of data.entries()) {
-            console.log(`Key: ${key}, Value:`, value);
-        }
+        // for (let [key, value] of data.entries()) {
+        //     console.log(`Key: ${key}, Value:`, value);
+        // }
         
         const authToken = localStorage.getItem('eightsqfttoken');
         const result = await axios.post(`${constant.SERVER_BASE_URL}/admin/property/${id}/configuration`,

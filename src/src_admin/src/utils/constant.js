@@ -3,6 +3,7 @@ export const constant = {
   X_API_KEY: 'A8SQFT7767',
 
   // base url  
+  // SERVER_BASE_URL: "https://testapi.8sqft.com/api/v1",
   // SERVER_BASE_URL: "https://api.8sqft.com/api/v1",
   SERVER_BASE_URL: 'http://localhost:5000/api/v1',
 
@@ -35,6 +36,13 @@ export const constant = {
     REJECTED: 'REJECTED',
     SUSPENDED: 'SUSPENDED',
     DISABLED: 'DISABLED',
+    DRAFT: 'DRAFT'
+  },
+
+  GENERAL_STATUS: {
+    ACTIVE: 'ACTIVE',
+    INACTIVE: 'INACTIVE',
+    DRAFT: 'DRAFT'
   },
 
   PROPERTY_USER_TYPE: {

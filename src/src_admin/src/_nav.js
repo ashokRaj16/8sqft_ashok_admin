@@ -25,11 +25,13 @@ const _nav = [
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     role : ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE"]
   },
-  // {
-  //   component: CNavItem,
-  //   name: 'Amenities',
-  //   to: '/manage-amenities',
-  // },
+  {
+    component: CNavItem,
+    name: 'Gallery',
+    to: '/gallery',
+    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
+    role : ['SUPER ADMIN']
+  },
   {
     component: CNavGroup,
     name: 'Properties',
@@ -120,7 +122,7 @@ const _nav = [
     name: 'Contact Us',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     to : '/contact-us',
-    role : ['SUPER ADMIN']
+    role : ['SUPER ADMIN', 'SUB ADMIN']
   },
   // {
   //   component: CNavItem,
@@ -140,7 +142,7 @@ const _nav = [
         component: CNavItem,
         name: 'Category',
         to: '/category',
-        role : ['SUPER ADMIN', 'SUB ADMIN']
+        role : ['SUPER ADMIN']
       },
       {
         component: CNavItem,

@@ -70,7 +70,7 @@ export const propertyStatus = [
   { id: 3, title: constant.PROPERTY_STATUS.REJECTED },
   { id: 4, title: constant.PROPERTY_STATUS.DELISTED },
   { id: 5, title: constant.PROPERTY_STATUS.SOLD_OUT },
-  { id: 5, title: constant.PROPERTY_STATUS.RENT_OUT },
+  { id: 6, title: constant.PROPERTY_STATUS.RENT_OUT },
 ]
 
 export const otherAmenties = [

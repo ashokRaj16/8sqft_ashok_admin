@@ -106,7 +106,7 @@ import {
 import { createPropertyImage, createPropertyNearby, deletePropertyImage, deletePropertyNearby, getPropertyNearbyAllCategory, updatePropertyImage, updatePropertyNearby } from '../../../models/propertyModel'
 
 const ViewPropertyDetails = () => {
-  const { id } = useParams() // Get property ID from the URL
+  const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -129,16 +129,25 @@ const ViewPropertyDetails = () => {
   const [previewImage, setPreviewImage] = useState('')
   const [previewImageGallery, setPreviewImageGalllery] = useState('')
   
-
   const [mailOption, setMailOptions] = useState(null)
   const [statusOption, setStatusOption] = useState({ statusText: '', status: '' })
 
   const [loading, setLoading] = useState(false)
-  const [toast, addToast] = useState(0)
-
+  
   const toaster = useRef()
+  const [toast, setToasts] = useState(0)
 
-  // console.log('Params: ', isEdit, id, activeTab, propertyDetails)
+  const addToast = (type, message) => {
+    const newToast = {
+      id: Date.now(),
+      component: <ToastMessage key={Date.now()} type={type} message={message} />,
+    };
+    setToasts((prevToasts) => newToast.component);
+
+    // if (toaster.current) {
+    //   toaster.current.push(newToast.component);
+    // }
+  };
 
   const changeEditSectionHandler = (editable = true, tabId = activeTab || 1) => {
     console.log(editable, tabId)
@@ -190,7 +199,9 @@ const ViewPropertyDetails = () => {
         property_age: values.property_age,
         is_maintenance: values.is_maintenance,
         property_current_status: values.property_current_status,
-        possession_date: `${values.possession_month}, ${ values.possession_year } `,
+        possession_date: values.possession_month ? 
+          `${values.possession_month ? _.startCase(values.possession_month) : ''}, ${ values.possession_year ? values.possession_year : ''} `
+          : '',
         is_rera_number: values.is_rera_number,
         rera_number: values.rera_number,
         total_towers: values.total_towers,
@@ -203,13 +214,14 @@ const ViewPropertyDetails = () => {
       console.log('update details:', updatedPropertyData)
 
       const result = await updatePropertyDetails(values.id, updatedPropertyData)
-
+      
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       changeEditSectionHandler(false)
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -237,11 +249,11 @@ const ViewPropertyDetails = () => {
 
       console.log('Result: ', result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       changeEditSectionHandler(false)
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -261,13 +273,13 @@ const ViewPropertyDetails = () => {
 
       console.log('Result: ', result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       // changeEditSectionHandler(false)
       loadPropertyData()
       resetForm()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -286,12 +298,12 @@ const ViewPropertyDetails = () => {
 
       console.log('Result: ', result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       changeEditSectionHandler(false)
       resetForm()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -303,11 +315,11 @@ const ViewPropertyDetails = () => {
 
       console.log('Result: ', result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       loadPropertyData()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -317,7 +329,7 @@ const ViewPropertyDetails = () => {
   
   const handleCreatePropertyNearbySubmit = async (values, resetForm, setSubmitting) => {
     try {
-      console.log('values: ', values)
+      // console.log('values: ', values)
       const updatedPropertyNearby = {
         location_title: values.location_title,
         location_value: values.location_value,
@@ -333,13 +345,13 @@ const ViewPropertyDetails = () => {
 
       console.log('Result: ', result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       // changeEditSectionHandler(false)
       loadPropertyData()
       resetForm()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -347,7 +359,7 @@ const ViewPropertyDetails = () => {
 
   const handleUpdatePropertyNearbySubmit = async (sid, values, resetForm, setSubmitting) => {
     try {
-      console.log('values: ', values)
+      // console.log('values: ', values)
       const updatedPropertyNearby = {
         location_title: values.location_title,
         location_value: values.location_value,
@@ -363,12 +375,12 @@ const ViewPropertyDetails = () => {
 
       console.log('Result: ', result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       changeEditSectionHandler(false)
       resetForm()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -380,11 +392,11 @@ const ViewPropertyDetails = () => {
 
       console.log('Result: ', result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       loadPropertyData()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -417,13 +429,13 @@ const ViewPropertyDetails = () => {
       const result = await createPropertyConfiguration(propertyDetails.id, formData)
 
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       loadPropertyData()
       resetForm()
       setPreviewImage('')
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -446,12 +458,12 @@ const ViewPropertyDetails = () => {
 
       console.log('Result: ', result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       changeEditSectionHandler(false)
       resetForm()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -462,11 +474,11 @@ const ViewPropertyDetails = () => {
       const result = await deletePropertyConfiguration(propertyDetails.id, sid)
 
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       loadPropertyData()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -494,13 +506,13 @@ const ViewPropertyDetails = () => {
       const result = await createPropertyImage(propertyDetails.id, formData)
 
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       loadPropertyData()
       resetForm()
       setPreviewImageGalllery('')
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -540,11 +552,11 @@ const ViewPropertyDetails = () => {
       const result = await deletePropertyImage(propertyDetails.id, sid)
 
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
       loadPropertyData()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
@@ -561,7 +573,7 @@ const ViewPropertyDetails = () => {
       const result = await updatePropertyImage(propertyDetails.id, sid, data)
 
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        addToast('success', result.message)
       }
 
       setPropertyDetails((prev) => {        
@@ -583,7 +595,7 @@ const ViewPropertyDetails = () => {
       });
       
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
     } finally {
       // setSubmitting(false)
     }
@@ -593,19 +605,19 @@ const ViewPropertyDetails = () => {
     try {
       setLoading(true)
       const result = await getPropertyById(id)
-      console.log(result)
+      // console.log(result)
       setPropertyDetails(() => {
-        const possessionDate = result.data.possession_date;
+        const possessionDate = result.data?.possession_date ? result.data?.possession_date.trim() : null;
     
         let possession_month = null;
         let possession_year = null;
     
-        // Check if the possessionDate is in "Month, Year" format
         if (typeof possessionDate === "string" && /^[A-Za-z]+,\s\d{4}$/.test(possessionDate)) {
-            possession_month = possessionDate.split(',')[0].trim();
-            possession_year = possessionDate.split(',')[1].trim();
+            
+          possession_month = possessionDate.split(',')[0].trim().toLowerCase();
+          possession_year = possessionDate.split(',')[1].trim();
         }
-
+        console.log( possessionDate, possession_month, possession_year, "monthsss" );
         return {
           ...result.data,
           possession_month,
@@ -623,8 +635,8 @@ const ViewPropertyDetails = () => {
       setStatusOption({ statusText: result.data.status_text, status: result.data.status })
       setLoading(false)
     } catch (error) {
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      console.log(error, "errorr")
+        addToast('error', error.message)
       setLoading(false)
       setTimeout(() => {
         navigate(-1)
@@ -645,8 +657,7 @@ const ViewPropertyDetails = () => {
 
       setLoading(false)
     } catch (error) {
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+        addToast('error', error.message)
       setLoading(false)
     }
   }
@@ -657,7 +668,7 @@ const ViewPropertyDetails = () => {
         const result = await getAllCities()
         setCities(result.data)
       } catch (error) {
-        addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
       }
     })()
   }
@@ -668,7 +679,7 @@ const ViewPropertyDetails = () => {
         const result = await getPropertyNearbyAllCategory(propertyDetails.id)
         setNearbyCategory(result.data)
       } catch (error) {
-        addToast(<ToastMessage type="error" message={error.message} />)
+        addToast('error', error.message)
       }
     })()
   }
@@ -709,16 +720,11 @@ const ViewPropertyDetails = () => {
       setLoading(true)
       const result = await updateStatusProperty(id, statusOption)
       if (result) {
-        // loadPropertyData();
-        const toastContent = (
-          <ToastMessage type="success" message={result.data.message} onClick="close" />
-        )
-        addToast(toastContent)
+        addToast('success', result.data.message)        
       }
       setLoading(false)
     } catch (error) {
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      addToast('error', error.message)
       setLoading(false)
     }
   }
@@ -731,40 +737,38 @@ const ViewPropertyDetails = () => {
       console.log('UI:', result.data.property)
       if (result) {
         loadPropertyData()
-        const toastContent = (
-          <ToastMessage type="success" message={result.data.message} onClick="close" />
-        )
-        addToast(toastContent)
+        
+        addToast('success', result.data.message)
       }
       setLoading(false)
     } catch (error) {
       console.log('Error: ', error)
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      addToast('error', error.message)
       setLoading(false)
     }
   }
 
   const handleVisitExternalLink = () => {
     if (_.toUpper(propertyDetails) === constant.PROJECT_ATTR.RENT) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`, '_blank')
     }
     if (_.toUpper(propertyDetails) === constant.PROJECT_ATTR.BUY) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`, '_blank')
     } else {
-      window.open(`${constant.FRONT_BASE_URL}/Builder/${propertyDetails.id}`, '_blank')
+      window.open(`${constant.FRONT_BASE_URL}/Builder/${propertyDetails.title_slug}`, '_blank')
     }
   }
 
   const handleShareProperty = () => {
-    if (_.toUpper(propertyDetails) === constant.PROJECT_ATTR.RENT) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.id}`, '_blank')
-    }
-    if (_.toUpper(propertyDetails) === constant.PROJECT_ATTR.BUY) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.id}`, '_blank')
-    } else {
-      window.open(`${constant.FRONT_BASE_URL}/Builder/${propertyDetails.id}`, '_blank')
-    }
+    addToast('Warning', 'Feature will coming soon')
+    // if (_.toUpper(propertyDetails) === constant.PROJECT_ATTR.RENT) {
+    //   window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`, '_blank')
+    // }
+    // if (_.toUpper(propertyDetails) === constant.PROJECT_ATTR.BUY) {
+    //   window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`, '_blank')
+    // } else {
+    //   window.open(`${constant.FRONT_BASE_URL}/Builder/${propertyDetails.title_slug}`, '_blank')
+    // }
   }
 
   return (
@@ -953,7 +957,6 @@ const ViewPropertyDetails = () => {
                                 isSubmitting,
                                 resetForm,
                               }) => (
-                                console.log(errors),
                                 (
                                   <Form>
                                     {/* Property Title */}
@@ -1001,6 +1004,7 @@ const ViewPropertyDetails = () => {
                                                 name="description"
                                                 as={CFormTextarea}
                                                 rows="5"
+                                                value={ values?.description || ''}
                                                 className="form-control"
                                                 placeholder="Description"
                                                 onChange={handleChange}
@@ -1083,7 +1087,9 @@ const ViewPropertyDetails = () => {
                                                 >
                                                   <option value="-1">Select city</option>
                                                   {cities.map((item) => (
-                                                    <option key={item.id} value={item.id}>
+                                                    <option 
+                                                      key={item.id} 
+                                                      value={item.id} >
                                                       {item.city_name}
                                                     </option>
                                                   ))}
@@ -1243,7 +1249,9 @@ const ViewPropertyDetails = () => {
                                                     >
                                                       <option value={-1}>Select</option>
                                                       {configurationUnit.map((item, index) => (
-                                                        <option value={item.value}>
+                                                        <option 
+                                                          key={index} 
+                                                          value={item.value} >
                                                           {item.title}
                                                         </option>
                                                       ))}
@@ -1347,7 +1355,9 @@ const ViewPropertyDetails = () => {
                                                     >
                                                       <option value={-1}>Select</option>
                                                       {configurationUnit.map((item, index) => (
-                                                        <option value={item.value}>
+                                                        <option 
+                                                          value={item.value}
+                                                          key={index} >
                                                           {item.title}
                                                         </option>
                                                       ))}
@@ -1414,7 +1424,7 @@ const ViewPropertyDetails = () => {
                                                     >
                                                       <option value={-1}>Select</option>
                                                       {projectAreaUnit.map((item, index) => (
-                                                        <option value={item.value}>
+                                                        <option key={index} value={item.value}>
                                                           {item.title}
                                                         </option>
                                                       ))}
@@ -1482,7 +1492,7 @@ const ViewPropertyDetails = () => {
                                                     >
                                                       <option value="-1">Select</option>
                                                       {NegotiableType.map((item, index) => (
-                                                        <option value={item.value}>
+                                                        <option key={index} value={item.value}>
                                                           {item.title}
                                                         </option>
                                                       ))}
@@ -1551,7 +1561,7 @@ const ViewPropertyDetails = () => {
                                                     >
                                                       <option value="-1">Select</option>
                                                       {NegotiableType.map((item, index) => (
-                                                        <option value={item.value}>
+                                                        <option key={index} value={item.value}>
                                                           {item.title}
                                                         </option>
                                                       ))}
@@ -1608,7 +1618,7 @@ const ViewPropertyDetails = () => {
                                                   >
                                                     <option value="-1">Select</option>
                                                     {doorFacingOptions.map((item, index) => (
-                                                      <option value={item.value}>
+                                                      <option key={index} value={item.value}>
                                                         {item.title}
                                                       </option>
                                                     ))}
@@ -1678,6 +1688,7 @@ const ViewPropertyDetails = () => {
                                                     name="possession_month"
                                                     as={CFormSelect}
                                                     className="form-control"
+                                                    value={values.possession_month?.toLowerCase() || '-1' }
                                                     placeholder="Possession month"
                                                     onChange={(e) => {
                                                       setFieldValue(
@@ -1690,7 +1701,8 @@ const ViewPropertyDetails = () => {
                                                   >
                                                     <option value="-1">Select Date</option>
                                                     {availableMonths.map((item, index) => (
-                                                      <option value={item.value}>
+                                                      <option key={index} 
+                                                        value={item.title?.toLowerCase()} >
                                                         {item.title}
                                                       </option>
                                                     ))}
@@ -1718,7 +1730,7 @@ const ViewPropertyDetails = () => {
                                                   >
                                                     <option value="-1">Select Year</option>
                                                     {availableYears.map((item, index) => (
-                                                      <option value={item.value}>
+                                                      <option key={index} value={item.value}>
                                                         {item.title}
                                                       </option>
                                                     ))}
@@ -1732,7 +1744,7 @@ const ViewPropertyDetails = () => {
                                                 </CRow>
                                               ) : (
                                                 <p className="m-2">
-                                                  {values?.possession_date || '-'}
+                                                  { values.possession_date ? `${_.startCase(values?.possession_month)}, ${values.possession_year}` : '-'}
                                                 </p>
                                               )}
                                             </CCol>
@@ -1768,7 +1780,7 @@ const ViewPropertyDetails = () => {
                                                   >
                                                     <option value="-1">Select</option>
                                                     {PreferredTenent.map((item, index) => (
-                                                      <option value={item.value}>
+                                                      <option key={index} value={item.value}>
                                                         {item.title}
                                                       </option>
                                                     ))}
@@ -1818,7 +1830,7 @@ const ViewPropertyDetails = () => {
                                                   >
                                                     <option value="-1">Select</option>
                                                     {isMaintenanceOptions.map((item, index) => (
-                                                      <option value={item.value}>
+                                                      <option key={index} value={item.value}>
                                                         {item.title}
                                                       </option>
                                                     ))}
@@ -1945,6 +1957,46 @@ const ViewPropertyDetails = () => {
                                       </CCol>
                                     </CRow>
 
+                                    <CRow className="d-flex align-items-center">
+                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                        {(values?.total_units || isEdit) &&
+                                          (propertyDetails.user_type ===
+                                            constant.PROPERTY_USER_TYPE.BUILDER ||
+                                            propertyDetails.user_type ===
+                                              constant.PROPERTY_USER_TYPE.OWNER) && (
+                                            <>
+                                              <CCol xs={6} lg={3} md={3}>
+                                                <p className="fw-bold m-2">Total Units: </p>
+                                              </CCol>
+                                              <CCol xs={6} lg={3} md={3}>
+                                                {isEdit && activeTab == 1 ? (
+                                                  <>
+                                                    <Field
+                                                      name="total_units"
+                                                      type="text"
+                                                      className="form-control"
+                                                      placeholder="Total Units"
+                                                      onChange={handleChange}
+                                                      onBlur={handleBlur}
+                                                    />
+                                                    <ErrorMessage
+                                                      name="total_units"
+                                                      component={CFormText}
+                                                      className="text-danger"
+                                                    />
+                                                  </>
+                                                ) : (
+                                                  <p className="m-2">
+                                                    {values?.total_units || '-'}
+                                                  </p>
+                                                )}
+                                              </CCol>
+                                            </>
+                                          )}
+
+                                       
+                                      </CCol>
+                                    </CRow>
                                     <CRow className="d-flex align-items-center">
                                       <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
                                         {(values?.total_wing || isEdit) &&
@@ -2938,8 +2990,9 @@ const ViewPropertyDetails = () => {
                                         <CCol md={12}>
                                           <p className="m-2">
                                             {values.other_amenities &&
-                                              values?.other_amenities.split(',').map((item) => (
+                                              values?.other_amenities.split(',').map((item, index) => (
                                                 <CButton
+                                                  key={index}
                                                   disabled
                                                   className="rounded-pill m-1"
                                                   color="success"
@@ -3071,7 +3124,11 @@ const ViewPropertyDetails = () => {
                                                   <option value="-1" >Select</option>
                                                   {
                                                     ImageOptions.map((item, index) => (
-                                                      <option value={item.title} >{item.title}</option>
+                                                      <option 
+                                                        key={item.id}
+                                                        value={item.title} >
+                                                          {item.title}
+                                                      </option>
                                                     ))
                                                   }
                                                 </Field>
@@ -3107,8 +3164,12 @@ const ViewPropertyDetails = () => {
                                                 >
                                                   <option value="-1" >Select</option>
                                                   {                                                    
-                                                    [ ...new Set(ImageOptions.map(item => item.category))].map((item, index) => (
-                                                      <option value={item} >{item}</option>
+                                                    [ ...new Set(ImageOptions.map((item, index) => item.category))].map((item, index) => (
+                                                      <option 
+                                                        key={index}
+                                                        value={item} >
+                                                          {item}
+                                                      </option>
                                                     ))
                                                   }
                                                 </Field>
@@ -3263,7 +3324,11 @@ const ViewPropertyDetails = () => {
                               
                                 {propertyDetails.images.map((item, index) => {
                                   return (
-                                    <CCol xs="12" md="4" lg="4">
+                                    <CCol 
+                                      key={index}
+                                      xs="12" 
+                                      md="4" 
+                                      lg="4">
                                       
                                       <CCard className="mb-2">
                                         {/* Image Section */}
@@ -3470,7 +3535,6 @@ const ViewPropertyDetails = () => {
                                       setFieldValue,
                                       errors,
                                     }) => (
-                                      console.log('config errors:', errors),
                                       (
                                         <Form>
                                           <CRow className="mt-2">
@@ -3536,9 +3600,11 @@ const ViewPropertyDetails = () => {
                                                   onBlur={handleBlur}
                                                 >
                                                   <option value="-1"> Select </option>
-                                                  {nearbyCategory.map((item) => {
+                                                  {nearbyCategory.map((item, index) => {
                                                     return (
-                                                      <option value={item.id} >
+                                                      <option 
+                                                        key={index}
+                                                        value={item.id} >
                                                         {item.locations_name}
                                                       </option>
                                                     )
@@ -3889,7 +3955,7 @@ const ViewPropertyDetails = () => {
                                 </CRow>
                               )}
 
-                              {propertyDetails.faq && propertyDetails.faq.length > 0 && (
+                              { propertyDetails.faq && propertyDetails.faq.length > 0 && (
                                 <>
                                   {(!isEdit || activeTab !== 5) && (
                                     <p className="m-2 text-end">
@@ -3907,7 +3973,7 @@ const ViewPropertyDetails = () => {
                                   {propertyDetails?.faq &&
                                     propertyDetails?.faq.map((item, index) => {
                                       return (
-                                        <>
+                                        <div key={index} >
                                           <CRow className="mt-2">
                                             <CCol md={2} className="fw-bold">
                                               QN.
@@ -3940,7 +4006,7 @@ const ViewPropertyDetails = () => {
                                               {item.faq_answer || '-'}
                                             </CCol>
                                           </CRow>
-                                        </>
+                                        </div>
                                       )
                                     })}
                                 </>
@@ -4505,16 +4571,19 @@ const ViewPropertyDetails = () => {
                           <hr /> */}
                         {/* Property Status */}
                         <strong>Status</strong>
+                        
                         <CFormSelect
                           name="propertyStatus"
                           onChange={(e) => changePropertyStatus(e)}
                           className="mb-2"
+                          value={propertyDetails?.status || '-1'}
                         >
                           <option value="-1">Select Status</option>
                           {propertyStatus.map((item) => (
                             <option
+                              key={item.id}
                               value={item.id}
-                              selected={propertyDetails?.status == item.id ? true : ''}
+                              // selected={propertyDetails?.status == item.id ? true : ''}
                             >
                               {item.title}
                             </option>
@@ -4578,6 +4647,7 @@ const ViewPropertyDetails = () => {
       </CRow>
 
       <CToaster ref={toaster} push={toast} placement="top-end" />
+      
     </>
   )
 }

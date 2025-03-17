@@ -1,28 +1,44 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import {
     CRow,
     CImage,
     CCol,
-    CForm,
-    CFormInput,
-    CFormLabel,
     CFormCheck,
     CNav,
-    CButton, CModal, CModalHeader, CModalBody, CModalFooter, CModalTitle, CTab, CTableHead, CTableBody, CNavItem, CNavLink, CTabContent, CTabPane
+    CButton, CModal, CModalHeader, CModalBody, CModalFooter, CModalTitle, CTab, CTableHead, CTableBody, CNavItem, CNavLink, CTabContent, CTabPane,
+    CToaster
 } from "@coreui/react"
 import { useDropzone } from "react-dropzone";
-// import { FaFilePdf, FaFileExcel, FaTrash } from "react-icons/fa6";
 import { FaFilePdf, FaFileExcel, FaFileVideo, FaTrashAlt } from "react-icons/fa";
+import { postImageChunk, postImageComplete, postImageStart } from "../../../models/galleryModel";
+import { ToastMessage } from "../../../components/ToastMessage";
+import { data } from "autoprefixer";
 
-const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages = () => {} }) => {
+const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages = () => {}, acceptedFormat = null }) => {
 
     const [activeTab, setActiveTab] = useState('upload');
-    const [selectedFile, setSelectedFile] = useState();
+    // const [selectedFile, setSelectedFile] = useState();
     const [gallery, setGallery] = useState([]);
     const [selectedImages, setSelectedImages] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [page, setPage] = useState(1)
     const [loading, setLoading] = useState(false);
+    
+    const toaster = useRef()
+    const [toasts, setToasts] = useState(0)
+
+    const addToast = (type, message) => {
+
+        const newToast = {
+            id: Date.now(),
+            component : <ToastMessage key={Date.now()} type={type} message={message} />,
+        } 
+        setToasts((prevToast) => newToast.component );
+
+        // if(toaster.current) {
+        //     toaster.current.push(newToast.component)
+        // }
+    }
 
     useEffect(() => {
         if(activeTab === 'gallery') {
@@ -52,10 +68,11 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
         const fileObjects = acceptedFiles.map((file, index) => ({
             id: Date.now() + index, // Unique ID for deletion
             url: URL.createObjectURL(file),
+            orgFile : file,
             type: file.type,
             name: file.name,
         }));
-
+        startImageUpload(fileObjects);
         setGallery((prev) => [...prev, ...fileObjects]);
         setActiveTab('gallery')
         // setUploading(false)
@@ -93,8 +110,90 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
     // }, []);
 
 
+    const startImageUpload = async (files) => {
+        console.log(files[0], "filessss");
+        let partNumber = 0;
+        let parts = [];
+        try {
+            const file = files[0].orgFile;
+            const fileName = files[0].name;
+            const response = await postImageStart(fileName)
+            console.log(response, file, "reponsesss start")
+            // ### divide file into chunk and sent with requires
+            const uploadId = response.data.uploadId;
+            const totalSize = file?.size     //calculate total size
+            const chunkSize = 2 * 1024 * 1024;      // 2MB
+            const totalParts = Math.ceil(totalSize / chunkSize);
+
+            for (let start = 0; start < totalSize; start += chunkSize) {
+                partNumber += 1;
+                const chunk = file.slice(start, start + chunkSize);
+    
+                const formData = new FormData();
+                formData.append('fileName', fileName);
+                formData.append('uploadId', uploadId);
+                formData.append('partNumber', partNumber);
+                formData.append('file', chunk);
+    
+                console.log(`Uploading part ${partNumber} of ${totalParts}...`);
+                const result = await postImageChunk(formData);
+                console.log(result, `Response for part ${partNumber}`);
+    
+                if (result?.data) {
+                    parts.push({
+                        ETag: result.data.Etag.replace(/"/g, ""), // Remove extra quotes
+                        partNumber: Number(result.data.PartNumber),
+                    });
+                }
+            }
+            // ### loop to send file 
+            // while( chunkSize > 0) {
+
+            // }
+                // partNumber = partNumber + 1;
+                // // let response = {
+                // //     data : { uploadId: 'xyz'}
+                // // }
+                // const formData = new FormData();
+                // formData.set('fileName', fileName)
+                // formData.set('uploadId', response.data.uploadId)
+                // formData.set('partNumber', partNumber)
+                // formData.set('file', files[0].orgFile)
+                // // fileName, response.data.uploadId, partNumber, files[0].orgFile
+                // const result = await postImageChunk(formData )
+                // console.log(result, "reponsesss chunk")
+                // if(result) {
+                //     parts.push({ 
+                //         ETag: result.data?.Etag || null, 
+                //         partNumber : Number(result.data?.PartNumber) || 1
+                //     })
+                // }
+
+            const resultFinish = await postImageComplete(fileName, response.data.uploadId, parts)
+            console.log(resultFinish, "reponsesss complete")
+
+        }
+        catch(error) {
+            console.log(error, "error uploading...")
+            addToast('error', error.message);
+        }
+    }
+
+    const chunkImageUpload = async (files) => {
+
+        try {
+            const fileName = files[0].name;
+            const result = await postImageStart(fileName)
+            console.log(result, "reponsesss")
+        }
+        catch(error) {
+            console.log(error, "error uploading...")
+            addToast('error', error.message);
+        }
+    }
+
     const handleDelete = (id) => {
-        console.log(gallery, selectedImages)
+        // console.log(gallery, selectedImages)
         setGallery((prev) => prev.filter((file) => file.id !== id));
         setSelectedImages((prev) => prev.filter((file) => file.id !== id));
     };
@@ -123,7 +222,6 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
 
     return (
         <>
-
             <CModal visible={visible} onClose={() => setVisible(false)} size="lg">
                 <CModalHeader>
                     <CModalTitle>File Uploader</CModalTitle>
@@ -197,6 +295,7 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
                             <CRow className="mt-3">
                                 {gallery.length > 0 ? (
                                     gallery.map((file) => (
+                                        //#region 
                                         //                                     <CCol key={file.id} md={4} className="mb-3 text-center">
                                         //                                         <div className="position-relative">
                                         //                                             {file.type.startsWith("image/") ? (
@@ -299,7 +398,7 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
                                         //         />
                                         //     </div>
                                         // </CCol>
-
+//#endregion
                                         <CCol key={file.id} md={4} lg={3} sm={6} xs={6} className="mb-3 text-center">
                                         <div className="position-relative p-3 rounded shadow-sm d-flex flex-column align-items-center justify-content-center" style={{ border: "2px solid #ccc", borderRadius: "10px", maxWidth: "180px", minHeight: "200px", backgroundColor: "#f8f9fa" }}>
                                             <CFormCheck className="position-absolute" style={{ position: "absolute", top: "5px", left: "5px", zIndex: 1 }} checked={
@@ -357,6 +456,7 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
                     >Select</CButton>
                 </CModalFooter>
             </CModal>
+            <CToaster ref={toaster} push={toasts} placement="top-end" />
         </>
     )
 }
