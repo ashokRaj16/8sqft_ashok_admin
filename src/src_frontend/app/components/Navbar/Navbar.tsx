@@ -1,6 +1,6 @@
 'use client';
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 import { RiMenuLine } from "react-icons/ri";
@@ -15,6 +15,7 @@ import { Button } from "@/ui/Button";
 import {
   Menubar,
   MenubarContent,
+  MenubarItem,
   MenubarMenu,
   MenubarTrigger,
 } from "@/ui/menu";
@@ -34,6 +35,9 @@ import SheetMenu from "@/Compound-component/sheet-menu";
 import useDialogStore from "@/Store/useDialogStore ";
 import {usejwtAuthStore}  from "@/Store/jwtTokenDecodeAllStore"
 import { jwtTokenDecodeAll } from "@/lib/jwtTokenDecodeAll";
+import { useRouter } from "next/navigation";
+import axios from "@/hooks/index";
+import useGetProfileDetails from "@/hooks/useGetProfileDetails";
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
@@ -41,7 +45,7 @@ function classNames(...classes: string[]) {
 // Extract Zustand selector functions outside the component
 
 const Navbar = () => {
-  
+   const router = useRouter();
   const { isDialogOpen, openDialog, closeDialog } = useDialogStore()
 
   // Use the extracted selector
@@ -50,23 +54,42 @@ const Navbar = () => {
   const email = useAuthStore((state) => state.email);
   const token = useAuthStore((state) => state.token);
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const { clearProfile  } = useGetProfileDetails();
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const location = useStore((state) => state.location);
   const value = token ? jwtTokenDecodeAll(token) : null;
   const name = value?.first_name 
+console.log(value,'valuevalue')
   const handleLogout = () => {
+    clearProfile();
     clearAuth();
     localStorage.removeItem("authToken");
+    router.push("/");
     console.log("User logged out successfully.");
   };
 
+
+  const { profile, loading, error, fetchProfile } = useGetProfileDetails();
+
+// console.log(profile,'profileprofile')
+  useEffect(() => {
+    if (token) {
+      fetchProfile(token);
+    }
+  }, [token, fetchProfile]);
+
+
+  
+
   return (
     <>
-      <div className=" w-full px-3 sm:px-5 py-3 h-18 shadow-md fixed z-50 bg-white">
-        <div className="flex justify-between">
+      <div className=" w-full px-3 sm:px-5 py-3 h-18 shadow-md fixed z-50 bg-[#222222]">
+        <div className="flex items-center justify-between">
           <div className="flex gap-1 sm:gap-3 lg:w-[40%]">
             <Link href="/">
               <Image
-                src={"/assets/logo/ForWebSite-01.svg"}
+                src={"/assets/logo/ForWebSiteWhite.svg"}
                 alt="SQFT"
                 width={130}
                 height={100}
@@ -81,66 +104,58 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div className=" flex gap-4 self-center ">
-            {/* <div className="flex space-x-1">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={classNames(
-                    item.current
-                      ? "text-black hover:opacity-100"
-                      : "hover:text-black hover:opacity-100",
-                    "px-3 py-4 text-md font-normal opacity-75"
-                  )}
-                  aria-current={item.href ? "page" : undefined}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div> */}
-            {/* {token ? ( */}
+          <div className="flex gap-4 self-center ">
+            
             <Link href="/Post-Property">
               <Button
                 variant="outline"
-                className="hidden text-primary text-sm font-thin rounded-md self-center p-2 border-primary lg:flex"
+                className="hidden bg-[#fff] text-primary text-sm font-thick rounded-md self-center p-2 lg:flex"
               >
                 Post Your Property
               </Button>
             </Link>
-           
-            <div className=" sm:flex  self-center">
+                      
+            <div className="sm:flex self-center border-none">
               {token ? (
                 <UserCard
                   name={name || "User"}
                   onLogout={handleLogout}
                 />
               ) : (
-                <Menubar className="flex self-center py-2 px-1">
+                <Menubar className="flex self-center px-1 border-none">
                   <MenubarMenu>
-                    <MenubarTrigger>
-                      <FaUser />
+                    <MenubarTrigger 
+                      className="border-2 rounded-full p-2 border-white"
+                      onClick={() => {
+                        openDialog();                                                 
+                      }}>
+                      <FaUser className="text-white  " />
                     </MenubarTrigger>
-                    <MenubarContent>
+                    {/* <MenubarContent >
+                    <MenubarItem>
                       <div className=" sm:max-w-[350px] sm:block bg-white border-none p-4 relative">
                         <p className="font-bold mb-5">LOGIN/REGISTER</p>
 
                         <div className="flex gap-5 justify-center items-center">
                           <Button
                             variant="outline"
-                            onClick={() => openDialog()}
+                            onClick={() => {
+                              openDialog();
+                                                       
+                            }}
                           >
                             LOGIN
                           </Button>
                         </div>
                       </div>
-                    </MenubarContent>
+                    </MenubarItem>
+                    </MenubarContent> */}
                   </MenubarMenu>
                 </Menubar>
               )}
             </div>
-            <div className="relative mr-7">
-              <div className="absolute right-0 left-1 ">
+            <div className="relative mr-4 ">
+              <div className="">
                 <SheetMenu />
               </div>
             </div>
@@ -151,7 +166,7 @@ const Navbar = () => {
           <div className="absolute top-0 left-0 w-screen h-screen">
             <div className="flex justify-center items-center h-full rounded-md p-4">
               <div className="z-50 max-w-[450px] flex w-full absolute top-10 bg-white rounded-md p-8 h-fit">
-                <MultiStepForm />
+                <MultiStepForm closeDialog={closeDialog}/>
 
                 <MdOutlineClose
                   className="absolute top-2 right-2"

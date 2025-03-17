@@ -38,8 +38,10 @@ export const getAllMemberCountAdmin = async ( whereClause = null ) => {
 export const getMemberUsersById = async (id) => {
   
   try {
-    const [rows] = await pool.execute('SELECT * FROM tbl_users where id = ?', [id]);
-    console.log(rows)
+    const query = `SELECT * FROM tbl_users where id = ? AND is_deleted = '0'`
+    
+    const [rows] = await pool.execute(query, [id]);
+    // console.log(rows)
     return rows;
 
   } catch (error) {
@@ -75,6 +77,35 @@ export const updateUser = async (id, userData) => {
       [fname, lname, email, mobile, phone, id]
     );
     return { id, ...userData };
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw new Error('Unable to update user.');
+  }
+};
+
+export const updateMemberAdmin = async (id, userData) => {
+  try {
+    console.log("models",userData);
+    
+    let queryField = [];
+    let queryParams = [];
+
+    for (const [key, value] of Object.entries(userData)) {
+      if (value !== undefined && value !== null) {
+        queryField.push(`${key} = ?`);
+        queryParams.push(value);
+      } 
+    }
+    queryParams.push(id);
+
+    const query = `
+            UPDATE tbl_users 
+            SET 
+            ${queryField.join(', ') }
+            WHERE id = ?`;
+
+    const [result] = await pool.execute(query, queryParams);
+    return { affectedRows: result.affectedRows, ...userData };
   } catch (error) {
     console.error('Error updating user:', error);
     throw new Error('Unable to update user.');

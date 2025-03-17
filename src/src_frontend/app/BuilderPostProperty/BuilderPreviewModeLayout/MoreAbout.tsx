@@ -3,8 +3,11 @@
 import React, { useState } from "react";
 interface Description {
   description?: string | undefined;
+  locality?: string | undefined;
+  city_name: string | null | undefined;
+  property_title: string | null | undefined;
 }
-const MoreAbout = ({ description }: Description) => {
+const MoreAbout = ({ description, locality, city_name,property_title }: Description) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpand = () => {
@@ -15,20 +18,21 @@ const MoreAbout = ({ description }: Description) => {
 
   return (
     <div className="p-4 bg-gray-100 rounded-lg shadow-md">
-      <h2 className="font-semibold text-black text-base leading-[26px]">
-        More about Dehu, Pimpri chinchwad Overview
-      </h2>
-      <p className="text-sm text-[#7A7A7A]">
-        
-        {isExpanded ? description : `${previewText}...`}
-      </p>
-      <button
-        onClick={toggleExpand}
-        className="mt-2 text-primary text-sm font-medium hover:underline"
-      >
-        {isExpanded ? "Show Less" : "Show More About Project"}
-      </button>
-    </div>
+    <h2 className="font-semibold text-black text-base leading-[26px]">
+    More about {property_title || "N/A"}, {city_name}
+    </h2>
+    <p className="text-sm text-[#7A7A7A]">
+      {isExpanded ? description : `${previewText}...`}
+    </p>
+ <div className="flex justify-center">
+ <button
+      onClick={toggleExpand}
+        className="mt-4 text-[#FC6600] text-sm  hover:underline block text-center"
+    >
+      {isExpanded ? "Show Less" : "Show More About Project"}
+    </button>
+ </div>
+  </div>
   );
 };
 

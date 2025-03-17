@@ -48,11 +48,32 @@ import { useDebounce } from '../../../hooks/useDebounce'
 import Loader from '../../../utils/Loader'
 import { formattedDate } from '../../../utils/date'
 
-const getStatusBadge = (status) => {
+const getVerificationBadge = (status) => {
   switch (status) {
     case 'verified':
       return 'success'
     case 'Inverified':
+      return 'secondary'
+    default:
+      return 'primary'
+  }
+}
+
+const getStatusBadge = (status) => {
+  switch (status) {
+    case 'inactive':
+      return 'secondary'
+    case 'active':
+      return 'success'
+    case 'pending':
+        return 'secondary'
+    case 'blocked':
+      return 'secondary'
+    case 'disabled':
+      return 'secondary'
+    case 'suspended':
+      return 'secondary'
+    case 'rejected':
       return 'secondary'
     default:
       return 'primary'
@@ -248,9 +269,14 @@ const ListMemberUser = () => {
     }
   }
 
-  const handleEditAction = (id) => {
+  const handleViewAction = (id) => {
     console.log(id)
     navigate(`/member/view/${id}`)
+  }
+
+  const handleEditAction = (id) => {
+    console.log(id)
+    navigate(`/member/edit/${id}`)
   }
 
   useEffect(() => {
@@ -378,6 +404,9 @@ const ListMemberUser = () => {
                 <CTableHeaderCell onClick={() => requestSort('is_verified')}>
                   Verified {getSortIcon('is_verified')}
                 </CTableHeaderCell>
+                <CTableHeaderCell>
+                  Status
+                </CTableHeaderCell>
                 <CTableHeaderCell>Created Date</CTableHeaderCell>
                 <CTableHeaderCell>Action</CTableHeaderCell>
               </CTableRow>
@@ -398,10 +427,28 @@ const ListMemberUser = () => {
                   <CTableDataCell>{member.mobile}</CTableDataCell>
                   <CTableDataCell>
                     {member.is_verified === '1' ? (
-                      <CBadge color={getStatusBadge('verified')}>Yes</CBadge>
+                      <CBadge color={getVerificationBadge('verified')}>Yes</CBadge>
                     ) : (
-                      <CBadge color={getStatusBadge('Inverified')}>No</CBadge>
+                      <CBadge color={getVerificationBadge('Inverified')}>No</CBadge>
                     )}
+                  </CTableDataCell>
+                  <CTableDataCell>
+                    { member.status === '0' ? (
+                      <CBadge color={getStatusBadge('inactive')}>Inactive</CBadge>
+                    ) : member.status === '1' ? (
+                      <CBadge color={getStatusBadge('active')}>Active</CBadge>
+                    ) : member.status === '2' ? (
+                      <CBadge color={getStatusBadge('pending')}>Pending</CBadge>
+                    ) : member.status === '3' ? (
+                      <CBadge color={getStatusBadge('blocked')}>Blocked</CBadge>
+                    ) : member.status === '4' ? (
+                      <CBadge color={getStatusBadge('disabled')}>Disabled</CBadge>
+                    ) : member.status === '5' ? (
+                      <CBadge color={getStatusBadge('suspended')}>Suspended</CBadge>
+                    ) : (
+                      <CBadge color={getStatusBadge('rejected')}>Rejected</CBadge>
+                    )
+                  }
                   </CTableDataCell>
                   <CTableDataCell>{formattedDate(member?.created_at) || '-'}</CTableDataCell>
                   {/* <CTableDataCell>
@@ -413,12 +460,16 @@ const ListMemberUser = () => {
                     <CButton
                       size="sm"
                       color="primary"
-                      onClick={() => handleEditAction(member.id)}
+                      onClick={() => handleViewAction(member.id)}
                       className="me-2 mb-1"
                     >
                       <FaEye />
                     </CButton>
-                    <CButton size="sm" color="primary" className="me-2 mb-1">
+                    <CButton 
+                      size="sm" 
+                      color="primary" 
+                      onClick={() => handleEditAction(member.id)}
+                      className="me-2 mb-1">
                       <FaEdit />
                     </CButton>
                     <CButton

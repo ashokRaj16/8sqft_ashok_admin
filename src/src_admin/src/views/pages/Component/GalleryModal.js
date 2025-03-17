@@ -6,13 +6,17 @@ import {
     CFormCheck,
     CNav,
     CButton, CModal, CModalHeader, CModalBody, CModalFooter, CModalTitle, CTab, CTableHead, CTableBody, CNavItem, CNavLink, CTabContent, CTabPane,
-    CToaster
+
+    CToaster,
+    CSpinner
 } from "@coreui/react"
 import { useDropzone } from "react-dropzone";
 import { FaFilePdf, FaFileExcel, FaFileVideo, FaTrashAlt } from "react-icons/fa";
-import { postImageChunk, postImageComplete, postImageStart } from "../../../models/galleryModel";
+import { postImageComplete, postImageStart, uploadChunkWithRetry } from "../../../models/galleryModel";
 import { ToastMessage } from "../../../components/ToastMessage";
 import { data } from "autoprefixer";
+import { usePushToastHelper } from "../../../utils/toastHelper";
+
 
 const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages = () => {}, acceptedFormat = null }) => {
 
@@ -21,24 +25,26 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
     const [gallery, setGallery] = useState([]);
     const [selectedImages, setSelectedImages] = useState([]);
     const [uploading, setUploading] = useState(false);
+    const [uploadingFiles, setUploadingFiles] = useState({});
+
     const [page, setPage] = useState(1)
     const [loading, setLoading] = useState(false);
     
     const toaster = useRef()
-    const [toasts, setToasts] = useState(0)
+    // const [toasts, setToasts] = useState(0)
+    const { toasts, pushToastsMessage } = usePushToastHelper();
 
-    const addToast = (type, message) => {
+    // const addToast = (type, message) => {
 
-        const newToast = {
-            id: Date.now(),
-            component : <ToastMessage key={Date.now()} type={type} message={message} />,
-        } 
-        setToasts((prevToast) => newToast.component );
+    //     const newToast = {
+    //         id: Date.now(),
+    //         component : <ToastMessage key={Date.now()} type={type} message={message} />,
+    //     } 
+    //     setToasts((prevToast) => newToast.component );
+        
 
-        // if(toaster.current) {
-        //     toaster.current.push(newToast.component)
-        // }
-    }
+    // }
+
 
     useEffect(() => {
         if(activeTab === 'gallery') {
@@ -75,40 +81,156 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
         startImageUpload(fileObjects);
         setGallery((prev) => [...prev, ...fileObjects]);
         setActiveTab('gallery')
-        // setUploading(false)
+        setUploading(false)
     }, []);
 
-    {/* upload to server*/} 
-    // const onDrop = useCallback(async (acceptedFiles) => {
-    //     setUploading(true);
-    //     const uploadedFiles = await Promise.all(
-    //         acceptedFiles.map(async (file, index) => {
-    //             const formData = new FormData();
-    //             formData.append("file", file);
-
-    //             try {
-    //                 const response = await fetch("/api/upload", {
-    //                     method: "POST",
-    //                     body: formData,
-    //                 });
-    //                 const data = await response.json();
-    //                 return {
-    //                     id: data.id || Date.now() + index,
-    //                     url: data.url || URL.createObjectURL(file),
-    //                     type: file.type,
-    //                     name: file.name,
-    //                 };
-    //             } catch (error) {
-    //                 console.error("Upload failed:", error);
-    //                 return null;
-    //             }
-    //         })
-    //     );
+    const startImageUpload = async (files) => {
+        console.log(files, "filessss");
         
-    //     setGallery((prev) => [...prev, ...uploadedFiles.filter((file) => file !== null)]);
-    //     setUploading(false);
-    // }, []);
+            for(let fileObj of files) {
+            try {
+                const file = fileObj.orgFile;
+                const fileName = fileObj.name;
+                const mimetype = file.type;     // ### check
+                setUploadingFiles((prev) => ({
+                    ...prev, 
+                    [fileName]: { fileName, isUploading: true }
+                }));
 
+                if (!file) {
+                    console.error("No valid file found!");
+                    // addToast("error", "No valid file selected.");
+                    pushToastsMessage("error", "No valid file selected.")
+                    return;
+                }
+                
+                
+                const totalSize = file?.size;
+                const chunkSize = 5 * 1024 * 1024;
+                const totalParts = Math.ceil(totalSize / chunkSize);
+                
+                // Upload whole file
+                if (totalSize < chunkSize) {
+                    console.log("File is smaller than chunk size, sending as a single request.");
+                    
+                    const formData = new FormData();
+                    formData.append("fileName", fileName);
+                    formData.append("file", file);
+        
+                    const result = await uploadChunkWithRetry(formData);
+                    console.log(result, "Response for single-part upload");
+                    // setUploading(false);
+                    
+                    setGallery((prev) =>
+                        prev.map((oldFile) =>
+                            oldFile.id === fileObj.id
+                            ? { 
+                                ...oldFile, 
+                                url: result?.data?.Location,
+                                size: totalSize, 
+                                type: mimetype, 
+                                name: fileName 
+                              }
+                            : oldFile
+                        )
+                      );
+                      
+                    setUploadingFiles((prev) => {
+                        const updated = { ...prev };
+                        delete updated[fileName];
+                        return updated;
+                    });
+                    return; 
+                }
+
+                // Upload chunk file.
+                const response = await postImageStart(fileName, mimetype)
+                const uploadId = response.data.uploadId;
+                let partNumber = 0;
+                let parts = [];
+
+                for (let start = 0; start < totalSize; start += chunkSize) {
+                    partNumber += 1;
+                    const chunk = file.slice(start, start + chunkSize);
+                    console.log(chunk, "updated chunkkkk size")
+
+                    console.log(`Chunk ${partNumber}: Size = ${chunk.size} bytes`);
+                    if (chunk.size === 0) {
+                        console.error(`Empty chunk detected at part ${partNumber}, skipping.`);
+                        continue;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('fileName', fileName);
+                    formData.append('uploadId', uploadId);
+                    formData.append('partNumber', partNumber);
+                    formData.append('file', chunk);
+        
+                    console.log(`Uploading part ${partNumber} of ${totalParts}...`);
+                    const result = await uploadChunkWithRetry(formData);
+                    console.log(result, `Response for part ${partNumber}`);
+        
+                    if (result?.data) {
+                        parts.push({
+                            ETag: result.data?.ETag ? result.data.ETag?.replace(/"/g, "") : '',
+                            partNumber: Number(result.data.PartNumber),
+                        });
+                    }
+                }
+                
+                const resultFinish = await postImageComplete(fileName, uploadId, parts)
+                console.log(resultFinish, "reponsesss complete")
+                // setUploading(false)
+                setGallery((prev) =>
+                    prev.map((oldFile) =>
+                        oldFile.id === fileObj.id
+                        ? { 
+                            ...oldFile, 
+                            url: resultFinish?.data?.Location,
+                            size: totalSize, 
+                            type: mimetype, 
+                            name: fileName 
+                          }
+                        : oldFile
+                    )
+                  );
+
+                setUploadingFiles((prev) => {
+                    const updated = { ...prev };
+                    delete updated[fileName];
+                    return updated;
+                });
+            }
+            catch(error) {
+                setUploading(false)
+                setUploadingFiles((prev) => {
+                    const updated = { ...prev };
+                    delete updated[fileObj.name];
+                    return updated;
+                });
+                
+                setGallery((prev) => prev.filter((item) => item.id !== fileObj.id));
+
+                console.log(error, "error uploading...")
+                pushToastsMessage('error', error.message)
+            }
+        }
+    }
+
+    // console.log(uploadingFiles, "file loaddddsss");
+
+    // const chunkImageUpload = async (files) => {
+
+    //     try {
+    //         const fileName = files[0].name;
+    //         const result = await postImageStart(fileName)
+    //         console.log(result, "reponsesss")
+    //     }
+    //     catch(error) {
+    //         console.log(error, "error uploading...")
+    //         addToast('error', error.message);
+    //     }
+    // }
 
     const startImageUpload = async (files) => {
         console.log(files[0], "filessss");
@@ -295,120 +417,35 @@ const GalleryModal = ({ visible = false, setVisible = () => { }, onSelectImages 
                             <CRow className="mt-3">
                                 {gallery.length > 0 ? (
                                     gallery.map((file) => (
-                                        //#region 
-                                        //                                     <CCol key={file.id} md={4} className="mb-3 text-center">
-                                        //                                         <div className="position-relative">
-                                        //                                             {file.type.startsWith("image/") ? (
-                                        //                                                  <CImage
-                                        //                                                     src={file.url}
-                                        //                                                     width={150}
-                                        //                                                     alt={file.name}
-                                        //                                                     className="rounded"
-                                        //                                                />
-                                        //                                             ) : file.type.startsWith("video/") ? (
-                                        //                                                 <video width="150" controls>
-                                        //     <source src={file.url} type={file.type} />
-                                        //     Your browser does not support the video tag.
-                                        //   </video>
-                                        //                                             ) : file.type === "application/pdf" ? (
-                                        //                                                 <FaFilePdf size={50} color="red" />
-                                        //                                             ) : file.type.includes("spreadsheet") ||
-                                        //                                                 file.type.includes("excel") ? (
-                                        //                                                 <FaFileExcel size={50} color="green" />
-                                        //                                             ) : (
-                                        //                                                 <p>Unsupported file type</p>
-                                        //                                             )}
 
-                                        //                                             <FaTrashAlt
-                                        //   className="position-absolute"
-                                        //   style={{
-                                        //     top: "5px",
-                                        //     right: "5px",
-                                        //     cursor: "pointer",
-                                        //     color: "red",
-                                        //     fontSize: "1.2rem",
-                                        //   }}
-                                        //   onClick={() => handleDelete(file.id)}
-                                        // />
-                                        //                                         </div>
-
-                                        //                                         <p className="mt-1 text-muted" style={{ fontSize: "0.85rem" }}>
-                                        //                                             {file.name.length > 15
-                                        //                                                 ? file.name.substring(0, 12) + "..."
-                                        //                                                 : file.name}
-                                        //                                         </p>
-                                        //                                     </CCol>
-                                        // <CCol key={file.id} md={4} lg={3} sm={6} xs={6} className="mb-3 text-center">
-                                        //     <div
-                                        //         className="position-relative p-3 rounded shadow-sm d-flex flex-column align-items-center justify-content-center"
-                                        //         style={{
-                                        //             border: "2px solid #ccc",
-                                        //             borderRadius: "10px",
-                                        //             maxWidth: "180px",
-                                        //             minHeight: "200px",
-                                        //             backgroundColor: "#f8f9fa",
-                                        //         }}
-                                        //     >
-                                        //         {/* File Preview */}
-                                        //         {file.type.startsWith("image/") ? (
-                                        //             <CImage
-                                        //                 src={file.url}
-                                        //                 width={150}
-                                        //                 height={150}
-                                        //                 alt={file.name}
-                                        //                 className="rounded"
-                                        //                 style={{ objectFit: "contain", maxHeight: "150px" }}
-                                        //             />
-                                        //         ) : file.type.startsWith("video/") ? (
-                                        //             <video width="150" controls>
-                                        //                 <source src={file.url} type={file.type} />
-                                        //                 Your browser does not support the video tag.
-                                        //             </video>
-                                        //         ) : file.type === "application/pdf" ? (
-                                        //             <FaFilePdf size={50} color="red" />
-                                        //         ) : file.type.includes("spreadsheet") || file.type.includes("excel") ? (
-                                        //             <FaFileExcel size={50} color="green" />
-                                        //         ) : (
-                                        //             <p>Unsupported file type</p>
-                                        //         )}
-
-                                        //         {/* File Name */}
-                                        //         <p
-                                        //             className="mt-2 mb-0 text-muted text-center"
-                                        //             style={{
-                                        //                 fontSize: "0.85rem",
-                                        //                 fontWeight: "bold",
-                                        //                 wordBreak: "break-word",
-                                        //             }}
-                                        //         >
-                                        //             {file.name.length > 15 ? file.name.substring(0, 12) + "..." : file.name}
-                                        //         </p>
-
-                                        //         {/* Delete Button */}
-                                        //         <FaTrashAlt
-                                        //             className="position-absolute"
-                                        //             style={{
-                                        //                 top: "5px",
-                                        //                 right: "5px",
-                                        //                 cursor: "pointer",
-                                        //                 color: "red",
-                                        //                 fontSize: "1.2rem",
-                                        //             }}
-                                        //             onClick={() => handleDelete(file.id)}
-                                        //         />
-                                        //     </div>
-                                        // </CCol>
-//#endregion
-                                        <CCol key={file.id} md={4} lg={3} sm={6} xs={6} className="mb-3 text-center">
+                                    <CCol key={file.id} md={4} lg={3} sm={6} xs={6} className="mb-3 text-center">
                                         <div className="position-relative p-3 rounded shadow-sm d-flex flex-column align-items-center justify-content-center" style={{ border: "2px solid #ccc", borderRadius: "10px", maxWidth: "180px", minHeight: "200px", backgroundColor: "#f8f9fa" }}>
-                                            <CFormCheck className="position-absolute" style={{ position: "absolute", top: "5px", left: "5px", zIndex: 1 }} checked={
-                                                selectedImages && selectedImages.some((item) => item.id === file.id)
+                                            { uploadingFiles[file.name]?.isUploading ? '' :
+                                            <>
+                                                <CFormCheck className="position-absolute" style={{ position: "absolute", top: "5px", left: "5px", zIndex: 1 }} checked={
+                                                    selectedImages && selectedImages.some((item) => item.id === file.id)
                                                 } onChange={() => handleSelectImage(file)} />
-                                            <FaTrashAlt className="position-absolute" style={{ top: "5px", right: "5px", cursor: "pointer", color: "red", fontSize: "1.2rem" }} onClick={() => handleDelete(file.id)} />
-                                            {file.type.startsWith("image/") ? (
-                                                <CImage src={file.url} width={150} height={150} alt={file.name} className="rounded" style={{ objectFit: "contain", maxHeight: "150px" }} />
+                                                <FaTrashAlt className="position-absolute" style={{ top: "5px", right: "5px", cursor: "pointer", color: "red", fontSize: "1.2rem" }} onClick={() => handleDelete(file.id)} />
+                                            </>
+                                            }
+                                            {uploadingFiles[file.name]?.isUploading ? (
+                                                <CSpinner color="primary" size="lg" />
+                                            ) :
+                                            file.type.startsWith("image/") ? (
+                                                <CImage 
+                                                    src={file.url} 
+                                                    width={150} 
+                                                    height={150} 
+                                                    alt={file.name} 
+                                                    className="rounded" 
+                                                    style={{ objectFit: "contain", maxHeight: "150px" }} />
                                             ) : file.type.startsWith("video/") ? (
-                                                <video width="150" controls><source src={file.url} type={file.type} />Your browser does not support the video tag.</video>
+                                                <video 
+                                                    width="150" 
+                                                    controls>
+                                                    <source src={file.url} type={file.type} />
+                                                    Your browser does not support the video tag.
+                                                </video>
                                             ) : file.type === "application/pdf" ? (
                                                 <FaFilePdf size={50} color="red" />
                                             ) : file.type.includes("spreadsheet") || file.type.includes("excel") ? (

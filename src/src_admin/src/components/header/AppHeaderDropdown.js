@@ -12,7 +12,8 @@ const AppHeaderDropdown = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch();
 
-  const handleLogout = async () => {
+  const handleLogout = async (e) => {
+    e.preventDefault()
     try {
 
       dispatch(logoutUser());
@@ -30,17 +31,24 @@ const AppHeaderDropdown = () => {
       </CDropdownToggle>
       <CDropdownMenu className="pt-0" placement="bottom-end">
         <CDropdownItem 
-        
-        onClick={() => navigate('/profile')}>
+          href=""
+          onClick={(e) => {
+            e.preventDefault()
+            navigate('/profile')
+          } }>
           <CIcon icon={cilUser} className="me-2" />
           Profile
         </CDropdownItem>
-        <CDropdownItem onClick={() => handleLogout()}>
+        <CDropdownItem divider />
+        <CDropdownItem 
+          href=""
+          onClick={(e) => handleLogout(e)}>
           <CIcon icon={cilLockLocked} className="me-2" />
-          Logout Account
+          Logout
         </CDropdownItem>
       </CDropdownMenu>
     </CDropdown>
+
   )
 }
 

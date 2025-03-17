@@ -3,6 +3,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardTitle } from "@/ui/card";
+import RentAgreementImg from '@/public/assets/RentalAgreement/rent-agreement.svg'
 export default function RentalAgreementComponent() {
   return (
    
@@ -49,18 +50,18 @@ export default function RentalAgreementComponent() {
             <div className="bg-gray  w-[80%] h-[1px] my-1 self-center sm:block hidden "></div>
           </div>
           <div className="mt-10 flex gap-5 justify-center flex-wrap ">
-            <Link href="/Rental-Agreement/Rental">
+            <Link href="#">
               <Card className="relative w-full max-w-sm p-5 flex justify-between hover:shadow-md rounded-md">
                 <CardTitle className="text-md font-[500] text-gray-dark h-40 w-[50%]">
                   Rental Agreement + Police Intimation
                 </CardTitle>
-                <Image
-                  src="/rental-agreement_15166371.png"
-                  width={100}
-                  height={30}
+                {/* <Image
+                  src={RentAgreementImg}
+                  width={150}
+                  height={150}
                   alt="Rental-Agreement-logo"
                   className="opacity-50"
-                />
+                /> */}
                 <div className="w-full h-fit text-white absolute bg-gradient-to-r from-[#fc6600] to-white bottom-5 text-center left-0" >upto 100% off </div>
               </Card>
             </Link>
@@ -68,6 +69,13 @@ export default function RentalAgreementComponent() {
               <CardTitle className="text-md font-[500] text-gray-dark h-40 w-[50%]">
                 Rental Agreement
               </CardTitle>
+              <Image
+                  src={RentAgreementImg}
+                  width={150}
+                  height={150}
+                  alt="Rental-Agreement-logo"
+                  className="opacity-50"
+                />
               <div>
               <div className="origin-top-left rotate-[75deg] w-[135.99px] h-[133.94px] relative">
                

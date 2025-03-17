@@ -1,17 +1,22 @@
 import pool from '../../config/db.js';
 import axios from 'axios';
 import AWS from '@aws-sdk/client-s3';
-import fs from 'fs';
-import path from 'path';
 
 import { badRequestResponse, successResponse, successWithDataResponse } from '../../utils/response.js';
 import { createMarketingAdmin, deleteMarketingByIdAdmin, deleteMarketingDetailsRowByIdAdmin, getAllMarketingCountAdmin, getAllMarketingListAdmin, getMarketingByIdAdmin, getMarketingLogByIdAdmin } from '../../models/marketingModels.js';
-import { formattedDate } from '../../utils/commonHelper.js';
+import { formattedDate, sanitizedNumber } from '../../utils/commonHelper.js';
 import validator from 'validator';
 
+
+/**
+ * Need test
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
 export const sendWAPromotionWithImageMessage = async (req, res) => {
-    const {full_name, mobile, email, property_id } = req.body;
-    if(!full_name || !mobile || !property_id) {
+    const { full_name, mobile, email, property_id, banner_image } = req.body;
+    if( !full_name || !mobile || !property_id ) {
       return badRequestResponse(res, false, "Missing required parameter.")
     }
 
@@ -20,44 +25,40 @@ export const sendWAPromotionWithImageMessage = async (req, res) => {
       const galleryJoin = `LEFT JOIN tbl_property_gallery tpg ON tpg.property_id = tp.id`;
 
       const propertyQuery = `SELECT tp.id, tp.property_title, tp.title_slug, tp.locality, tp.city_name,
-        tu.fname, tu.lname, tu.mobile,
-        tp.property_title, tp.rent_amount, tp.city_name, tp.property_type,
-        tp.status ,
-        MIN(tpg.property_img_url) as property_img_url
-        FROM tbl_property as tp
-        ${userJoin}
-        ${galleryJoin}
-        WHERE tp.id = ?
+          tu.fname, tu.lname, tu.mobile,
+          tp.property_title, tp.rent_amount, tp.city_name, tp.property_type,
+          tp.status ,
+          MIN(tpg.property_img_url) as property_img_url
+          FROM tbl_property as tp
+          ${userJoin}
+          ${galleryJoin}
+          WHERE tp.id = ?
         `;
 
       const [properties] = await pool.query(propertyQuery, [property_id]);
 
-      console.log(properties,"propsss")
+      let bannerImgUrl = banner_image || properties[0].property_img_url;
       //#region working
       const marketingPayload = new URLSearchParams({ 
         channel: 'whatsapp',
-        'src.name': '8sqftwebApp',
-        source: process.env.GUPSHUP_WHATSAPP_NUMBER,
-        destination: `9172860511`,
+        'src.name': `${process.env.GUPSHUP_APP_NAME}`,
+        source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
+        destination: `91${sanitizedNumber(mobile)}`,
         type: "template",
-        // destination: `${properties[0].mobile}`,
-        // params with id
         template: JSON.stringify({
-            id: 'e5a51646-055b-429c-bc31-a0da0f2d0aba',
+            id: 'f29f93ce-4fae-4019-8367-03aec1b98c86',
             params : [
               `${properties[0].property_title}`, 
               `${properties[0].locality}, ${properties[0].city_name}`,
-              `http://www.8sqft.com/${properties[0].title_slug}`
+              `/Builder/${properties[0].title_slug}`
             ]
         }),
-        // for images
-        // link: 'https://8sqft-images.s3.eu-north-1.amazonaws.com/feb-2025/136/entrance-photo-1739367703178-396797635.jpg'
         message : JSON.stringify({      
           type: 'image',
           image: {
-            link: `${properties[0].property_img_url}`
+            link: `${bannerImgUrl}`
           }
-        }),      
+        }),
       });
 
       const gupshupResponse = await axios.post(
@@ -72,13 +73,27 @@ export const sendWAPromotionWithImageMessage = async (req, res) => {
           }
       );
 
-      console.log("response:::", gupshupResponse.data)
       if (gupshupResponse.data.status === 'submitted') {
-          console.log(`Message sent.`);
+        const data = {
+          full_name: full_name || null,
+          mobile: mobile || null,
+          email: email || null,
+          status: "1",
+          status_text : "Success",
+          property_id: property_id || null,
+          banner_image : bannerImgUrl || null,
+          promotion_name : `Promotion-${ formattedDate( new Date())}`,
+          marketing_type : 'Whatsapp',
+          promotion_type : 'Property Promote',
+          publish_date : new Date(),
+          userId : req.userId,
+        }
+        const result = await createMarketingAdmin(data)              
+        return successResponse(res, true, 'Marketing messages sent successfully', result);
       } else {
-          console.error(`Failed to send message to:`, gupshupResponse.data);
+          console.error(`Failed to send message to ${mobile}:`, gupshupResponse.data);
+          return successResponse(res, true, 'Failed to sent messages.');
       }
-      return successResponse(res, true, 'Marketing messages sent successfully');
   } catch (error) {
       console.error('Error in send Message:', error);
       return badRequestResponse(res, false, 'Failed to send marketing messages', error);
@@ -111,15 +126,14 @@ export const sendWAPromotionPropertyMessage = async (req, res) => {
       const [properties] = await pool.query(propertyQuery, [property_id]);
 
       const gupshupApiKey = process.env.GUPSHUP_API_KEY;
-      console.log(gupshupApiKey, process.env.GUPSHUP_WHATSAPP_NUMBER);
   
       if(!properties[0].mobile) {
         return badRequestResponse(res, false, "No mobile number for selected property.")
       }
         const messagePayload = new URLSearchParams({
           channel: 'whatsapp',
-          'src.name': '8sqftwebApp',
-          source: process.env.GUPSHUP_WHATSAPP_NUMBER,
+          'src.name': `${process.env.GUPSHUP_APP_NAME}`,
+          source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
           destination: `91${properties[0].mobile}`,
           template: JSON.stringify({
             id: '840ffd0d-aca8-4cb2-8ae8-36a863f27ecb',
@@ -151,7 +165,8 @@ export const sendWAPromotionPropertyMessage = async (req, res) => {
             status: "1",
             status_text : "Success",
             property_id: property_id || null,
-            promotion_name : `Promotion - ${ formattedDate( new Date())}`,
+            banner_image : null,
+            promotion_name : `Promotion-${ formattedDate( new Date())}`,
             marketing_type : 'Whatsapp',
             promotion_type : 'Property',
             publish_date : new Date(),

@@ -25,20 +25,14 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function ContactUs() {
-  // const handleSubmit = async (values, { setSubmitting, resetForm, setStatus }) => {
-  //   const fullName = `${values.firstName} ${values.lastName}`;
-  //   const payload = {
-  //     full_name: fullName,
-  //     email: values.email,
-  //     phone: values.phone,
-  //     message: values.message,
-  //   };
+
 
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, resetForm, setStatus }: FormikHelpers<FormValues>
   ) => {
     const fullName = `${values.firstName} ${values.lastName}`;
+
     const payload = {
       full_name: fullName,
       email: values.email,
@@ -74,18 +68,7 @@ export default function ContactUs() {
 
   return (
     <div className="flex flex-col items-center bg-white">
-      {/* <div className="relative w-[98%] h-[40%] mt-6 border-2 border-primary rounded-lg overflow-hidden mr-4">
-        <Image
-          src="/assets/ContactUs/Contact.png"
-          alt="Contact Us Background"
-          width={1350}
-          height={850}
-          className="w-full h-[300px] object-cover opacity-20"
-        />
-        <h1 className="absolute inset-x-0 top-[50%] transform -translate-y-1/2 text-center text-4xl font-bold text-black">
-          Contact Us
-        </h1>
-      </div> */}
+     
       <div className="relative w-full sm:w-[98%] h-[40%] mt-6 border-2 border-primary rounded-lg overflow-hidden sm:mr-4">
         <Image
           src="/assets/ContactUs/Contact.png"

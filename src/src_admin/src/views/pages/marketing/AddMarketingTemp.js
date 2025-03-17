@@ -2,6 +2,12 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   CRow,
   CCol,
+  CNav,
+  CNavItem,
+  CNavLink,
+  CTab,
+  CTabPane,
+  CTabContent,
   CSpinner,
   CCard,
   CCardBody,
@@ -22,79 +28,104 @@ import {
   CTableHeaderCell,
   CTableDataCell,
   CFormTextarea,
+  CContainer,
+  CImage,
 } from '@coreui/react'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
-import ExcelJS from 'exceljs'
-import { createAdminUser, getAdminRoles } from '@model/usersModel'
 import { ToastMessage } from '@component/ToastMessage'
-import { getAllCities } from '@model/locationModel'
 import { useNavigate } from 'react-router-dom'
-import {
-  initialPromotionTempValues,
-  initialPromotionValues,
-  marketingTypeOption,
-  promotionTypeOption,
-  templateSocialTypeOption,
-} from './data'
-import { validationMarketingSchema, validationMarketingTempSchema } from './marketingValidation'
-import { createMarketing, createMarketingTemp } from '../../../models/marketingModel'
+import { initialPromotionLeadValues, initialPromotionTempValues } from './data'
+import { validationMarketingLeadSchema, validationMarketingTempSchema } from './marketingValidation'
+import { createMarketingWAImageLead, createMarketingWAOwner } from '../../../models/marketingModel'
+
 import ExcelUploadComponent from './ExcelUploadComponent'
 import GalleryModal from '../Component/GalleryModal'
 import SearchSelect from '../Component/SearchSelect'
-import { getListedPropertyByMember } from '../../../models/usersModel'
+
 import { getPropertyList } from '../../../models/propertyModel'
 import { useDebounce } from '../../../hooks/useDebounce'
+import { usePushToastHelper } from '../../../utils/toastHelper'
 
 const AddMarketingTemp = () => {
+  const navigate = useNavigate()
   const [properties, setProperties] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [toast, addToast] = useState(0)
+  const [activeTab, setActiveTab] = useState(0)
 
-  const navigate = useNavigate()
+  const [isVisible, setIsVisible] = useState(false)
+  const [selectedImages, setSelectedImages] = useState('')
+
   const toaster = useRef()
+  const { toasts, pushToastsMessage } = usePushToastHelper()
 
   const debounceValue = useDebounce(searchTerm, 500)
 
   const handleSubmit = async (values, resetForm, setSubmitting) => {
     try {
-      const result = await createMarketingTemp(values)
+      const result = await createMarketingWAOwner(values)
       console.log('result', result.data)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.data.message} />)
+        pushToastsMessage('success', result.data.message)
       }
       setSearchTerm('')
       resetForm()
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+      pushToastsMessage('error', error.message)
     } finally {
       setSubmitting(false)
     }
   }
 
+  const handlePropertyLeadSubmit = async (values, resetForm, setSubmitting) => {
+    try {
+      let updatedValues = values
+      if (selectedImages.length > 0) {
+        updatedValues = {
+          ...values,
+          banner_image: selectedImages[0].url,
+        }
+      }
+      const result = await createMarketingWAImageLead(updatedValues)
+      if (result) {
+        pushToastsMessage('success', result.data.message)
+      }
+      setSearchTerm('')
+      setSelectedImages('')
+      resetForm()
+    } catch (error) {
+      pushToastsMessage('error', error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   useEffect(() => {
-    (async () => {
+    ;(async () => {
       try {
-        const result = await getPropertyList(undefined, undefined, undefined, undefined, searchTerm, undefined, '2')
+        const result = await getPropertyList(
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          searchTerm,
+          undefined,
+          '2',
+        )
         const newProperties = result.data?.property.map((i) => ({
           id: i.id,
           value: i.id,
-          label: `${ [i.id, i.property_title, i.city_name, i.user_mobile]
+          label: `${[i.id, i.property_title, i.city_name, i.user_mobile]
             .filter(Boolean)
-            .join(' | ') }`
+            .join(' | ')}`,
         }))
-        
-        console.log("result::", result.data, newProperties);
 
         setProperties(newProperties)
       } catch (error) {
-        addToast(<ToastMessage type="error" message={error.message} />)
+        pushToastsMessage('error', error.message)
       }
     })()
     return () => {}
   }, [debounceValue])
-
-  console.log('excel data:::', searchTerm)
 
   return (
     <>
@@ -108,118 +139,239 @@ const AddMarketingTemp = () => {
           </CCol>
         </CCardHeader>
         <CCardBody>
-          <CRow>
-            <CCol lg={6} className="mb-2">
-              <Formik
-                initialValues={initialPromotionTempValues}
-                validationSchema={validationMarketingTempSchema}
-                onSubmit={(values, { setSubmitting, resetForm }) => {
-                  handleSubmit(values, resetForm, setSubmitting)
-                }}
-              >
-                {({ values, handleChange, handleBlur, setFieldValue, errors, isSubmitting }) => (
-                  console.log(errors),
-                  (
-                    <Form>
-                      {/* <CForm> */}
+          {/* Tabs */}
+          <CNav variant="tabs">
+            <CNavItem>
+              <CNavLink active={activeTab === 0} onClick={() => setActiveTab(0)}>
+                Lead to Owner
+              </CNavLink>
+            </CNavItem>
+            <CNavItem>
+              <CNavLink active={activeTab === 1} onClick={() => setActiveTab(1)}>
+                Property Lead
+              </CNavLink>
+            </CNavItem>
+          </CNav>
 
-                      {/* <CRow className="mb-3">
-                        <CFormLabel htmlFor="promotion_name" className="col-sm-3 col-form-label">
-                          Title:
-                        </CFormLabel>
-                        <CCol sm={10} md={6} lg={6}>
-                          <Field
-                            name="promotion_name"
-                            type="text"
-                            placeholder="Marketing Name"
-                            className="form-control"
+          <CTabContent>
+            {/* Tab 1: Lead to Owner */}
+            <CTabPane visible={activeTab === 0}>
+              <CContainer className="mt-2">
+                <CRow>
+                  <CCol lg={6} className="mb-2">
+                    <Formik
+                      initialValues={initialPromotionTempValues}
+                      validationSchema={validationMarketingTempSchema}
+                      onSubmit={(values, { setSubmitting, resetForm }) => {
+                        handleSubmit(values, resetForm, setSubmitting)
+                      }}
+                    >
+                      {({
+                        values,
+                        handleChange,
+                        handleBlur,
+                        setFieldValue,
+                        errors,
+                        isSubmitting,
+                      }) => (
+                        <Form>
+                          <CRow className="mb-3">
+                            <CFormLabel htmlFor="full_name" className="col-sm-3 col-form-label">
+                              Full Name:
+                            </CFormLabel>
+                            <CCol sm={10} md={6} lg={6}>
+                              <Field as={CFormInput} placeholder="Full Name" name="full_name" />
+                              <ErrorMessage
+                                name="full_name"
+                                component="div"
+                                className="text-danger"
+                              />
+                            </CCol>
+                          </CRow>
+
+                          <CRow className="mb-3">
+                            <CFormLabel htmlFor="mobile" className="col-sm-3 col-form-label">
+                              Mobile:
+                            </CFormLabel>
+                            <CCol sm={10} md={6} lg={6}>
+                              <Field as={CFormInput} placeholder="Mobile" name="mobile" />
+                              <ErrorMessage
+                                name="mobile"
+                                component={CFormText}
+                                className="text-danger"
+                              />
+                            </CCol>
+                          </CRow>
+
+                          <SearchSelect
+                            label={'Properties'}
+                            name={'property_id'}
+                            placeholder={'Select Property'}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            options={properties || []}
                           />
-                          <ErrorMessage
-                            name="promotion_name"
-                            component={CFormText}
-                            className="text-danger"
-                          />
-                        </CCol>
-                      </CRow> */}
-                     
 
-                      <CRow className="mb-3">
-                        <CFormLabel htmlFor="full_name" className="col-sm-3 col-form-label">
-                          Full Name:
-                        </CFormLabel>
-                        <CCol sm={10} md={6} lg={6}>
-                          <Field 
-                            as={CFormInput} 
-                            color="primary" 
-                            placeholder="Full Name"
-                            name="full_name" />
-                          <ErrorMessage name="full_name" component="div" className="text-danger" />
-                        </CCol>
-                      </CRow>
+                          <CButton
+                            type="submit"
+                            color="primary"
+                            className="me-2"
+                            disabled={isSubmitting}
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <CSpinner size="sm" /> Submit
+                              </>
+                            ) : (
+                              'Submit'
+                            )}
+                          </CButton>
 
-                      <CRow className="mb-3">
-                        <CFormLabel htmlFor="mobile" className="col-sm-3 col-form-label">
-                          Mobile:
-                        </CFormLabel>
-                        <CCol sm={10} md={6} lg={6}>
-                          <Field 
-                            placeholder="Mobile"
-                            as={CFormInput} 
-                            color="primary" 
-                            className="form-control"
-                            name="mobile" />
-                          
-                          <ErrorMessage 
-                            name="mobile" 
-                            component={CFormText} 
-                            className="text-danger" />
-                        </CCol>
-                      </CRow>
+                          <CButton type="reset" color="primary" disabled={isSubmitting}>
+                            {isSubmitting ? (
+                              <>
+                                <CSpinner size="sm" /> Reset
+                              </>
+                            ) : (
+                              'Reset'
+                            )}
+                          </CButton>
+                        </Form>
+                      )}
+                    </Formik>
+                  </CCol>
+                </CRow>
+              </CContainer>
+            </CTabPane>
 
-                    <SearchSelect
-                      label={'properties'}
-                      name={'property_id'} 
-                      placeholder={'Select Property'}
-                      searchTerm={searchTerm}
-                      setSearchTerm={setSearchTerm}
-                      options={properties || []}/>
+            {/* Tab 2: Property Lead */}
+            <CTabPane visible={activeTab === 1}>
+              <CContainer className="mt-2">
+                <CRow>
+                  <CCol lg={6} className="mb-2">
+                    <Formik
+                      initialValues={initialPromotionLeadValues}
+                      validationSchema={validationMarketingLeadSchema}
+                      onSubmit={(values, { setSubmitting, resetForm }) => {
+                        handlePropertyLeadSubmit(values, resetForm, setSubmitting)
+                      }}
+                    >
+                      {({
+                        values,
+                        handleChange,
+                        handleBlur,
+                        setFieldValue,
+                        errors,
+                        isSubmitting,
+                      }) => (
+                        console.log(values, errors, 'val'),
+                        (
+                          <Form>
+                            <CRow className="mb-3">
+                              <CFormLabel htmlFor="full_name" className="col-sm-3 col-form-label">
+                                Full Name:
+                              </CFormLabel>
+                              <CCol sm={10} md={6} lg={6}>
+                                <Field as={CFormInput} placeholder="Full Name" name="full_name" />
+                                <ErrorMessage
+                                  name="full_name"
+                                  component="div"
+                                  className="text-danger"
+                                />
+                              </CCol>
+                            </CRow>
 
-                      <CButton
-                        type="submit"
-                        color="primary"
-                        className="me-2"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            {' '}
-                            <CSpinner size="sm" /> Submit{' '}
-                          </>
-                        ) : (
-                          'Submit'
-                        )}
-                      </CButton>
+                            <CRow className="mb-3">
+                              <CFormLabel htmlFor="mobile" className="col-sm-3 col-form-label">
+                                Mobile:
+                              </CFormLabel>
+                              <CCol sm={10} md={6} lg={6}>
+                                <Field as={CFormInput} placeholder="Mobile" name="mobile" />
+                                <ErrorMessage
+                                  name="mobile"
+                                  component={CFormText}
+                                  className="text-danger"
+                                />
+                              </CCol>
+                            </CRow>
 
-                      <CButton type="reset" color="primary" disabled={isSubmitting}>
-                        {isSubmitting ? (
-                          <>
-                            {' '}
-                            <CSpinner size="sm" /> Reset{' '}
-                          </>
-                        ) : (
-                          'Reset'
-                        )}
-                      </CButton>
-                    </Form>
-                  )
-                )}
-              </Formik>
-            </CCol>
-            <CCol lg={6}></CCol>
-          </CRow>
+                            <SearchSelect
+                              label={'Properties'}
+                              name={'property_id'}
+                              placeholder={'Select Property'}
+                              searchTerm={searchTerm}
+                              setSearchTerm={setSearchTerm}
+                              options={properties || []}
+                            />
+
+                            <CRow className="mb-3">
+                              <GalleryModal
+                                visible={isVisible}
+                                setVisible={setIsVisible}
+                                onSelectImages={setSelectedImages}
+                              />
+                              <CFormLabel htmlFor="mobile" className="col-sm-3 col-form-label">
+                                Image:
+                              </CFormLabel>
+                              <CCol sm={10} md={6} lg={6}>
+                                <CButton
+                                  onClick={() => setIsVisible(true)}
+                                  type="button"
+                                  color="primary"
+                                >
+                                  {' '}
+                                  Select{' '}
+                                </CButton>
+                                <ErrorMessage
+                                  name="banner_image"
+                                  component={CFormText}
+                                  className="text-danger"
+                                />
+                              <CCol sm={10} md={6} lg={6} className='mt-2'>
+                                { selectedImages.length > 0 &&
+                                  <CImage src={selectedImages[0]?.url || ''} width={200} height={100} />
+                                }
+                              </CCol>
+                              </CCol>
+
+                            </CRow>
+
+                            <CButton
+                              type="submit"
+                              color="primary"
+                              className="me-2"
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <CSpinner size="sm" /> Submit
+                                </>
+                              ) : (
+                                'Submit'
+                              )}
+                            </CButton>
+
+                            <CButton type="reset" color="primary" disabled={isSubmitting}>
+                              {isSubmitting ? (
+                                <>
+                                  <CSpinner size="sm" /> Reset
+                                </>
+                              ) : (
+                                'Reset'
+                              )}
+                            </CButton>
+                          </Form>
+                        )
+                      )}
+                    </Formik>
+                  </CCol>
+                </CRow>
+              </CContainer>
+            </CTabPane>
+          </CTabContent>
         </CCardBody>
       </CCard>
-      <CToaster ref={toaster} push={toast} placement="top-end" />
+      <CToaster ref={toaster} push={toasts} placement="top-end" />
     </>
   )
 }

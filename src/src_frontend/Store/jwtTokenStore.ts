@@ -3,24 +3,26 @@ import { decodeToken } from "@/lib/jwtDecode";
 
 interface AuthState {
   id: number | null;
-  email: string | null;
+  email?: string | null;
+  mobile?: string | null;
   token: string | null;
-  setAuth: (id: number, email: string, token: string) => void;
+  setAuth: (id: number, email: string | undefined, mobile: string | undefined, token: string) => void;
   clearAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   id: null,
   email: null,
+  mobile: null,
   token: null,
 
   // Method to set authentication data
-  setAuth: (id, email, token) => set({ id, email, token }),
+  setAuth: (id, email, mobile, token) => set({ id, email, mobile, token }),
 
   // Method to clear authentication data
   clearAuth: () => {
     sessionStorage.removeItem("authToken");
-    set({ id: null, email: null, token: null });
+    set({ id: null, email: null, mobile: null, token: null });
   },
 }));
 
@@ -30,9 +32,9 @@ export const hydrateAuthStore = () => {
   if (token) {
     const decoded = decodeToken(token);
     if (decoded) {
-      const { id, email } = decoded;
+      const { id, email , mobile } = decoded;
       const useStore = useAuthStore.getState();
-      useStore.setAuth(id, email, token); // Populate Zustand store
+      useStore.setAuth(id, email, mobile, token); // Populate Zustand store
     } else {
       sessionStorage.removeItem("authToken"); // Remove invalid/expired token
     }

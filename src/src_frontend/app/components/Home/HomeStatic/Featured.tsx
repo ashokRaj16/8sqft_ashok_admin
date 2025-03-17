@@ -5,12 +5,13 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./scroll.css"
+import { useAuthStore } from "@/Store/jwtTokenStore";
 
 type Property = {
   id: number;
   property_title: string;
   landmark: string;
-  land_area: number;
+  builtup_area: number;
   deposite_amount: string;
   rent_amount: string;
   image?: string;
@@ -24,7 +25,7 @@ type cardData = {
   bed_rooms: number;
   washrooms?: number;
   balcony: number;
-  land_area: number;
+  builtup_area: number;
   rent_amount: string;
   property_title: string;
   id: number;
@@ -36,7 +37,8 @@ export default function FeaturedComponent() {
   const [activeTab, setActiveTab] = useState("sell");
   const [sellCardData, setSellCardData] = useState<cardData[]>([]);
   const [rentCardData, setRentCardData] = useState<cardData[]>([]);
-
+  const token = useAuthStore((state) => state.token);
+  console.log(sellCardData, 'sellCardData')
   useEffect(() => {
     const fetchProperties = async () => {
       try {
@@ -44,6 +46,7 @@ export default function FeaturedComponent() {
           headers: {
             "Content-Type": "application/json",
             "x-api-key": "A8SQFT7767",
+            Authorization: `Bearer ${token}`,
           },
 
         });
@@ -54,7 +57,7 @@ export default function FeaturedComponent() {
 
         const rentData = recommendations.filter((property: { property_rent_buy: string }) => property.property_rent_buy === "RENT");
 
-       console.log("Recomendations",recommendations)
+        console.log("Recomendations", recommendations)
 
         setSellCardData(sellData);
         setRentCardData(rentData);
@@ -83,7 +86,7 @@ export default function FeaturedComponent() {
       });
     }
   };
-  
+
   const scrollReviews = (direction: string) => {
     if (scroll.current) {
       const scrollAmount = 300; // Adjust as needed for the scroll distance
@@ -104,31 +107,43 @@ export default function FeaturedComponent() {
   };
   return (
 
-    <div className=" container w-full h-full relative ">
-      <p className="text-3xl font-bold my-5 text-primary lg:hidden text-center">
+    <div className=" w-full h-full relative pt-5">
+      <p className="lg:text-3xl text-xl font-medium lg:font-semibold my-5 text-primary lg:hidden text-center">
         Explore the Featured Properties
       </p>
       <Tabs defaultValue="sell" onValueChange={(value) => setActiveTab(value)}>
-        <TabsList className="flex justify-center gap-5">
-          
-          <TabsTrigger
-            value="sell"
-            className="text-black data-[state=active]:bg-[#FFF3EB] data-[state=active]:text-primary bg-[#EFEFEF] px-6 py-3 rounded-lg shadow-md"
-          >
-            For Sell
-          </TabsTrigger>
+        <div className="flex items-center justify-center relative mb-2">
+          <TabsList className="flex justify-center gap-5">
+
+            <TabsTrigger
+              value="sell"
+              className="text-black data-[state=active]:bg-[#FFF3EB] data-[state=active]:text-primary bg-[#EFEFEF] px-6 py-3 rounded-sm w-full lg:w-auto"
+            >
+              For Sell
+            </TabsTrigger>
 
 
-          <TabsTrigger
-            value="rent"
-            className="text-black data-[state=active]:bg-[#FFF3EB] data-[state=active]:text-primary bg-[#EFEFEF] px-6 py-3 rounded-lg shadow-md"
-          >
-            For Rent
-          </TabsTrigger>
-        </TabsList>
-        <div className="container w-full sm:w-[60vw] md:w-full">
-          <div className="relative mt-5 flex items-center">
-            <div className="relative w-1/2 h-[90vh] hidden lg:block rounded-lg p-10 overflow-hidden">
+            <TabsTrigger
+              value="rent"
+              className="text-black data-[state=active]:bg-[#FFF3EB] data-[state=active]:text-primary bg-[#EFEFEF] px-6 py-3 rounded-sm w-full lg:w-auto"
+            >
+              For Rent
+            </TabsTrigger>
+          </TabsList>
+          <div className="z-10 lg:flex flex-row items-center absolute right-0 hidden">
+            <button className=" shadow-md p-2 rounded-full  border-2 border-primary" onClick={() => handleScroll("prev")}>
+              <ArrowLeft size={18} className="text-primary" />
+            </button>
+
+            <button className=" shadow-md p-2 ml-2 rounded-full  border-2 border-primary" onClick={() => handleScroll("next")}>
+              <ArrowRight size={18} className="text-primary" />
+            </button>
+          </div>
+        </div>
+
+        <div className=" w-full sm:w-[60vw] md:w-full">
+          <div className="relative flex flex-col items-center">
+            {/* <div className="relative w-1/2 h-[90vh] hidden lg:block rounded-lg p-10 overflow-hidden">
               <div className="h-[90vh] bg-[#FFF3EB] rounded-lg">
                 <div
                   className="absolute inset-0 bg-no-repeat"
@@ -169,18 +184,18 @@ export default function FeaturedComponent() {
 
 
               </div>
-            </div>
+            </div> */}
 
 
 
-            <div className="container lg:absolute lg:top-[5.5rem] lg:ml-[350px] w-full h-fit pl-10 relative  ">
-              <div ref={scrollContainerRef} className="overflow-x-auto scroll-smooth flex flex-row gap-4 scrollbar-hide  mt-[13px]">
+            <div className="w-full h-fit relative  ">
+              <div ref={scrollContainerRef} className="overflow-x-auto scroll-smooth flex flex-row gap-4 scrollbar-hide  ">
                 <TabsContent value="sell">
-                  <ReusableCarousel className="w-full   ">
-                    
+                  <ReusableCarousel className="w-full">
+
                     {sellCardData.map((data) => (
                       <FeaturedCard
-                      
+
                         priceType={""}
                         title={data.property_title}
                         location={data.landmark}
@@ -188,7 +203,7 @@ export default function FeaturedComponent() {
                         beds={data.bed_rooms}
                         washrooms={data.washrooms}
                         balconies={data.balcony}
-                        area={data.land_area}
+                        area={data.builtup_area}
                         price={data.rent_amount}
                         key={data.id} {...data} />
                     ))}
@@ -211,7 +226,7 @@ export default function FeaturedComponent() {
                         beds={data.bed_rooms}
                         washrooms={data.washrooms}
                         balconies={data.balcony}
-                        area={data.land_area}
+                        area={data.builtup_area}
                         price={data.rent_amount}
                         key={data.id} {...data} />
                     ))}

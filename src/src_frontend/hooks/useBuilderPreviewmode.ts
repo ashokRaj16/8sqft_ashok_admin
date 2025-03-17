@@ -37,11 +37,16 @@ interface PropertyConfiguration {
     status?: string | null;
     created_at: string;
     updated_at: string;
+    unit_price_type:string;
 }
-
+interface PropertyFaqs {
+    faq_question:string;
+    faq_answer:string;
+  }
 // ✅ Main Property Interface
 interface useBuilderDetails {
     id: number;
+    
     user_id: number;
     form_step_id: string;
     form_status: string;
@@ -55,7 +60,7 @@ interface useBuilderDetails {
     city_id: number;
     state_id?: number | null;
     city_name?: string | null;
-    state_name?: string | null;     
+    state_name?: string | null;
     pincode?: string | null;
     latitude: string;
     longitude: string;
@@ -128,12 +133,19 @@ interface useBuilderDetails {
     updated_at: string;
     drink_allowed?: string | null;
     smoke_allowed?: string | null;
+    per_sqft_amount?: number | null
     pg_rules?: string | null;
     images: PropertyImage[]; // Array of images linked to the property
-    configuration: PropertyConfiguration[]; // Array of configurations linked to the property
-    per_sqft_amount: number; //
+    faq:PropertyFaqs[]
     company_name: string;
-}
+    intrestedCount: number;
+    shortlistedCount: number;
+    configuration: PropertyConfiguration[]; // Array of configurations linked to the property
+    unique_view_count: number;
+    mobile:number
+    unit_price_type:string;
+    full_address:string;
+  }
 
 // ✅ Response interface
 interface useBuilderDetailResponse {
@@ -154,7 +166,7 @@ const useBuilderPreviewDetail = (id: number) => {
         queryKey: ["useBuilderDetail", id],
         queryFn: async () => {
             const response = await axios.get(
-                `https://api.8sqft.com/api/v1/front/post_property/${id}`,
+                `/api/v1/front/post_property/${id}`,
                 {
                     headers: {
                         "Content-Type": "application/json",

@@ -12,6 +12,11 @@ import { FaHeart, FaShareAlt } from "react-icons/fa";
 import { useMediaQuery } from "usehooks-ts";
 import { formatPrice } from "../Builder/BuilderLayout/overview-mobile";
 import SimilarComponent from "../Builder/BuilderLayout/Similaromponnent";
+import ShareShortlist from "../components/common/ShareShortlist";
+import { BsEye } from "react-icons/bs";
+import { formatNumber } from "@/utils/priceFormatter";
+import RERA_ico from "@/public/assets/icon/rera-ico.svg";
+import User_ico from "@/public/assets/icon/user-ico.svg";
 declare global {
   interface Window {
     __sharethis__?: { initialize: () => void };
@@ -19,6 +24,7 @@ declare global {
 }
 // Card Component (For Mobile)
 const Card = ({ property }: any) => {
+  console.log(property, "propertyproperty2");
   const details = [
     {
       label: `${formatPrice(Number(property.config_carpet_price))} Starting`,
@@ -29,9 +35,11 @@ const Card = ({ property }: any) => {
       subLabel: "Possession Starts",
     },
     {
-      label: `${property.config_dimenssion}` || "35x26",
+      label: property.config_dimenssion
+        ? `${property.config_dimenssion}`
+        : "N/A",
       alt: "Dimension (LxW)",
-      subLabel: " Dimension (LxW)",
+      subLabel: " Dimension (LxW) ",
     },
   ];
 
@@ -39,7 +47,7 @@ const Card = ({ property }: any) => {
     <div className="container w-full h-full mx-auto my-5">
       <div className=" max-w-[408px] max-h-[432px] bg-white rounded-2xl shadow-md flex flex-col  overflow-hidden">
         {/* Image Section */}
-        <div className="w-full h-[303px] p-5 flex justify-center items-center overflow-hidden">
+        <div className="w-full h-[303px] p-5 flex justify-center items-center overflow-hidden relative">
           <img
             src={
               property.property_img_url || "https://via.placeholder.com/300x200"
@@ -47,11 +55,17 @@ const Card = ({ property }: any) => {
             alt="Property"
             className="w-full h-full object-cover rounded-t-2xl"
           />
+          <div className="flex items-center gap-1 absolute bg-primary p-1 rounded-md top-7 right-7">
+            <BsEye className="text-white" />
+            <label className=" text-white text-[10px]">
+              {property?.unique_view_count}{" "}
+            </label>
+          </div>
         </div>
 
         {/* Title Section */}
         <div className="w-full h-[35px] px-5 py-1 border-b border-gray-300 flex items-center">
-          <h3 className="text-md font-medium text-gray-800 my-3">
+          <h3 className="text-md font-medium text-gray-800 my-3 line-clamp-1">
             {property.property_title || "Property Title"}
           </h3>
         </div>
@@ -72,19 +86,31 @@ const Card = ({ property }: any) => {
 
         {/* Action Section */}
         <div className="w-full flex justify-between items-center px-5 py-3">
-          <Link href={`/Builder/${property.id}`}>
+          <Link href={`/Builder/${property?.title_slug}`}>
             <button className="bg-[#FC6600] text-white px-4 py-2 rounded-lg">
               View Details
             </button>
           </Link>
-          <div className="flex items-center space-x-3">
-            <button className="text-gray-300 hover:text-red border rounded-md p-2 border-gray-300">
-              <FaHeart size={20} />
-            </button>
-            <button className="text-gray-300 hover:text-blue border rounded-md p-2 border-gray-300">
-              <FaShareAlt size={20} />
-            </button>
-          </div>
+          <ShareShortlist
+            background={"bg-white"}
+            shadow={"shadow-lg"}
+            rounded={"rounded-lg"}
+            fontSize={"text-xs"}
+            textTransform={"uppercase"}
+            fontWeight={"font-light"}
+            hoverBackground={"hover:bg-primary"}
+            hoverTextColor={"hover:text-white"}
+            iconColor={"text-primary"}
+            iconHoverColor={"group-hover:text-white"}
+            propertyId={property?.id}
+            propertyIdSlug={property?.title_slug}
+            btnSaveText={"Save"}
+            showBtnText={false}
+            tooltip={"absolute  -top-8 -translate-x-1/2 left-1/2"}
+            tooltipArrow={
+              "-bottom-8 rotate-180 absolute left-[50%] transform -translate-x-1/2 -translate-y-full border-8 border-transparent border-b-black"
+            }
+          />
         </div>
       </div>
     </div>
@@ -93,11 +119,13 @@ const Card = ({ property }: any) => {
 
 // PropertyCard Component
 function BuilderPropertyCardSimilar() {
+  const filters = useFilterStore();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const selectedCityName = searchParams.get("city_name") || "this location";
   const selectedlocality = searchParams.get("searchKeyword") || "this location";
+  const sortOrder = searchParams.get("sortOrder") || filters?.sortOrder;
   const isMobile = useMediaQuery("(max-width: 1024px)");
-  const filters = useFilterStore();
 
   const propertyRentBuy = useActiveTabStore((state) => state.property_rent_buy);
   // const updateURLWithFilters = () => {
@@ -125,10 +153,23 @@ function BuilderPropertyCardSimilar() {
   //   // Update the URL without reloading the page
   //   router.replace(`/ListofProperty_List?${queryString}`);
   // };
+  // console.log(filters, "filters");
   const { data, isLoading, error } = useBuilderPropertylist({
     city_name: selectedCityName,
-    property_variety: filters.property_variety,
-    property_rent_buy: "PROJECT",
+    // property_variety: filters?.property_variety,
+    // // property_rent_buy: "PROJECT",
+    property_rent_buy: filters?.property_rent_buy,
+    // property_type: filters?.property_type,
+    // sortOrder,
+    // price_range: filters?.price_range,
+    // project_area: filters?.project_area,
+    // property_current_status: filters?.property_current_status,
+    // furnishing: filters?.furnishing,
+    // parking: filters?.parking,
+    // width_facing_road: filters?.width_facing_road,
+    // other_amenities: filters?.other_amenities,
+    // is_rera_number: filters?.is_rera_number,
+    // property_variety_type: filters?.property_variety_type,
   });
 
   const properties = data?.data?.property || [];
@@ -142,34 +183,94 @@ function BuilderPropertyCardSimilar() {
     const minCarpetArea = carpetAreas.length ? Math.min(...carpetAreas) : "N/A";
     const maxCarpetArea = carpetAreas.length ? Math.max(...carpetAreas) : "N/A";
   });
-  const [isVisible, setIsVisible] = useState(false);
-  useEffect(() => {
-    if (isVisible) {
-      // Ensure script is loaded
-      const scriptId = "sharethis-script";
-      if (!document.getElementById(scriptId)) {
-        const script = document.createElement("script");
-        script.id = scriptId;
-        script.src =
-          "https://platform-api.sharethis.com/js/sharethis.js#property=679778caeec4bb0012d85a05&product=inline-share-buttons";
-        script.async = true;
-        document.body.appendChild(script);
 
-        script.onload = () => {
-          if (window.__sharethis__) {
-            window.__sharethis__.initialize();
-          }
-        };
-      } else {
-        // Reinitialize ShareThis buttons on every open
-        setTimeout(() => {
-          if (window.__sharethis__) {
-            window.__sharethis__.initialize();
-          }
-        }, 500);
-      }
+  useEffect(() => {
+    const newParams = new URLSearchParams(window.location.search);
+
+    if (filters.property_variety) {
+      newParams.set("property_variety", filters.property_variety);
+    } else {
+      newParams.delete("property_variety");
     }
-  }, [isVisible]);
+
+    if (filters.sortOrder) {
+      newParams.set("sortOrder", filters.sortOrder);
+    } else {
+      newParams.delete("sortOrder");
+    }
+    if (filters.price_range) {
+      newParams.set("price_range", filters.price_range);
+    } else {
+      newParams.delete("price_range");
+    }
+    if (filters.project_area) {
+      newParams.set("project_area", filters.project_area);
+    } else {
+      newParams.delete("project_area");
+    }
+    if (filters.property_current_status) {
+      newParams.set("property_current_status", filters.property_current_status);
+    } else {
+      newParams.delete("property_current_status");
+    }
+    if (filters.furnishing) {
+      newParams.set("furnishing", filters.furnishing);
+    } else {
+      newParams.delete("furnishing");
+    }
+    if (filters.parking) {
+      newParams.set("parking", filters.parking);
+    } else {
+      newParams.delete("parking");
+    }
+    if (filters.width_facing_road) {
+      newParams.set("width_facing_road", filters.width_facing_road);
+    } else {
+      newParams.delete("width_facing_road");
+    }
+    if (filters.other_amenities) {
+      newParams.set("other_amenities", filters.other_amenities);
+    } else {
+      newParams.delete("other_amenities");
+    }
+    if (filters.property_rent_buy) {
+      newParams.set("property_rent_buy", filters.property_rent_buy);
+    } else {
+      newParams.delete("property_rent_buy");
+    }
+    if (filters.property_type) {
+      newParams.set("property_type", filters.property_type);
+    } else {
+      newParams.delete("property_type");
+    }
+    if (filters.is_rera_number) {
+      newParams.set("is_rera_number", filters.is_rera_number);
+    } else {
+      newParams.delete("is_rera_number");
+    }
+    if (filters.property_variety_type) {
+      newParams.set("property_variety_type", filters.property_variety_type);
+    } else {
+      newParams.delete("property_variety_type");
+    }
+
+    router.push(`?${newParams.toString()}`, { scroll: false }); // Update URL without page reload
+  }, [
+    filters.property_variety,
+    filters.sortOrder,
+    filters.price_range,
+    filters.project_area,
+    filters.property_current_status,
+    filters.furnishing,
+    filters.width_facing_road,
+    filters.parking,
+    filters.other_amenities,
+    filters.property_rent_buy,
+    filters.property_type,
+    filters.is_rera_number,
+    filters.property_variety_type,
+  ]);
+
   if (isLoading) {
     return <div>Loading properties...</div>;
   }
@@ -180,103 +281,169 @@ function BuilderPropertyCardSimilar() {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      {isMobile &&
+      {/* {isMobile &&
         properties?.map((property: any) => (
           <Card key={property.id} property={property} />
-        ))}
-      <div className="lg:space-y-4 lg:w-full lg:max-w-[719px]">
+        ))} */}
+      <div className="lg:space-y-4 lg:w-full  px-1">
         {properties?.map((property: any) => {
           const features = [
             {
-              icon: "/assets/Builder/facingDirection.svg",
-              label: property.width_facing_road || "25 ft",
-              alt: "Width of facing road",
-              subLabel: "Width of facing road",
+              icon: "/assets/icon/Calender.svg",
+              label: `${
+                property.possession_date ? property.possession_date : "-"
+              }`,
+              alt: "Possession Date",
+              subLabel: "Possession Date",
             },
             {
-              icon: "/assets/Builder/Posted.svg",
-              label:
-              property.publish_date?  new Date(property.publish_date).toLocaleDateString("en-IN") : "Na",
-              alt: "Posted On Icon",
-              subLabel: "Posted On",
+              icon: "/assets/icon/Size.svg",
+              // label:new Date(property.publish_date).toLocaleDateString("en-IN") || "Available From",
+              label: property.carpet_area_range
+                ? property.carpet_area_range
+                : "-",
+              alt: "Size",
+              subLabel: "Size",
             },
-            {
-              icon: "/assets/Builder/BoundaryWall.svg",
-              label: property.preferred_tenent || "Yes",
-              alt: "Boundary Wall Icon",
-              subLabel: "Boundary Wall",
-            },
-            {
-              icon: "/assets/Builder/Sqft_meter_Sqft_foot.svg",
-              label: `${property.config_dimenssion}` || "35x26",
-              alt: "Dimension (LxW)",
-              subLabel: " Dimension (LxW)",
-            },
+            ...(property.parking
+              ? [
+                  {
+                    icon: "/assets/icon/Parking.svg",
+                    label: property.parking,
+                    alt: "Parking",
+                    subLabel: "Parking",
+                  },
+                ]
+              : [
+                  {
+                    icon: "/assets/Builder/facingDirection.svg",
+                    label: `${property.width_facing_road} feet` || "25 ft",
+                    alt: "Width of facing road",
+                    subLabel: "Width of facing road",
+                  },
+                ]),
+            ...(property.config_dimenssion
+              ? [
+                  {
+                    icon: "/assets/icon/Dimension.svg",
+                    label: property.config_dimenssion
+                      ? `${property.config_dimenssion}`
+                      : "35x26",
+                    alt: "Dimension (LxW)",
+                    subLabel: "Dimension (LxW)",
+                  },
+                ]
+              : [
+                  {
+                    icon:
+                      property?.property_current_status === "Under Construction"
+                        ? "/assets/icon/UnderConstructed.svg"
+                        : property?.property_current_status === "New Launch"
+                        ? "/assets/icon/NewlyLaunch.svg"
+                        : "/assets/icon/Readytomove.svg",
+                    label: property.property_current_status
+                      ? `${property.property_current_status}`
+                      : "-",
+                    alt: "Status",
+                    subLabel: "Status",
+                  },
+                ]),
           ];
 
           const details = [
             {
-              label: `${formatPrice(
-                Number(property.config_carpet_price)
-              )} Starting`,
-              subLabel: "Price",
+              label: property.config_carpet_price
+                ? ` ${formatPrice(property.config_carpet_price)}`
+                : "N/A",
+              subLabel: "Price (Negotiable)",
             },
             {
-              label: `₹${property.possession_date || "N/A"}`,
-              subLabel: "Possession Starts",
+              label: `${formatPrice(property.per_sqft_amount) || 0}`,
+              subLabel: "per sq ft",
             },
+            // { label: `${property.project_area || "-"} ${property.project_area_unit} `, subLabel: "Project area" },
             {
-              label: `${
-                Number(property.per_sqft_amount)
-                  ? `${Number(
-                      property.per_sqft_amount
-                    ).toLocaleString()} /sq.ft`
-                  : "N/A"
-              }`,
-              subLabel: "Avg. Price",
+              label:
+                property.property_type === "RESIDENTIAL"
+                  ? [
+                      property.other_unit_types,
+                      property.bhk_types,
+                      property.property_variety,
+                    ]
+                      .filter(Boolean) // This removes null, undefined, and empty strings
+                      .join(", ")
+                  : property.property_type === "COMMERCIAL"
+                  ? property.property_variety
+                  : `${property.project_area || "-"} ${
+                      property.project_area_unit
+                    }`,
+              subLabel:
+                property.property_type === "RESIDENTIAL"
+                  ? property.property_variety + " Type"
+                  : property.property_type === "COMMERCIAL"
+                  ? property.property_variety + " Type"
+                  : "Project Area",
             },
           ];
 
           return (
             <div
               key={property.id}
-              className="hidden lg:block border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm p-1 space-y-4"
+              onClick={() =>
+                window.open(`/Builder/${property?.title_slug}`, "_blank")
+              }
+              className="lg:border cursor-pointer border-gray-300 rounded-lg bg-white shadow-custom my-2 lg:shadow-md  p-2 space-y-4 w-full lg:w-auto relative"
             >
-              {/* Heading */}
-              <div className="hidden bg-[#ebebeb] p-3 lg:p-5 lg:flex justify-between">
+              <div className="bg-[#ececec]  lg:p-2 p-1 flex justify-between items-center">
                 <div>
-                  <h2 className="text-sm lg:text-lg font-bold text-ellipsis w-[30vw]  overflow-hidden whitespace-nowrap">
-                    {property.property_title || "Property Title"}
+                  <h2 className="lg:text-base me-2 text-sm font-semibold text-gray-800 ">
+                    {property.property_title &&
+                    property.property_title.length > 50
+                      ? `${property.property_title.slice(0, 50)} ...`
+                      : property.property_title || "Property Title"}
                   </h2>
-                  <div className="text-[12px] text-gray-600 my-1 flex">
+                  <div className="text-sm text-gray-500 mt-1 flex items-center">
                     <Image
                       src="/assets/property-list-asset/g2509.svg"
                       alt="Location"
-                      width={15}
-                      height={15}
+                      width={14}
+                      height={14}
                     />
-                    <span className="ml-1">
+                    <span className="ml-2">
                       {property.locality || "Locality"}
                     </span>
                   </div>
                 </div>
-                <div className="text-white font-medium px-5 py-3 rounded-sm bg-[#FC6600] w-md h-fit">
-                  10+
-                  <span className="text-[10px] text-white w-full m-0">
+
+                <div className="text-white font-medium lg:px-2 py-1 px-1 rounded bg-[#FC6600] text-center">
+                  <div className="flex flex-row gap-2 items-center">
+                    <div>
+                      <Image
+                        className="min-w-4 w-4"
+                        src="/assets/Home_page/Profile.svg"
+                        alt="Location"
+                        width={20}
+                        height={20}
+                      />
+                    </div>
+                    <div className="lg:text-base text-xs">
+                      {formatNumber(property.unique_view_count) || 0}
+                    </div>
+                  </div>
+                  <span className="lg:text-xs text-[10px] text-start lg:block text-white hidden">
                     Views
                   </span>
                 </div>
               </div>
 
-              {/* Pricing and Features */}
-              <div className="hidden lg:flex gap-2 lg:gap-4 w-full justify-evenly">
+              <div className="flex lg:gap-6 justify-around sm:flex-wrap sm:gap-2 lg:w-full border py-2">
                 {details.map((detail, index) => (
-                  <div key={index} className="flex gap-5 lg:gap-10 ">
-                    <div className="flex flex-col items-center">
-                      <span className="text-sm lg:text-md text-black">
+                  <div key={index} className="flex gap-2 lg:gap-10 ">
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-xs lg:text-sm font-medium lg:text-md text-black">
                         {detail.label}
                       </span>
-                      <span className="text-xs lg:text-sm text-gray-300 ml-2">
+                      <span className="text-[10px] lg:text-xs text-gray-300 ">
                         {detail.subLabel}
                       </span>
                     </div>
@@ -287,102 +454,91 @@ function BuilderPropertyCardSimilar() {
                 ))}
               </div>
 
-              <div className="hidden lg:block w-full h-[1px] bg-gray-300"></div>
+              <div className="w-full h-[1px] bg-gray-300 hidden lg:block"></div>
 
-              <div className="flex flex-col lg:flex-row gap-4 max-h-28 lg:max-h-48 w-full">
-                <img
-                  src={
-                    property.property_img_url ||
-                    "https://via.placeholder.com/300x200"
-                  }
-                  alt="Property"
-                  className="w-full rounded-lg lg:object-cover lg:max-w-[40%]  "
-                />
-                <p className="lg:hidden text-sm text-black lg:text-lg font-bold text-ellipsis w-[30vw] lg:w-[80vw] overflow-hidden whitespace-nowrap">
-                  {property.property_title || "Property Title"}
-                </p>
-                <div className=" lg:hidden gap-2 lg:gap-4 w-full justify-evenly overflow-x-auto">
-                  {details.map((detail, index) => (
-                    <div key={index} className="flex gap-5 lg:gap-10 ">
-                      <div className="flex flex-col items-center">
-                        <span className="text-sm lg:text-md text-black">
-                          {detail.label}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                <div className="relative w-full lg:w-[270px]">
+                  {property?.rera_number && (
+                    <div className=" w-full flex items-center justify-center ">
+                      <label className="text-[8px] top-2 flex absolute bg-[#FFFFFFC2] rounded-lg p-1 gap-1 leading-none">
+                        <span className="flex items-center">
+                          <Image
+                            className="mr-1"
+                            src={RERA_ico}
+                            width={8}
+                            height={8}
+                            alt="icon"
+                          />
+                          RERA
                         </span>
-                        <span className="text-xs lg:text-sm text-gray-300 ml-2">
-                          {detail.subLabel}
-                        </span>
-                      </div>
-                      {index < details.length - 1 && (
-                        <div className="w-[1px] h-full bg-gray-300"></div>
-                      )}
+                        {/* | <span className="flex items-center"><Image className="mr-1" src={User_ico} width={8} height={8} alt="icon" />Exclusive</span> */}
+                        {/* |<span className="flex items-center"><Image className="mr-1" src={Biceps_ico} width={8} height={8} alt="icon"/>Assure</span>  */}
+                      </label>
                     </div>
-                  ))}
+                  )}
+                  <img
+                    src={
+                      property.property_img_url ||
+                      "https://via.placeholder.com/300x200"
+                    }
+                    alt="Property"
+                    className="w-full object-cover rounded-md h-44"
+                  />
                 </div>
 
-                <div className="flex flex-col space-y-4 relative w-full ">
-                  {/* Features */}
-                  <div className="hidden lg:grid grid-cols-4 lg:grid-cols-2 gap-2 border border-gray-300 rounded-lg lg:p-2  mb-[3.5rem] ">
+                <div className="flex flex-col justify-between w-full">
+                  <div className="grid grid-cols-2 lg:grid-cols-2 gap-1 lg:gap-4 border border-gray-300 rounded-lg">
                     {features.map((feature, index) => (
                       <div
                         key={index}
-                        className="relative flex items-center lg:gap-2 bg-gray-100 text-gray-700 lg:px-3 py-1 rounded-lg"
+                        className="flex items-center gap-2 bg-gray-100 px-2 py-1"
                       >
                         <img
                           src={feature.icon}
                           alt={feature.alt}
-                          className="w-10 h-10"
+                          className="w-6 lg:w-8"
                         />
-                        <div className="flex flex-col items-center">
-                          <span className="text-sm text-black font-[500]">
-                            {feature.label}
+                        <div className="flex flex-col text-left">
+                          <span className="text-xs lg:text-sm text-gray-70 font-medium capitalize">
+                            {feature.label}{" "}
                           </span>
-                          <span className="text-[12px] text-black ml-2">
-                            {feature.subLabel}
+                          <span className="text-[10px] lg:text-xs text-[#22222280]">
+                            {feature.subLabel}{" "}
                           </span>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Bottom Section */}
-                  <div className="flex justify-between items-center mt-4 absolute bottom-1 left-0 w-full">
-                    <Link href={`/Builder/${property.id}`}>
-                      <button className="bg-[#FC6600] text-white px-4 py-2 rounded-lg">
+                  <div className="flex justify-between items-center mt-4 relative">
+                    <Link
+                      href={`/Builder/${property?.title_slug}`}
+                      target="_blank"
+                    >
+                      <button className="bg-[#FC6600] text-white px-4 py-2 rounded-md text-sm font-medium">
                         View Details
                       </button>
                     </Link>
-                    <div className="hidden lg:flex items-center space-x-3 ">
-                      <button className="text-gray-300 hover:text-red border rounded-md p-1 border-[#D1D5DB]">
-                        <FaHeart size={20} />
-                      </button>
-                      <button
-                        className="text-gray hover:text-blue border rounded-md p-1 border-[#D1D5DB]"
-                        onClick={() => {
-                          setIsVisible(true);
-                        }}
-                      >
-                        <FaShareAlt size={20} />
-                      </button>
-                      {isVisible && (
-                        <div className="relative  ">
-                          {isVisible && (
-                            <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-30 flex justify-center items-center z-50">
-                              <div className="bg-white p-5 border border-gray-300 rounded-md shadow-md max-w-sm w-full">
-                                <div className=" sharethis-inline-share-buttons"></div>
-                                <div className="w-full ">
-                                  <button
-                                    className="bg-primary text-white px-4 py-2 rounded-md my-3 self-center w-full"
-                                    onClick={() => setIsVisible(false)} // Close the dialog
-                                  >
-                                    Close
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <ShareShortlist
+                      background={"bg-white"}
+                      shadow={"shadow-lg"}
+                      rounded={"rounded-lg"}
+                      fontSize={"text-xs"}
+                      textTransform={"uppercase"}
+                      fontWeight={"font-light"}
+                      hoverBackground={"hover:bg-primary"}
+                      hoverTextColor={"hover:text-white"}
+                      iconColor={"text-primary"}
+                      iconHoverColor={"group-hover:text-white"}
+                      propertyId={property?.id}
+                      propertyIdSlug={property?.title_slug}
+                      btnSaveText={"Save"}
+                      showBtnText={false}
+                      tooltip={"absolute  -top-8 -translate-x-1/2 left-1/2"}
+                      tooltipArrow={
+                        "-bottom-8 rotate-180 absolute left-[50%] transform -translate-x-1/2 -translate-y-full border-8 border-transparent border-b-black"
+                      }
+                    />
                   </div>
                 </div>
               </div>

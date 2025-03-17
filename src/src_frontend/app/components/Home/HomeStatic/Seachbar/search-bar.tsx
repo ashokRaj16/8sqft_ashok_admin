@@ -19,6 +19,10 @@ import useSearchQuery from "@/hooks/useSearchQuery";
 import usePropertylist from "@/hooks/usepropertylist";
 import useFilterStore from "@/Store/useFilterStore";
 import useActiveTabStore from "@/Store/activeTab";
+import { useRouter } from "next/navigation";
+import { Button } from "@/ui/Button";
+import useGetCitylist from "@/hooks/getStates";
+import { FiSearch } from "react-icons/fi";
 
 interface TabItem {
   value: string;
@@ -73,11 +77,18 @@ type Suggestion = {
 
 export default function SearchComponent() {
   const [selectedCity, setSelectedCity] = useState<string>("");
+  const [showErrorMsg, setShowErrorMsg] = useState(false)
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("project");
+  const [propertyType, setPropertyType] = useState<string>("Residential");
   const filters = useFilterStore();
+  const router= useRouter()
   const { setFilter } = filters;
 
+
+    const { data: City } = useGetCitylist();
+
+    console.log(City?.data,'city12')
   const latestActiveTab = activeTab.toUpperCase();
   const { data: Propertydata } = usePropertylist({
     property_rent_buy: latestActiveTab,
@@ -85,12 +96,19 @@ export default function SearchComponent() {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const tabItems = isMobile ? mobileTabItems : allTabItems;
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-
+const [isOptionSelected , setIsOptionSelected] = useState(false)
   // ✅ Use Search Hook with both city_name and searchKeyword
   const { data, isLoading, error, refetch } = useSearchQuery({
     city: selectedCity,
     searchKeyword: searchQuery,
   });
+
+  useEffect(() => {
+    if(!searchQuery){
+      setIsOptionSelected(false)      
+    }
+  }, [searchQuery])
+  
 
   // ✅ Update suggestions when data changes
   useEffect(() => {
@@ -123,6 +141,8 @@ export default function SearchComponent() {
     };
   }, [searchQuery, debouncedSearch]);
 
+
+
   const renderTabContent = (): JSX.Element | null => {
     switch (activeTab) {
       case "buy":
@@ -130,7 +150,7 @@ export default function SearchComponent() {
       case "rent":
         return <RentTab />;
       case "project":
-        return <ProjectsTab />;
+        return <ProjectsTab setPropertyType={setPropertyType} propertyType={propertyType}/>;
       default:
         return null;
     }
@@ -139,10 +159,26 @@ export default function SearchComponent() {
     (state) => state.setPropertyRentBuy
   );
   useEffect(() => {
-    // setFilter({ property_rent_buy: activeTab.toUpperCase() });
-  }, [activeTab, setFilter]);
+    setFilter({ property_type: propertyType });
+    setFilter({ property_rent_buy: latestActiveTab });
+  }, [propertyType]);
+
+  const handleSearch=()=>{
+    if(selectedCity && searchQuery){
+      setShowErrorMsg(false)
+      refetch()
+      router.push(
+        activeTab === "project"
+        ? `/ListofBuilder_List?city_name=${selectedCity}&searchKeyword=${searchQuery}&property_type=${propertyType}`
+        : `/ListofProperty_List?city_name=${selectedCity}&searchKeyword=${searchQuery}`
+      )
+    }else{
+      setShowErrorMsg(true)
+    }
+ 
+  }
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col items-center h-fit space-y-4 bg-white p-4 rounded shadow sm:p-6">
+    <div className="w-full max-w-3xl mx-auto flex flex-col items-center h-fit space-y-4 bg-white py-2 px-4 rounded-lg shadow-custom">
       <Tabs
         defaultValue="project"
         onValueChange={(value: string) => {
@@ -152,12 +188,12 @@ export default function SearchComponent() {
         }}
         className="w-full"
       >
-        <TabsList className="flex   rounded-sm text-[#AFAAAA] p-0 w-full sm:justify-around">
+        <TabsList className="flex gap-10  h-auto rounded-sm text-[#AFAAAA] p-0 w-full justify-start mb-2">
           {tabItems.map(({ value, label }) => (
             <TabsTrigger
               key={value}
               value={value}
-              className="text-black  data-[state=active]:bg-primary data-[state=active]:text-white py-1 px-2 sm:px-4 rounded-none my-1 sm:my-2 flex-shrink-0"
+              className="text-black  data-[state=active]:border-b-2 border-black data-[state=active]:text-black py-0 px-2 uppercase rounded flex-shrink-0"
             >
               {label}
             </TabsTrigger>
@@ -165,19 +201,19 @@ export default function SearchComponent() {
         </TabsList>
 
         <div className="flex flex-col space-y-2 sm:space-y-1 w-full">
-          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full shadow-custom rounded-3xl overflow-hidden py-1 px-3">
             <Select onValueChange={(value) => setSelectedCity(value)}>
-              <SelectTrigger className="w-full sm:w-32 border border-gray-300 rounded">
+              <SelectTrigger className="w-full sm:w-32 border-0 focus:outline-none focus:ring-0">
                 <SelectValue placeholder="City" />
               </SelectTrigger>
               <SelectContent className="bg-white h-56 scroll-smooth  sm:w-32">
-                {cities.map((city) => (
+                {City?.data.map((city) => (
                   <SelectItem
-                    key={city}
-                    value={city}
+                    key={city.id}
+                    value={city.city_name}
                     className="bg-white hover:bg-primary-links p-2 hover:text-white cursor-pointer"
                   >
-                    {city}
+                    {city.city_name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -188,18 +224,14 @@ export default function SearchComponent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search up to 3 localities or landmarks"
-              className="flex-1 p-2 border border-gray-300 rounded placeholder:text-sm w-full sm:max-w-[60vw]"
-              disabled={!selectedCity} // Input is disabled if no city is selected
+              className="flex-1 p-2  placeholder:text-sm w-full sm:max-w-[60vw] m-0 focus:outline-none border-s border-[#22222233]"
+              // disabled={!selectedCity} 
             />
-            {suggestions.length > 0 && (
-              <ul className="absolute  lg:top-[110px] top-[130px] container left-[3rem] lg:left-[400px] w-full z-10 p-1 sm:w-full max-w-[40vw] bg-white border border-gray-300 rounded shadow-lg mt-1 max-h-48 overflow-hidden">
+           {suggestions.length > 0 && !isOptionSelected && (
+              <ul className="absolute  lg:top-[110px] top-[130px] container left-[3rem] lg:left-1/2 -translate-x-1/2 w-full z-10 p-1 sm:w-full max-w-[30vw] bg-white border border-gray-300 rounded shadow-lg mt-1 max-h-48 overflow-x-hidden overflow-y-auto">
                 {suggestions.map((suggestion, index) => (
                   <Link
-                    href={
-                      activeTab === "project"
-                        ? `/ListofBuilder_List?city_name=${selectedCity}&searchKeyword=${suggestion.postal_name}`
-                        : `/ListofProperty_List?city_name=${selectedCity}&searchKeyword=${suggestion.postal_name}`
-                    }
+                    href={"" }
                     key={index}
                   >
                     <p
@@ -207,6 +239,7 @@ export default function SearchComponent() {
                       onClick={() => {
                         setSearchQuery(suggestion.postal_name);
                         setSuggestions([]);
+                        setIsOptionSelected(true);
                       }}
                     >
                       {suggestion.postal_name}
@@ -215,17 +248,17 @@ export default function SearchComponent() {
                 ))}
               </ul>
             )}
-            <button
-              onClick={() => refetch()}
-              className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded hover:bg-black"
-              disabled={!selectedCity}
+               <Button                   
+              onClick={handleSearch}
+              className="w-full sm:w-auto p-2 lg:bg-white bg-primary text-[#222222CC] rounded hover:text-primary mx-0"
+              // disabled={!selectedCity}
             >
-              Search
-            </button>
+             <FiSearch className="text-2xl"/>
+              </Button>
           </div>
         </div>
-
-        <TabsContent value={activeTab} className="mt-4">
+        {showErrorMsg &&(<p className="text-center pt-1 text-xs text-notification-error">{!selectedCity ? "Please select city" : !searchQuery?"Please select locality" : ""}</p>)}
+        <TabsContent value={activeTab} className="">
           {renderTabContent()}
         </TabsContent>
       </Tabs>

@@ -49,7 +49,7 @@ export function ReusableCarousel({
         className={`relative lg:w-full h-full ${className}`}
         plugins={enableAutoplay ? [Autoplay({ delay: 3000 })] : []}
       >
-        <CarouselContent className="flex lg:w-full items-center gap-4 -ml-4">
+        <CarouselContent className="flex lg:w-full items-center gap-4 -ml-0">
           {childrenArray.map((child, index) => (
             <CarouselItem key={index} className={`lg:pl-4 basis-1/${itemsPerView.default}`}>
               {child}

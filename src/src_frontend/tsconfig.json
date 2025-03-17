@@ -13,12 +13,12 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "moduleResolution": "Node16",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "module": "Node16",
+    "module": "ESNext",
     "baseUrl": ".",
     "paths": {
       "@/*": [

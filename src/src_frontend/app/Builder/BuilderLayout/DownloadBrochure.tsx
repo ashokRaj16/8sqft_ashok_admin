@@ -6,15 +6,18 @@ import React, { useEffect, useState } from "react";
 import { formatPrice } from "./overview-mobile";
 import { useAuthStore } from "@/Store/jwtTokenStore";
 import useShareContactDetail from "@/hooks/Postpropertyhooks/useShareContact";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import useShareWhatsappDetail from "@/hooks/Postpropertyhooks/useShareWhatsappDetail";
 import useDialogStore from "@/Store/useDialogStore ";
 import 'font-awesome/css/font-awesome.min.css';
 import Image from "next/image"
 
 
-import axios from 'axios';
 import { jwtTokenDecodeAll } from "@/lib/jwtTokenDecodeAll";
+import { formatDate } from "@/utils/formatDate";
+import axios from "@/hooks";
+import ShareShortlist from "@/app/components/common/ShareShortlist";
+import { formatUnitNames } from "@/utils/formatUnitName";
 
 interface DownloadBrochure {
   title: string | undefined;
@@ -22,9 +25,16 @@ interface DownloadBrochure {
   configration: configuration[] | undefined;
   per_sqft_amount: string | null | undefined;
   property_variety: string | undefined;
-  possession_date: string | null | undefined;
+  possession_date?: string | null | undefined;
+  publish_date: string | null | undefined;
   unit_type?: string | null;
   rera?: string | null | undefined;
+  propertyCurrentStatus?: string | null | undefined;
+  widthFacingRoad?: string | null | undefined;
+  totalUnits?: number | null | undefined;
+  floorNumber?: number | null | undefined;
+  propertyType?: string | null | undefined;
+  totalTowers?: number | null | undefined;
 }
 
 interface configuration {
@@ -48,95 +58,53 @@ const DownloadBrochure = ({
   configration,
   per_sqft_amount,
   property_variety,
-  possession_date,
+  publish_date,
   unit_type,
   rera,
+  propertyCurrentStatus,
+  widthFacingRoad,
+  totalUnits,
+  floorNumber,
+  propertyType,
+  totalTowers,
 }: DownloadBrochure) => {
-  const email = "https://8sqft.com/";
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { isDialogOpen, openDialog, closeDialog } = useDialogStore();
   const params = useParams(); // Retrieve route parameters
-  const propertyId = params?.id; // Get the `id` parameter from the route
-  // State for success message
- const token = useAuthStore((state) => state.token);
-  const decoded: any = jwtTokenDecodeAll(token || "");
-  const propertyIdNumber = Array.isArray(propertyId)
-    ? Number(propertyId[0])
-    : Number(propertyId);
-
-  const [buttonState, setButtonState] = useState("");  // Renamed state
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showPopup, setShowPopup] = useState(false);
-
-
-  const handleButtonClick = async () => {
-    setLoading(true);
-
-    // Simulating an API call
-    setTimeout(() => {
-      setLoading(false);
-      setButtonState("save"); // Change button state
-      setShowPopup(true); // Show popup
-
-      // Hide message after 3 seconds
-      setTimeout(() => setShowPopup(false), 3000);
-    }, 1000); // Simulating delay
-
-    try {
-      const response = await axios.post(
-        "https://api.8sqft.com/api/v1/front/shortlist",
-        { propertyId: propertyIdNumber },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": "A8SQFT7767",
-            Authorization: `Bearer ${token}`,
-
-          }
-        }
-      );
-
-      if (response.data.status) {
-        setButtonState("save"); // Button should change if the property is added successfully
-      } else {
-        setError(response.data.message || "Something went wrong");
-      }
-    } catch (err) {
-      setError("Failed to add property to wishlist. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  const extractId = (url:any) => {
+    if (!url || typeof url !== "string") return null; // Ensure it's a string
+    const match = url.match(/-(\d+)$/);
+    return match ? match[1] : null;
   };
+  const id = extractId(params.id);
+  
+  const propertyId = params?.id ? Number(id) : null;
+  // State for success message
+  const token = useAuthStore((state) => state.token);
+  const decoded: any = jwtTokenDecodeAll(token || "");
+  // const propertyIdNumber = Array.isArray(propertyId)
+  //   ? Number(propertyId[0])
+  //   : Number(propertyId);
+
+
+
 
   const handleOwnerContactClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (token) {
-     
-      handleClick();
-    } else {
-      openDialog(); 
-    }
-  }
 
-  const handleShortListClick =(e: React.MouseEvent)=>{
-    e.preventDefault();
-    if (token) {
-      
-      handleButtonClick();
+      handleClick();
     } else {
       openDialog();
     }
   }
-  const handleCopy = () => {
-    navigator.clipboard.writeText(email);
-    alert("Email copied to clipboard!");
-  };
 
   const handleClick = () => {
-    shareContact({ propertyId: propertyIdNumber });
-    shareWhatsapp({ propertyId: propertyIdNumber });
+    if (propertyId !== null) {
+      shareContact({ propertyId: propertyId });
+      shareWhatsapp({ propertyId: propertyId });
+    }
     setDialogOpen(true);
   };
 
@@ -166,10 +134,23 @@ const DownloadBrochure = ({
   const minCarpetArea = configration
     ? Math.min(...configration.map((item) => item.carpet_area || 0))
     : null;
-  const unit = configration
-    ? configration.map((item) => item.length_unit || 0)
+
+  const isSingleCarpetArea = configration
+    ? configration.map((item) => item.carpet_area || 0)
     : null;
   // Property Details
+
+  console.log(property_variety, 'configration')
+
+  const sortedValue = isSingleCarpetArea?.length === 1
+    ? `${minCarpetArea} sq ft`
+    : isSingleCarpetArea
+      ? `${minCarpetArea} - ${maxCarpetArea} sq ft`
+      : `${maxCarpetArea} sq ft`;
+
+  const unitNamesArray = configration?.map(item => ({'unit_name': item.unit_name}));
+      
+      const unitNames = formatUnitNames(unitNamesArray);
   const propertyDetails = [
     {
       row: 1,
@@ -179,8 +160,8 @@ const DownloadBrochure = ({
           value: projectArea ? `${projectArea} ${unit_type}` : "N/A",
         },
         {
-          label: "Size",
-          value: `${minCarpetArea} - ${maxCarpetArea} sq ft` || "N/A",
+          label: "Carpet Area",
+          value: sortedValue || "N/A",
         },
         {
           label: "RERA ID",
@@ -194,189 +175,108 @@ const DownloadBrochure = ({
         {
           label: "Avg. Price",
           value: per_sqft_amount
-            ? `${formatPrice(Number(per_sqft_amount))}/sq.ft`
+            ? `${formatPrice(Number(per_sqft_amount))}/sq ft`
             : "N/A",
         },
-        { label: "Added", value: possession_date || "N/A" },
-        { label: "Project Type", value: property_variety || "N/A" },
+        { label: "Added On", value: publish_date ? formatDate(publish_date) : "N/A" },
+
+        { label: propertyType?.toLowerCase()==="commercial" ?"Commercial Variety": "Project Type", value:propertyType?.toLowerCase()==="residential" ? unitNames || "N/A" : property_variety || "N/A" },
+      ],
+    },
+    {
+      row: 3,
+      items: [
+        {
+          label: "Current Status",
+          value: propertyCurrentStatus? propertyCurrentStatus: "N/A",
+        },
+        { label: propertyType?.toLowerCase()==="residential"? "Total unit(in one wing)" : "Total Units", value: totalUnits || "N/A" },
+        { label: propertyType?.toLowerCase()==="open land" ?  "Width Of Facing Road" : "Total Floors",
+          value: propertyType?.toLowerCase()==="open land" ? `${widthFacingRoad } feet` || "N/A" : floorNumber || "N/A"},
+
+        // { label: "Total Floor Number", value: floorNumber || "N/A" },
       ],
     },
   ];
-  const [isVisible, setIsVisible] = useState(false);
-  useEffect(() => {
-    if (isVisible) {
-      // Ensure script is loaded
-      const scriptId = "sharethis-script";
-      if (!document.getElementById(scriptId)) {
-        const script = document.createElement("script");
-        script.id = scriptId;
-        script.src =
-          "https://platform-api.sharethis.com/js/sharethis.js#property=679778caeec4bb0012d85a05&product=inline-share-buttons";
-        script.async = true;
-        document.body.appendChild(script);
 
-        script.onload = () => {
-          if (window.__sharethis__) {
-            window.__sharethis__.initialize();
-          }
-        };
-      } else {
-        // Reinitialize ShareThis buttons on every open
-        setTimeout(() => {
-          if (window.__sharethis__) {
-            window.__sharethis__.initialize();
-          }
-        }, 500);
-      }
-    }
-  }, [isVisible]);
+  if (propertyType?.toLowerCase() === "residential") {
+    propertyDetails.push({
+      row: 4,
+      items: [
+        {
+          label: "Total Towers",
+          value: totalTowers || "N/A",
+        },
+        { label: "Residential Variety", value: property_variety || "N/A" },
+        { label: "", value: "" },
+      ],
+    });
+  }
 
 
   return (
     <Card className="flex flex-col  gap-5 p-0 bg-white">
       <CardContent className="w-full p-0">
-        {/* Header */}
-        <div className="flex items-center px-5 py-1 bg-white shadow-sm border-b">
-          <h2 className="font-medium text-base text-[#222222]">
-            {title || "N/A"}
-          </h2>
-        </div>
+        <div className="hidden lg:block">
+          {/* Header */}
+          <div className="flex items-center px-5 py-1 shadow-sm border-b">
+            <h2 className="font-medium text-base text-[#222222]">
+              {title || "N/A"}
+            </h2>
+          </div>
 
-        {/* Property Details */}
-        <div className="flex flex-col gap-6 p-2">
-          {propertyDetails.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex items-start gap-16">
-              {row.items.map((item, itemIndex) => (
-                <div key={itemIndex} className="flex flex-col gap-4 w-full">
-                  <span className="text-sm text-[#22222280] font-light">
-                    {item.label}
-                  </span>
-                  <span className="text-sm text-black font-light">
-                    {item.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ))}
+          {/* Property Details */}
+          <div className="flex flex-col gap-4 p-2">
+            {propertyDetails.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex items-start gap-16">
+                {row.items.map((item, itemIndex) => (
+                  <div key={itemIndex} className="flex flex-col gap-1 w-full">
+                    <span className="text-sm text-[#22222280] font-light">
+                      {item.label}
+                    </span>
+
+                    {item.label === "RERA ID" && item.value !== "N/A" ? <a href="https://maharera.maharashtra.gov.in/" target="_blank" className="text-sm text-blue font-medium">{item.value}</a> :
+                      <span className="text-sm text-black font-light">{item.value}</span>}
+
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-4 justify-center p-4">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setActiveButton("share"), setIsVisible(true);
-            }}
-            className={`w-40 h-10 gap-2 rounded-sm ${activeButton === "share"
-              ? "bg-primary text-white"
-              : "bg-[#e6e6e6]"
-              }`}
-          >
-            <Share2 className="h-4 w-4" />
-            <span
-              className={`text-xs font-light ${activeButton === "share" ? "text-white" : ""
-                }`}
-            >
-              SHARE
-            </span>
-          </Button>
-          {isVisible && (
-            <div className="relative  ">
-              {isVisible && (
-           
+        <div className=" items-center gap-4 justify-center p-4 hidden lg:flex">
+          <ShareShortlist
+            background={"lg:bg-[#e6e6e6] bg-white"}
+            shadow={"lg:shadow-none shadow-lg"}
+            rounded={"rounded-full lg:rounded-[2px]"}
+            fontSize={"text-xs"}
+            textTransform={"uppercase"}
+            fontWeight={"font-light"}
+            hoverBackground={"hover:bg-primary"}
+            hoverTextColor={"hover:text-white"}
+            iconColor={"text-primary"}
+            iconHoverColor={"group-hover:text-white"}
+            propertyId={propertyId}
+            propertyIdSlug={params?.id}
+            btnSaveText={"Shortlist"}
+            showBtnText={true}
+          />
 
-                <div className="fixed top-0 left-0 w-full h-full bg-opacity-50 flex flex-col justify-center items-center z-50 p-4">
-                  <div className="bg-black  w-full max-w-sm p-6 rounded-lg shadow-lg">
-
-                    <div className="flex justify-between items-center mb-4">
-                      <p className="text-lg font-semibold text-white">Share</p>
-                      <button
-                        className="text-white px-4 py-2 rounded-md"
-                        onClick={() => setIsVisible(false)}
-                      >
-                        x
-                      </button>
-                    </div>
-                 <div className=" p-5   rounded-md shadow-md max-w-sm w-full flex justify-between">
-
-                      <div className=" sharethis-inline-share-buttons gap-1" style={{ marginLeft: "8px", gap: "6px" }}></div>
-
-                    </div>
-
-                   <div className="mb-4">
-                      <div className="flex items-center space-x-2 p-4  rounded-full  border-[1px] border-gray" >
-                        <input
-                          type="email"
-                          value={email}
-                          readOnly
-                          className="p-2 w-full  rounded-md  "
-                        />
-                        <button
-                          onClick={handleCopy}
-                          className="bg-blue text-white px-4 py-2 rounded-full  border-white"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-                // <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-30 flex justify-center items-center z-50">
-                //   <div className="bg-black p-5 border border-gray-300 rounded-md shadow-md max-w-sm w-full flex justify-between">
-
-                //     <div className=" sharethis-inline-share-buttons"></div>
-                //     <button
-                //       className=" text-black px-4 py-2 rounded-md my-3 self-center border "
-                //       onClick={() => setIsVisible(false)} // Close the dialog
-                //     >
-                //       x
-                //     </button>
-                //   </div>
-                // </div>
-              )}
-            </div>
-          )}
-
-       
-
-          <Button
-            variant="secondary"
-            onClick={handleShortListClick}
-            className={`w-40 h-10 gap-2 rounded-sm ${buttonState === "save"
-              ? "bg-[#fc6600] text-white"
-              : "bg-[#e6e6e6]"
-              }`}
-          >
-            {loading ? (
-              <span>Loading...</span>
-            ) : (
-              <>
-                <Heart className="h-4 w-4" />
-                <span
-                  className={`text-xs font-light ${buttonState === "save" ? "text-white" : ""
-                    }`}
-                >
-                  Shortlist
-                </span>
-              </>
-            )}
-          </Button>
-          
-        
 
           <Button
 
             onClick={handleOwnerContactClick}
 
-            className="flex items-center gap-2 bg-primary text-white  "
+            className={` h-10 rounded-[2px] hover:bg-primary hover:text-white text-xs font-light uppercase ${activeButton === "details"
+                ? "bg-[#fc6600] text-white hover:bg-[#fc6600]/90"
+                : "bg-[#e6e6e6]"
+              }`}
           >
-            <span
-              className={`text-xs font-light ${activeButton === "details" ? "text-white" : "text-black"
-                }`}
-            >
-              Ask for details
-            </span>
+
+            Contact Builder
+
           </Button>
 
           <div className="relative  ">
@@ -402,19 +302,11 @@ const DownloadBrochure = ({
           </div>
 
         </div>
-       
-      </CardContent>
-      {showPopup && (
-  <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-[#222222] p-4 rounded-lg shadow-lg">
-      <p className="text-sm font-semibold text-center text-white mr-4">
-       Property Shortlisted
-      </p>
-    </div>
-  </div>
-)}
 
-      
+      </CardContent>
+
+
+
     </Card >
   );
 };

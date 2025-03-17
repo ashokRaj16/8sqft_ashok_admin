@@ -6,11 +6,11 @@ import { Formik, Field, Form, ErrorMessage } from "formik";
 import React from "react";
 import * as Yup from "yup"; // Import Yup for validation
 // Data for the plot sizes and checkbox options
-const plotSizes = [
-  { value: "1000", label: "1000 Sqft" },
-  { value: "2000", label: "2000 Sqft" },
-  { value: "3000", label: "3000 Sqft" },
-];
+// const plotSizes = [
+//   { value: "1000", label: "1000 Sqft" },
+//   { value: "2000", label: "2000 Sqft" },
+//   { value: "3000", label: "3000 Sqft" },
+// ];
 
 const checkboxOptions = [
   { id: "loans", label: "I'm interested in home loans" },
@@ -24,14 +24,40 @@ const validationSchema = Yup.object({
       .required("Phone number is required")
       .matches(/^\d{10}$/, "Phone number must be 10 digits"),
   });
-export default function ContactDeveloperSection() {
+  interface Configuration {
+    id: number;
+    carpet_area?: number;
+    unit_name?: any;
+  }
+  
+  interface ContactDeveloperSectionProps {
+    configration: Configuration[] | undefined;
+    propertyVariety?:string | null;
+    propertytype?: string | null | undefined;
+  }
+  export default function ContactDeveloperSection({ configration, propertyVariety,propertytype }: ContactDeveloperSectionProps) {
+    const carpetAreas = configration?.map((item) => item.carpet_area || 0).filter((area) => area > 0) || [];
+    const uniqueAreas = [...new Set(carpetAreas)].sort((a, b) => a - b);
+    let plotSizes: { value: string; label: string }[] = [];
+    if (uniqueAreas.length >= 3) {
+      const midIndex = Math.floor(uniqueAreas.length / 2);
+      plotSizes = [
+        { value: `${uniqueAreas[0]}`, label: `${uniqueAreas[0]} Sq ft` },
+        { value: `${uniqueAreas[midIndex]}`, label: `${uniqueAreas[midIndex]} Sq ft` },
+        { value: `${uniqueAreas[uniqueAreas.length - 1]}`, label: `${uniqueAreas[uniqueAreas.length - 1]} Sq ft` },
+      ];
+    } else {
+      plotSizes = uniqueAreas.map((area) => ({ value: `${area}`, label: `${area} Sq ft` }));
+    }
   return (
     <Formik
       initialValues={{
         name: "",
         phone: "",
         email: "",
-        plotSize: "",
+        selected_plot_size: "",
+        selectedUnitName: "", // Updated from plotSize to match API key
+        selectedPropVarity: "", // Updated from plotSize to match API key
         options: [],
       }}
       validationSchema={validationSchema}
@@ -41,12 +67,12 @@ export default function ContactDeveloperSection() {
     >
       {({ values, setFieldValue }) => (
         <Form>
-          <Card className="w-[339px] bg-white">
+          <Card className="w-full bg-white">
             <CardContent className="flex flex-col gap-5 p-5">
               {/* Header */}
               <div className="flex flex-col gap-3">
                 <h2 className="font-semibold text-base text-[#222222]">
-                  Contact Developer
+                  Contact Builder
                 </h2>
 
                 {/* Name, Phone, and Email Inputs */}
@@ -98,25 +124,43 @@ export default function ContactDeveloperSection() {
                 </div>
 
                 {/* Plot Size Selection */}
-                <div className="space-y-3">
-                  <Label>You are looking for an open plot?</Label>
-                  <div className="flex gap-3">
+          <div className="space-y-3">
+                       <Label>You are looking for a?</Label>
+                       <div>
+                  {propertytype?.toLowerCase() === "open land" && (<div className="flex gap-3">
                     {plotSizes.map((size) => (
                       <button
                         type="button"
                         key={size.value}
-                        className={`h-10 px-3 text-xs rounded-[20px] border ${
-                          values.plotSize === size.value
-                            ? "bg-[#fc6600] text-white"
-                            : "border-[#fc6600]"
-                        }`}
-                        onClick={() => setFieldValue("plotSize", size.value)}
+                        className={`h-10 px-3 text-xs rounded-[20px] border ${values.selected_plot_size === size.value ? "bg-[#fc6600] text-white" : "border-[#fc6600]"
+                          }`}
+                        onClick={() => setFieldValue("selected_plot_size", size.value)}
                       >
                         {size.label}
                       </button>
                     ))}
-                  </div>
+                  </div>)}
+                  {propertytype?.toLowerCase() === "residential" && (<div className="flex gap-3">
+                    {configration?.map((item) => (
+                      <button
+                        type="button"
+                        key={item.unit_name}
+                        className={`h-10 px-3 text-xs rounded-[20px] border ${values.selectedUnitName === item.unit_name ? "bg-[#fc6600] text-white" : "border-[#fc6600]"
+                          }`}
+                        onClick={() => setFieldValue("selectedUnitName", item.unit_name)}
+                      >
+                        {item.unit_name}
+                      </button>
+                    ))}
+                  </div>)}
+
+                  {propertytype?.toLowerCase() === "commercial" && (<button
+                    type="button"
+                    className={`h-10 px-3 text-xs rounded-[20px] border ${values.selectedPropVarity === propertyVariety ? "bg-[#fc6600] text-white" : "border-[#fc6600]"
+                      }`}
+                    onClick={() => setFieldValue("selectedPropVarity", propertyVariety)}>{propertyVariety}</button>)}
                 </div>
+                     </div>
 
                 {/* Checkbox Options */}
                 <div className="space-y-2">
@@ -145,7 +189,7 @@ export default function ContactDeveloperSection() {
                 type="submit"
                 className="w-full bg-[#fc6600] hover:bg-[#fc6600]/90 text-white"
               >
-                Contact Developer
+                Contact Builder
               </Button>
             </CardContent>
           </Card>

@@ -43,6 +43,7 @@ export default function BuilderGallary({ onNext }: GalleryComponentProps) {
           </span>
         </p>
         <ResidentialComponent
+         imageCategory="PROPRETY_IMAGES"
           options={[
             "Main Image",
             "Entrance Image",
@@ -56,18 +57,20 @@ export default function BuilderGallary({ onNext }: GalleryComponentProps) {
       </div>
       <div className="flex gap-4  flex-col">
         <p className="text-md font-bold">Add video to get better response</p>
-        <ResidentialComponent options={["Video"]} />
+        <ResidentialComponent options={["Video"]}   imageCategory="VIDEO "/>
       </div>
-      <div className="flex gap-4  flex-col">
+      {/* <div className="flex gap-4  flex-col">
         <p className="text-md font-bold">Verify your property</p>
         <ResidentialComponent
+          imageCategory="VER_DOCUMENT"
           options={["Layout Plan", "Property Agreement", "DA&PA", "7/12 or 8A"]}
         />
-      </div>
+      </div> */}
       <div className="flex flex-col lg:flex-row gap-5 w-full justify-around">
         <div className="">
           <p className="text-md font-bold">Upload Brochure</p>
           <GallaryUploadBroucher
+            imageCategory="BROUCHER"
             title={"Add File "}
             label={"Upload Brochure here"}
           />
@@ -75,20 +78,18 @@ export default function BuilderGallary({ onNext }: GalleryComponentProps) {
         <div className="">
           <p className="text-md font-bold">Upload RERA QR code</p>
           <GallaryUploadBroucher
-            title={" Add Photo"}
+            imageCategory="RERA"
+            title={"Add Photo"}
             label={"Upload your Rera QR Code here"}
           />
         </div>
       </div>
-      <div className="flex flex-row gap-4 justify-center items-center">
-        <button
-          onClick={handleSubmit}
-          className="mt-8 w-full max-w-48 flex justify-center items-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
-        >
-          Save and Next
-        </button>
-      </div>
-
+      <button
+        onClick={handleSubmit}
+        className="mt-8 w-full max-w-48 flex self-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
+      >
+        Save and Next
+      </button>
       {error && (
         <p className="text-red-500 text-sm mt-4">Error: {error.message}</p>
       )}

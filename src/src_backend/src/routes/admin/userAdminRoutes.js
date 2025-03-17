@@ -6,9 +6,9 @@ import { getAllContacts, getContactById} from "../../controllers/frontController
 const router = express.Router();
 
 router.get('/', adminUserController.listUsers);
-router.get('/:id', adminUserController.getUserById);
 router.post('/', adminUserController.addAdminUser);
-router.put('/:id', adminUserController.updateUser);
+router.get('/:id', adminUserController.getUserById);
+router.put('/:id', adminUserController.updateAdminUser);
 router.patch('/:id/status', adminUserController.changeUserStatus);
 router.delete('/:id', adminUserController.deleteUser);
 

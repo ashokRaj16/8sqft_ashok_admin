@@ -12,6 +12,8 @@ export let initialBlogValues = {
     comment_enabled: '',
     canonical_url: '',
     banner_image: '',
+    banner_size : '',
+    banner_type : '',
     banner_video : '',
     youtube_url: '',
     publish_date  :'',

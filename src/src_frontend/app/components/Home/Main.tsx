@@ -7,6 +7,8 @@ import StatsCard   from "./HomeStatic/Counter"
 import ReviewsComponent from "./HomeStatic/ReviewsComponent";
 import Spotlight from "./HomeStatic/Spotlight";
 import ClientsSection from "./HomeStatic/ClientSection";
+import SpotlightSlider from "../common/Spotlight";
+import MobSpotlightSlider from "../common/MobSpotlightSlider";
 
 
 export default function MainComponent() {
@@ -14,21 +16,27 @@ export default function MainComponent() {
     <div className="w-full h-full ">
       <HeroComponent />
       <div className="container mx-auto mt-10">
+      <div className="text-center mt-6">
+        <RecommendationComponent />
+         
+        </div>
         <div className="text-center mt-6">
            <StatsCard/>
         </div>
 
-        <div className="text-center mt-6">
-        <RecommendationComponent />
-         
-        </div>
+ 
 
         <div className="text-center mt-6">
-          {/* <div> */}
-        <p className="text-2xl font-bold my-5 text-start ml-4">Spotlight</p>
-        {/* </div> */}
-        < Spotlight/>
-         
+        
+        <p className="lg:text-2xl text-xl font-medium lg:font-semibold my-5 text-center ml-4">Spotlight</p>
+     
+        <div className="block lg:hidden">
+        {/* < Spotlight/> */}        
+      <MobSpotlightSlider/>
+        </div>
+       <div className="hidden lg:block">
+       < SpotlightSlider/>
+       </div>
         </div>
 
         <div className="text-center mt-6">
@@ -40,7 +48,7 @@ export default function MainComponent() {
         </div>
        
         <div className="text-center  mt-6">
-          <ClientsSection />
+          {/* <ClientsSection /> */}
         </div>
 
         <div className="text-center  mt-6">

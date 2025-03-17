@@ -98,7 +98,7 @@ const AmenitiesComponent = ({ onNext }: { onNext: () => void }) => {
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      {({ values, setFieldValue }) => (
+      {({ values, setFieldValue, isSubmitting }) => (
         <Form className="max-w-4xl mx-auto p-6 bg-white rounded-lg space-y-4">
           {/* Furniture Status */}
 
@@ -341,22 +341,13 @@ const AmenitiesComponent = ({ onNext }: { onNext: () => void }) => {
           >
             Save and Next
           </button> */}
-          <div className="flex flex-row gap-4 justify-center items-center">
-            {/* Back Button */}
-
-            {/* <button
-              type="button"
-              className="min-w-[100px] py-1 px-4 bg-black text-white rounded-full text-sm"
-            >
-              BACK
-            </button> */}
-
-            {/* Save & Next Button */}
+        <div className="flex flex-row gap-4 justify-center items-center">
             <button
               type="submit"
-              className="min-w-[100px] py-1 px-4 bg-primary text-white rounded-full text-sm"
+              disabled={isSubmitting}
+              className="mt-8 w-full max-w-48 flex justify-center items-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
             >
-              Save and Next
+              {isSubmitting ? "Submitting..." : "SAVE & NEXT"}
             </button>
           </div>
         </Form>

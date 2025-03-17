@@ -15,68 +15,99 @@ import {
     CFormLabel,
     CButton, 
     CFormText,
-    CToaster } from '@coreui/react';
+    CToaster, 
+    CProgress,
+    CFormTextarea} from '@coreui/react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { validationMemberSchema } from './memberValidation';
-import { createMemberUser } from '../../../models/usersModel';
-import { ToastMessage } from '../../../components/ToastMessage';
+import { createMemberUser, updateMemberUser, getMemberUserById } from '../../../models/usersModel';
 import { initialMemberValues } from './data';
 import { getAllCities, getAllStates } from '../../../models/locationModel';
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate, useParams } from 'react-router-dom';
+import { usePushToastHelper } from '../../../utils/toastHelper';
 
 const AddMemberUser = () => {
   
+    const { id } = useParams();
+    
     const [ cities, setCities ] = useState([]);
-    const [ toast, addToast ] = useState(0);
+    const [ memberDetails, setMemberDetails ] = useState(initialMemberValues);
+    const { toasts, pushToastsMessage } = usePushToastHelper();
     const toaster = useRef();    
     const navigate = useNavigate();
-
+    
     const handleSubmit = async (values, resetForm, setSubmitting) => {
-        try {
-          console.log(values);
-            const result = await createMemberUser(values);
-            console.log("Result: ", result)
-            if(result) {
-                addToast(<ToastMessage
-                    type="success"
-                    message={result.message} />)
-            }
-            resetForm();
-          } catch ( error ) {
-            addToast(<ToastMessage
-              type="error"
-              message={error.message} />)
-          } finally {
-            setSubmitting(false);
+      try {
+        console.log(values);
+        let result;
+        if(!id) {
+          result = await createMemberUser(values);
+          resetForm();
+        }
+        else {
+          result = await updateMemberUser(id, values);
+        }
+        if(result) {
+            pushToastsMessage('success', result.message)
           }
+
+        } catch ( error ) {
+          pushToastsMessage('error', error.message)
+        } finally {
+          setSubmitting(false);
+        }
     }
-
+    
     useEffect( () => {
-
+      
       (async () => {
-        try{
-
+        try{              
           const result = await getAllCities();
-          console.log(result.data)
           setCities(result.data)
         }
         catch(error) {
-          addToast(<ToastMessage
-            type="error"
-            message={error.message} />)
+            pushToastsMessage('error', error.message)
+          }
+        })();            
+        
+        // return () => {}
+    }, [])
+        
+    useEffect( () => {
+      (async () => { if(id) {
+        try{
+
+          const result = await getMemberUserById(id)
+          console.log(id, result, "user Id");
+          if(!result) {
+            pushToastsMessage('error', error.message)
+          }
+          setMemberDetails((prev) => ({
+            ...prev,
+            ...result.data
+          }))
+        } catch(error) {
+          pushToastsMessage('error', error.message)
+
+          setTimeout(() => {
+            navigate(-1)
+          }, 1000)
         }
-      })();
+        
+      }})()
 
       // return () => {}
-    }, [])
+    }, [id])
 
+    console.log(memberDetails, "memberDetails data")
 
   return (
     <>
       <CCard className="mb-4">
         <CCardHeader className='d-flex'>
-            <strong>Add Member</strong>
+            <strong>
+            { id ? 'Edit Member' : 'Add Member' } 
+            </strong>
             <CCol className="d-flex justify-content-end">
                 <CButton
                 onClick={() => navigate(-1)} 
@@ -86,14 +117,15 @@ const AddMemberUser = () => {
         </CCardHeader>
         <CCardBody>
           <Formik
-              initialValues={initialMemberValues}
+              enableReinitialize
+              initialValues={memberDetails}
               validationSchema={validationMemberSchema}
               onSubmit={(values, { setSubmitting, resetForm }) => {
-                console.log(values)
                   handleSubmit(values, resetForm, setSubmitting);
-                }}
+              }}
           >
-            {({ values, handleChange, handleBlur, isSubmitting  }) => (
+            {({ values, errors, handleChange, setFieldValue, setFieldError, handleBlur, isSubmitting  }) => (
+              console.log(values, errors, "log"),
               <Form>
                 
                 {/* <CForm> */}
@@ -152,37 +184,6 @@ const AddMemberUser = () => {
                   </CRow>
 
                   <CRow className="mb-3">
-                    <CFormLabel htmlFor="address" className="col-sm-2 col-form-label">Address: </CFormLabel>
-                    <CCol sm={10} md={6} lg={4}>
-
-                    <Field
-                      name="address"
-                      type="text"
-                      className="form-control"
-                      placeholder="Enter address"
-                      value={values.address}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      />
-                    <ErrorMessage name="address" component={CFormText} className="text-danger" />
-                      </CCol>
-                  </CRow>
-
-                  {/* <CRow className="mb-3">
-                    <CFormLabel htmlFor="profile_picture_url" className="col-sm-2 col-form-label">Profile Picture URL</CFormLabel>
-                    <CCol sm={10} md={6} lg={4}>
-
-                    <Field
-                      name="profile_picture_url"
-                      type="text"
-                      className="form-control"
-                      placeholder="Enter profile picture URL"
-                      />
-                    <ErrorMessage name="profile_picture_url" component={CFormText} className="text-danger" />
-                      </CCol>
-                  </CRow> */}
-
-                  <CRow className="mb-3">
                     <CFormLabel htmlFor="mobile" className="col-sm-2 col-form-label">Mobile:</CFormLabel>
                     <CCol sm={10} md={6} lg={4}>
 
@@ -216,42 +217,106 @@ const AddMemberUser = () => {
                       </CCol>
                   </CRow>
 
-                  {/* <CRow className="mb-3">
-                    <CFormLabel htmlFor="status" className="col-sm-2 col-form-label">Status</CFormLabel>
+                  <CRow className="mb-3">
+                    <CFormLabel htmlFor="address" className="col-sm-2 col-form-label">Address: </CFormLabel>
                     <CCol sm={10} md={6} lg={4}>
-
-                    <Field
-                      name="status"
-                      as="select"
+                    <CFormTextarea 
+                      name="address_1"
                       className="form-control"
-                      >
-                      <option value="" label="Select status" />
-                      <option value="active" label="Active" />
-                      <option value="inactive" label="Inactive" />
-                    </Field>
-                    <ErrorMessage name="status" component={CFormText} className="text-danger" />
-                        </CCol>
-                  </CRow> */}
+                      placeholder="Enter address"
+                      value={values.address_1}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                    />
+                    <ErrorMessage name="address_1" component={CFormText} className="text-danger" />
+                      </CCol>
+                  </CRow>
 
                   <CRow className="mb-3">
-                    <CFormLabel htmlFor="city" className="col-sm-2 col-form-label">City: </CFormLabel>
+                    <CFormLabel htmlFor="city_id" className="col-sm-2 col-form-label">City: </CFormLabel>
                     <CCol sm={10} md={6} lg={4}>
                     <Field
-                        name="city"
-                        as="select"
+                        name="city_id"
+                        as={CFormSelect}
+                        type="select"
+                        onChange={(e) => {
+                          const selectedOption = e.target.options[e.target.selectedIndex];
+                          const cityName = selectedOption.text;
+                          if(e.target.value === '-1') {
+                            setFieldValue('city_id', '');
+                            setFieldValue('city_name', '');  
+                            return
+                          }
+                          setFieldValue('city_id', e.target.value);
+                          setFieldValue('city_name', cityName);
+                        }}
                         className="form-control"
                         >
                       <option value="-1" label="Select city" />
                       {
                         cities.length > 0 && 
-                        cities.map((item, index) => (
-                          
-                          <option key={item.id} value={item.city_name} label={item.city_name} />
+                        cities.map((item, index) => (                          
+                          <option key={item.id} value={item.id} > { item.city_name } </option>
                         ))
                       }
                     </Field>
-                    <ErrorMessage name="city" component={CFormText} className="text-danger" />
+                    <ErrorMessage name="city_id" component={CFormText} className="text-danger" />
                         </CCol>
+                  </CRow>
+                      
+                  <CRow className="mb-3">
+                    <CFormLabel htmlFor="instagram_url" className="col-sm-2 col-form-label">Instagram URL</CFormLabel>
+                    <CCol sm={10} md={6} lg={4}>
+                    <Field
+                      name="instagram_url"
+                      type="text"
+                      className="form-control"
+                      placeholder="Instagram URL"
+                      />
+                    <ErrorMessage name="instagram_url" component={CFormText} className="text-danger" />
+                      </CCol>
+                  </CRow>
+
+                  <CRow className="mb-3">
+                    <CFormLabel htmlFor="facebook_url" className="col-sm-2 col-form-label">Facebook URL</CFormLabel>
+                    <CCol sm={10} md={6} lg={4}>
+                    <Field
+                      name="facebook_url"
+                      type="text"
+                      className="form-control"
+                      placeholder="Facebook URL"
+                      />
+                    <ErrorMessage name="facebook_url" component={CFormText} className="text-danger" />
+                      </CCol>
+                  </CRow>
+
+                  <CRow className="mb-3">
+                    <CFormLabel htmlFor="youtube_url" className="col-sm-2 col-form-label">Youtube URL</CFormLabel>
+                    <CCol sm={10} md={6} lg={4}>
+                    <Field
+                      name="youtube_url"
+                      type="text"
+                      className="form-control"
+                      placeholder="Youtube URL"
+                      />
+                    <ErrorMessage name="youtube_url" component={CFormText} className="text-danger" />
+                      </CCol>
+                  </CRow>
+
+                  <CRow className="mb-3">
+                    <CFormLabel htmlFor="whatsapp_notification" className="col-sm-2 col-form-label">Whatsapp Notification</CFormLabel>
+                    <CCol sm={10} md={6} lg={4}>
+                      <CFormCheck 
+                        type='checkbox'
+                        value={values?.whatsapp_notification }
+                        name='whatsapp_notification'
+                        onChange={(e) => {
+                          setFieldValue('whatsapp_notification', e.target.checked ? '1' : '0')
+                        }}
+                        checked={values?.whatsapp_notification === '1'} />
+                    
+                    <ErrorMessage name="whatsapp_notification" component={CFormText} className="text-danger" />
+                      </CCol>
                   </CRow>
 
                   <CButton 
@@ -259,7 +324,9 @@ const AddMemberUser = () => {
                       color="primary"
                       className='me-2'
                       disabled={isSubmitting}>
-                    {  isSubmitting ? (  <> <CSpinner size='sm' /> Submit  </> ) : 'Submit' }
+                    {  isSubmitting ? (  <> 
+                      <CSpinner size='sm' /> Submit  
+                      </> ) : id ? 'Update' : 'Submit' }
                   </CButton>
                 
                   <CButton 
@@ -273,7 +340,7 @@ const AddMemberUser = () => {
           </Formik>
         </CCardBody>
       </CCard>
-      <CToaster ref={toaster} push={toast} placement="top-end" />
+      <CToaster ref={toaster} push={toasts} placement="top-end" />
     </>
   );
 };

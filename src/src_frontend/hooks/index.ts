@@ -1,10 +1,10 @@
 import axiosOriginal from "axios";
 import axiosRetry from "axios-retry";
 
-console.log("api-url", process.env.NEXT_API_URL);
+console.log("api-url", process.env.NEXT_PUBLIC_API_URL);
 
 const axios = axiosOriginal.create({
-  baseURL: process.env.NEXT_API_URL || "https://api.8sqft.com",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.8sqft.com",
   timeout: 60000,
 });
 
@@ -14,7 +14,7 @@ const accesskey = "A8SQFT7767"; // Replace with your actual static token
 // Add request interceptor to include the x-api-token header
 axios.interceptors.request.use(
   (config) => {
-    config.headers["x-api-key"] = accesskey; // Attach the static token
+    config.headers["x-api-key"] = accesskey;
     return config;
   },
   (error) => {
@@ -44,7 +44,7 @@ axios.interceptors.response.use(
     if (error.code === "ECONNABORTED") {
       console.error("Request timed out. Please try again.");
     } else if (error.response) {
-      console.error(`Error status: ${error.response.status}`);
+      // console.error(`Error status: ${error.response.status}`);
     } else {
       console.error("Network error or no response received.");
     }

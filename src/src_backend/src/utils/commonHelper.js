@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 import _ from 'lodash';
 
@@ -19,6 +20,14 @@ export const generateSecretToken = () => {
     return secretRefresh;
 }
 
+export const hashPassword = (password) => {
+    let hashPassword = password;
+    if(!password) {
+        throw new Error('Password required')        
+    }
+    hashPassword = bcrypt.hash(password, 10)
+    return hashPassword
+}
 /**
  * Sanitizes a given field based on trimming, case conversion, and additional sanitization options.
  *

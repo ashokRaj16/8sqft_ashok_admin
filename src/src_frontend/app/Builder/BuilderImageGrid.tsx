@@ -443,7 +443,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { formatPrice } from "./BuilderLayout/overview-mobile";
 import usePdfStore from "@/Store/fileStore";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
+import ShareShortlist from "../components/common/ShareShortlist";
+import { useParams } from "next/navigation";
 
 interface ImageProps {
   url: string;
@@ -457,6 +459,7 @@ interface ImageGridProps {
   per_sqft_amount: number | null | undefined;
   possession_date: string | null | undefined;
   property_title?: string | null | undefined;
+  propertyId?: any;
 }
 
 const defaultImages: ImageProps[] = [
@@ -488,13 +491,14 @@ const BuilderImageGrid: React.FC<ImageGridProps> = ({
   per_sqft_amount,
   possession_date,
   property_title,
+  propertyId,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 640px)");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { setPdfUrl } = usePdfStore();
 
-
+  const params = useParams();
   const maxCarpetArea = configration
     ? Math.max(...configration.map((item) => item.carpet_area || 0))
     : null;
@@ -508,6 +512,7 @@ const BuilderImageGrid: React.FC<ImageGridProps> = ({
   const maxCarpetprice = configration
     ? Math.max(...configration.map((item) => item.carpet_price || 0))
     : null;
+
   const propertyDetail = [
     {
       title: `${minCarpetArea}-${maxCarpetArea} sqft`,
@@ -523,11 +528,31 @@ const BuilderImageGrid: React.FC<ImageGridProps> = ({
     },
   ];
 
+  // useEffect(() => {
+
+  //   images.forEach((image) => {
+  //     const fileExtension = image.url?.split(".").pop()?.toLowerCase();
+  //     console.log("pdfff",image.url);
+  //     if (fileExtension === "pdf") {
+  //       console.log("found")
+  //       setPdfUrl(image.url);
+  //     }
+  //   });
+  // }, [images, setPdfUrl]);
+
+  // const { setPdfUrl } = usePdfStore();
+  console.log(images, 'property_title')
   useEffect(() => {
     images.forEach((image) => {
+      console.log("images:::", image);
+
+      // Extract file extension from the URL
       const fileExtension = image.url?.split(".").pop()?.toLowerCase();
+
       if (fileExtension === "pdf") {
-        setPdfUrl(image.url);
+        setPdfUrl(image.url); // Store PDF URL in Zustand or state
+      } else {
+        console.warn(`Unsupported or unknown file type for URL: ${image.url}`);
       }
     });
   }, [images, setPdfUrl]);
@@ -566,17 +591,56 @@ const BuilderImageGrid: React.FC<ImageGridProps> = ({
 
 
 
+  const [imageSizes, setImageSizes] = useState<Record<number, { width: string; height: string }>>({});
 
+  const [isPlaying, setIsPlaying] = useState(true); // Default: autoplay enabled
 
+  useEffect(() => {
+    const loadImages = async () => {
+      const sizes: Record<number, { width: string; height: string }> = {};
+
+      await Promise.all(
+        images.map((image, index) => {
+          return new Promise<void>((resolve) => {
+            const img = new window.Image();
+            img.src = image.url;
+            img.onload = () => {
+              console.log("images", imageSizes, img.width, img.height)
+              const aspectRatio = img.width / img.height;
+              sizes[index] = aspectRatio > 1
+                ? { width: "90vw", height: "auto" }  // Landscape
+                : { width: "auto", height: "80vh" }; // Portrait
+              resolve();
+            };
+          });
+        })
+      );
+
+      setImageSizes(sizes);
+    };
+
+    loadImages();
+  }, [images]);
+
+  const titleMap = new Map();
+  images
+    ?.filter((item) => !item.url.toLowerCase().endsWith(".pdf"))
+    ?.forEach((item, originalIndex) => {
+      if (!titleMap.has(item.title)) {
+        titleMap.set(item.title, { index: originalIndex, count: 1 });
+      } else {
+        titleMap.get(item.title).count += 1;
+      }
+    });
   return (
     <div className="w-full h-full">
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]"
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="relative w-full h-full bg-black rounded-lg overflow-hidden"
+            className="relative w-full h-full bg-black rounded-lg overflow-hidden "
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-10 mt-2">
@@ -587,18 +651,36 @@ const BuilderImageGrid: React.FC<ImageGridProps> = ({
                   Number(maxCarpetprice)
                 )}`}
               </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {images?.map((image, index) => (
-                  <button
-                    key={index}
-                    className={`px-3 py-1 text-white border-2 border-primary rounded-full text-sm transition-all duration-300 
-                      ${currentImageIndex === index ? "bg-primary" : "bg-gray-700"}`}
-                    onClick={() => setCurrentImageIndex(index)}
-                  >
-                    {image.title === "Default" ? "Other" : image.title}
-                  </button>
-                ))}
-              </div>
+              {/* <div className="flex gap-2 mt-2 overflow-x-auto whitespace-nowrap scrollbar-hidden">
+
+                {images?.filter(item => !item.url.toLowerCase().endsWith('.pdf')) // Exclude PDFs
+                  ?.map((image, index) => (
+                    <button
+                      key={index}
+                      className={`px-3 py-1 text-white border-2 border-primary rounded-full text-sm transition-all duration-300 
+        ${currentImageIndex === index ? "bg-primary" : "bg-gray-700"}`}
+                      onClick={() => setCurrentImageIndex(index)}
+                    >
+                      {image.title === "Default" ? "Other" : image.title}
+                    </button>
+                  ))}
+
+              </div> */}
+     
+
+<div className="flex gap-2 mt-2 overflow-x-auto whitespace-nowrap scrollbar-hidden">
+  {[...titleMap.entries()].map(([title, { index, count }]) => (
+    <button
+      key={index}
+      className={`px-3 py-1 text-white border-2 border-primary rounded-full text-sm transition-all duration-300 
+        ${currentImageIndex === index ? "bg-primary" : "bg-gray-700"}`}
+      onClick={() => setCurrentImageIndex(index)} 
+    >
+      {title === "Default" ? "Other" : title} {count > 1 ? `(${count})` : ""}
+    </button>
+  ))}
+</div>
+
             </div>
 
             <button className="fixed top-10 right-14 text-white p-2 rounded-full" onClick={() => setIsModalOpen(false)}>
@@ -610,33 +692,57 @@ const BuilderImageGrid: React.FC<ImageGridProps> = ({
               <button className=" shadow-md  m-4 p-2 rounded-full  border-2 border-white" onClick={() => handleScroll("prev")}>
                 <ArrowLeft size={18} className="text-white" />
               </button>
+                {/* Pause/Play Button */}
+  <button 
+    className="absolute top-1/2 -translate-y-4 left-3 border-2 border-white p-2 rounded-full"
+    onClick={() => setIsPlaying(!isPlaying)}
+  >
+   {isPlaying ? <Pause size={20} className="text-white" /> : <Play size={20} className="text-white" />}
+  </button>
+
               <div
-                ref={scrollContainerRef} // 🔹 Add ref here for scrolling
+                ref={scrollContainerRef}
                 className="overflow-x-auto flex no-scrollbar"
               >
-                <BuilderPageReusableCarousel activeIndex={currentImageIndex} enableAutoplay>
-                  {images?.map((image, index) => (
+                <BuilderPageReusableCarousel activeIndex={currentImageIndex} enableAutoplay={isPlaying}>
+                  {images?.filter(item => !item.url.toLowerCase().endsWith('.pdf'))?.map((image, index) => (
                     <div key={index} className="flex justify-center items-center">
                       {image.url.match(/\.(jpeg|jpg|png|gif)$/i) ? (
                         <Image
                           src={image.url}
                           alt={`Image ${index + 1}`}
-                          width={600}
-                          height={600}
+                          // width={Number(imageSizes[index]?.width || 90)}
+                          // height={Number(imageSizes[index]?.height || 80)}
+                          width={0}
+                          height={0}
+                          sizes="90vw"
                           className="rounded-lg object-contain max-w-full m-5"
+                          style={{ width: imageSizes[index]?.width || '90vw', height: imageSizes[index]?.height || '80vh', maxHeight: '80vh' }}
                         />
                       ) : image.url.match(/\.(mp4|webm|ogg)$/i) ? (
                         <video
                           src={image.url}
-                          width={500}
-                          height={500}
+                          width={0}
+                          height={0}
                           controls
                           className="rounded-lg object-contain max-w-full m-5"
+                          style={{ width: imageSizes[index]?.width || '90vw', height: imageSizes[index]?.height || '80vh', maxHeight: '90vh' }}
                         />
                       ) : null}
                     </div>
                   ))}
                 </BuilderPageReusableCarousel>
+                {/* <BuilderPageReusableCarousel activeIndex={currentImageIndex} enableAutoplay>
+                  {images?.map((image, index) => (
+                    <div key={index} className="flex justify-center items-center w-full h-full">
+                      {image.url.match(/\.(jpeg|jpg|png|gif)$/i) ? (
+                        <Image src={image.url} alt={`Image ${index + 1}`} width={800} height={600} className="rounded-lg object-cover w-full h-full" />
+                      ) : image.url.match(/\.(mp4|webm|ogg)$/i) ? (
+                        <video src={image.url} width={800} height={600} controls className="rounded-lg object-cover w-full h-full" />
+                      ) : null}
+                    </div>
+                  ))}
+                </BuilderPageReusableCarousel> */}
               </div>
               <button className=" shadow-md p-2 m-4 rounded-full  border-2 border-white" onClick={() => handleScroll("next")}>
                 <ArrowRight size={18} className="text-white" />
@@ -648,38 +754,89 @@ const BuilderImageGrid: React.FC<ImageGridProps> = ({
       )}
 
       {isMobile ? (
-        <BuilderPageReusableCarousel activeIndex={currentImageIndex} enableAutoplay>
-          {images?.map((image, index) => (
+       <div className="relatvie">
+         <BuilderPageReusableCarousel activeIndex={currentImageIndex} enableAutoplay>
+          {images?.filter((i) => i.file_type !== "application/pdf").map((image, index) => (
             <div key={index} className="w-[100vw] h-[60vh]" onClick={() => handleImageClick(index)}>
               {image.url.match(/\.(jpeg|jpg|png|gif)$/i) ? (
                 <Image
                   src={image.url}
                   alt={`Image ${index + 1}`}
-                  width={500}
-                  height={1000}
-                  className="rounded-lg object-cover w-full h-full"
+                  width={0}
+                  height={0}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="rounded-lg object-cover w-[95vw] h-[500px] m-2"
                 />
               ) : image.url.match(/\.(mp4|webm|ogg)$/i) ? (
                 <video
                   src={image.url}
                   controls
-                  className="rounded-lg object-cover w-full h-full"
+                  // sizes="(max-width: 768px) 100vw, 50vw"
+                  // className="rounded-lg object-cover w-full h-full"
+                  className="rounded-lg object-cover w-[95vw] h-[500px] m-2"
                 />
               ) : null}
             </div>
           ))}
         </BuilderPageReusableCarousel>
+
+        <div className="absolute right-4 top-3">
+            <ShareShortlist
+              background={"bg-white"}
+              shadow={"shadow-lg"}
+              rounded={"rounded-lg"}
+              fontSize={"text-xs"}
+              textTransform={"uppercase"}
+              fontWeight={"font-light"}
+              hoverBackground={"hover:bg-primary"}
+              hoverTextColor={"hover:text-white"}
+              iconColor={"text-primary"}
+              iconHoverColor={"group-hover:text-white"}
+              propertyId={propertyId}
+              propertyIdSlug={params?.id}
+              btnSaveText={"Save"}
+              showBtnText={false}
+               />
+          </div>
+       </div>
       ) : (
-        <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-lg overflow-hidden h-[50vh]">
-          {images.slice(0, 3).map((image, index) => (
+        <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-lg overflow-hidden h-[50vh] relative">
+          {images.filter((i) => i.file_type !== "application/pdf").slice(0, 3).map((image, index) => (
             <div key={index} className={`relative ${index === 0 ? "col-span-2 row-span-2" : "col-span-1 row-span-1"}`} onClick={() => handleImageClick(index)}>
               {image.url.match(/\.(jpeg|jpg|png|gif)$/i) ? (
-                <Image src={image.url} alt={`Image ${index + 1}`} width={500} height={400} className="w-full h-full object-cover rounded-lg" />
+                <Image
+                  src={image.url}
+                  alt={`Image ${index + 1}`}
+                  width={500}
+                  height={400}
+                  className="w-full h-full object-cover rounded-lg" />
               ) : image.url.match(/\.(mp4|webm|ogg)$/i) ? (
-                <video src={image.url} controls className="w-full h-full object-cover rounded-lg" />
+                <video
+                  src={image.url}
+                  controls
+                  className="w-full h-full object-cover rounded-lg" />
               ) : null}
             </div>
           ))}
+
+          <div className="absolute right-4 top-3">
+            <ShareShortlist
+              background={"bg-white"}
+              shadow={"shadow-lg"}
+              rounded={"rounded-lg"}
+              fontSize={"text-xs"}
+              textTransform={"uppercase"}
+              fontWeight={"font-light"}
+              hoverBackground={"hover:bg-primary"}
+              hoverTextColor={"hover:text-white"}
+              iconColor={"text-primary"}
+              iconHoverColor={"group-hover:text-white"}
+              propertyId={propertyId}
+              propertyIdSlug={params?.id}
+              btnSaveText={"Save"}
+              showBtnText={true}
+               />
+          </div>
         </div>
       )}
     </div>
@@ -687,4 +844,3 @@ const BuilderImageGrid: React.FC<ImageGridProps> = ({
 };
 
 export default BuilderImageGrid;
-

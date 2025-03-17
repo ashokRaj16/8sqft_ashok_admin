@@ -5,8 +5,9 @@ interface Description {
   description?: string | undefined;
   locality?: string | undefined;
   city_name: string | null | undefined;
+  property_title: string | null | undefined;
 }
-const MoreAbout = ({ description, locality, city_name }: Description) => {
+const MoreAbout = ({ description, locality, city_name,property_title }: Description) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpand = () => {
@@ -18,7 +19,7 @@ const MoreAbout = ({ description, locality, city_name }: Description) => {
   return (
     <div className="p-4 bg-gray-100 rounded-lg shadow-md">
       <h2 className="font-semibold text-black text-base leading-[26px]">
-        More about {locality}, {city_name}
+        More about {property_title || "N/A"}, {city_name}
       </h2>
       <p className="text-sm text-[#7A7A7A]">
         {isExpanded ? description : `${previewText}...`}

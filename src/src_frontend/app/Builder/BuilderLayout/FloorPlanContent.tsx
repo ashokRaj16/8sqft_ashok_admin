@@ -10,6 +10,7 @@ interface Configuration {
   id: number;
   unit_type?: string | null;
   unit_name?: string | null;
+  unit_price_type?: string | null;
   length?: number;
   width?: number;
   carpet_area?: number;
@@ -23,14 +24,20 @@ interface Configuration {
 interface FloorPlanContentProps {
   configration?: Configuration[];
   possession_date?: string | null | undefined;
+  propertytype?: string | null | undefined;
+  propertyVariety?: string | null | undefined;
 }
 
 export default function FloorPlanContent({
   configration,
   possession_date,
+  propertytype,
+  propertyVariety,
 }: FloorPlanContentProps) {
+  console.log("Configuration]",configration)
+
   const [activeTabId, setActiveTabId] = useState(
-    configration ? configration[0].id : 0
+    configration ? configration[0]?.id : 0
   );
 
   const plotOptions = configration?.map((item) => {
@@ -38,6 +45,8 @@ export default function FloorPlanContent({
       id: item.id,
       size: `${item.carpet_area}`,
       price: `${item.carpet_price}`,
+      unitName: `${item.unit_name}`,
+      unitPriceType: `${item.unit_price_type?item.unit_price_type:''}`,
     };
   });
 
@@ -45,22 +54,40 @@ export default function FloorPlanContent({
     (item) => item.id === activeTabId
   );
 
-  const propertyDetails = activeConfiguration
-    ? [
-        {
-          label: "Builtup Area",
-          value: `${activeConfiguration.carpet_area} sq ft`,
-        },
-        {
-          label: "Dimension",
-          value: `${activeConfiguration.width} x ${activeConfiguration.length}`,
-        },
-        { label: "Possession Status", value: possession_date || "N/A" },
-      ]
-    : [];
+  // const propertyDetails = activeConfiguration
+  //   ? [
+  //     {
+  //       label: "Builtup Area",
+  //       value: `${activeConfiguration.carpet_area} sq ft`,
+  //     },
+  //     {
+  //       label: "Dimension",
+  //       value: `${activeConfiguration.width} x ${activeConfiguration.length}`,
+  //     },
+  //     { label: "Possession Status", value: possession_date || "N/A" },
+  //   ]
+  //   : [];
+
+    const propertyDetails = activeConfiguration
+  ? [
+      {
+        label: "Builtup Area",
+        value: `${activeConfiguration.carpet_area} sq ft`,
+      },
+      ...(activeConfiguration.width && activeConfiguration.length
+        ? [
+            {
+              label: "Dimension",
+              value: `${activeConfiguration.width} x ${activeConfiguration.length}`,
+            },
+          ]
+        : []),
+      { label: "Possession Status", value: possession_date || "N/A" },
+    ]
+  : [];
   const isMobile = useMediaQuery("(max-width: 640px)");
   const renderCardContent = (config: Configuration) => (
-    <Card className=" px-2 mt-4 rounded-md p-0 w-[200px] h-[230px]">
+    <Card className=" px-2 mt-4 rounded-md p-0 w-[165px] lg:w-[200px] h-[190px]">
       <CardContent className="p-0">
         <div className="flex flex-col items-start bg-white p-2 rounded-md">
           {/* Show the image above the text */}
@@ -77,39 +104,43 @@ export default function FloorPlanContent({
 
           <p className="text-xs mb-2 text-[#AAAAAA]">
             Plot Area:
-            <span className="text-black">{config.carpet_area} sq.ft</span>
+            <span className="text-[#222222]">{config.carpet_area} sq.ft</span>
           </p>
           {/* <p className="text-xs mb-2 text-[#AAAAAA]">
             Price:<span className="text-black"> ₹ {config.carpet_price}</span>
           </p> */}
-           <div className="text-xs">{formatPrice(
-                                        Number(config.carpet_price))}</div>
-          <button
+          <div className="text-xs text-[#AAAAAA]">Price:
+            <span className="text-[#222222]"> {formatPrice(Number(config.carpet_price))}</span>
+
+          </div>
+          {/* <button
             className="text-primary text-sm border-primary border px-2 py-1 rounded w-full"
             onClick={() => alert("Pressed!")}
           >
             Contact
-          </button>
+          </button> */}
         </div>
       </CardContent>
     </Card>
   );
 
   return (
-    <div className="p-4">
+    <div className="lg:mt-4 p-4 lg:p-0">
       {isMobile ? (
         <>
-          <div>Price & Floor Plan</div>
+          <div className="text-lg font-semibold">Price & Floor Plan</div>
 
-          <ReusableCarousel itemsPerView={{ default: 1, sm: 1, md: 2 }}>
-            {configration?.map((config) => (
-              <div key={config.id}>{renderCardContent(config)}</div>
-            ))}
-          </ReusableCarousel>
+          <div>
+            <ReusableCarousel className="w-full max-w-sm" itemsPerView={{ default: 1, sm: 1, md: 2 }}>
+              {configration?.map((config) => (
+                <div key={config.id}>{renderCardContent(config)}</div>
+              ))}
+            </ReusableCarousel>
+          </div>
         </>
       ) : (
-        <div className="p-4">
-          <Card className="w-[689px]">
+        <div className="">
+          <Card className="">
             <CardHeader className="border-b">
               <CardTitle className="text-base font-semibold">
                 Price & Plot Plan
@@ -118,7 +149,7 @@ export default function FloorPlanContent({
 
             <CardContent className="p-0">
               <Tabs
-                value={activeTabId.toString()}
+                value={activeTabId?.toString()}
                 onValueChange={(value) => setActiveTabId(Number(value))}
                 className="w-full"
               >
@@ -129,19 +160,22 @@ export default function FloorPlanContent({
                       value={plot.id.toString()}
                       className={`data-[state=active]:border-b-2 data-[state=active]:border-[#fc6600] data-[state=active]:bg-white data-[state=active]:text-[#fc6600] rounded-none px-5 py-2`}
                     >
-                        <div className="text-center">
-                        <div className="text-sm">{plot.size} sqft </div>
+                      <div className="text-center">
+                      {propertytype?.toLowerCase() ==="open land" &&( <div className="text-sm">{plot.size} sq ft </div>)}
+                       {propertytype?.toLowerCase() ==="residential" &&( <div className="text-sm">{plot.unitName}</div>)}
+                       {propertytype?.toLowerCase() ==="commercial" &&( <div className="text-sm">{propertyVariety}</div>)}
                         <div className="text-xs">{formatPrice(
-                                        Number(plot.price))}</div>
+                          Number(plot.price))}</div>
+                         {plot.unitPriceType && ( <div className="text-xs font-light">{`(${plot.unitPriceType})`}</div>)}
                       </div>
                     </TabsTrigger>
                   ))}
                 </TabsList>
 
-                <TabsContent value={activeTabId.toString()}>
+                <TabsContent value={activeTabId?.toString()}>
                   <div className="p-4 flex gap-[42px]">
-                    {propertyDetails.map((detail) => (
-                      <div key={detail.label} className="flex flex-col gap-3">
+                    {propertyDetails.map((detail,index) => (
+                      <div key={index} className="flex flex-col gap-3">
                         <div className="text-sm font-normal text-black">
                           {detail.label}
                         </div>
@@ -153,9 +187,9 @@ export default function FloorPlanContent({
                   </div>
 
                   {activeConfiguration && (
-                    <div className="p-10 flex justify-center">
+                    <div className="p-4 flex justify-center">
                       <img
-                        className="w-[358px] h-[235px] object-cover"
+                        className="w-[400px]  object-cover"
                         alt="Plot Plan"
                         src={activeConfiguration.unit_img_url}
                       />

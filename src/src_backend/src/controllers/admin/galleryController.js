@@ -5,6 +5,7 @@ import {
 } from "../../utils/response.js";
 import validator from "validator";
 import { upload, s3, getAllS3Files, 
+  uploadFullFileToAWS,
   startAWSUpload, 
   uploadAWSChunk, 
   completeAWSUpload, 
@@ -241,12 +242,12 @@ export const getImageLinkDetails = async (req, res) => {
 
 // Upload Image in chunk.
 export const postImageUploadStart = async (req, res) => {
-  const { fileName } = req.body;
-  if(!fileName) {
-    return badRequestResponse(res, false, "File Name is required.")
+  const { fileName, mimetype } = req.body;
+  if(!fileName || !mimetype) {
+    return badRequestResponse(res, false, "Missing required params.");
   }
   try {
-    const response = await startAWSUpload(fileName)
+    const response = await startAWSUpload(fileName, mimetype)
     console.log(response, "start response")
     
     const data = { uploadId : response.UploadId, fileName}
@@ -261,47 +262,97 @@ export const postImageUploadStart = async (req, res) => {
   }
 };
 
-export const postImageUploadChunk = (req, res) => {
+// export const postImageUploadChunk = (req, res) => {
   
-  upload.single('file') (req, res, async (err) => {
-    console.log(req.file, "bodyyyy.");
-    if (err) {
-      console.error("SQFT Multer error:", err);
-      return badRequestResponse(res, false, "Error processing uploaded files.", err);
-    }
+//   upload.single('file') (req, res, async (err) => {
+//     console.log(req.file, "bodyyyy.");
+//     if (err) {
+//       console.error("SQFT Multer error:", err);
+//       return badRequestResponse(res, false, "Error processing uploaded files.", err);
+//     }
 
-    const { fileName, uploadId, partNumber } = req.body;
+//     const { fileName, uploadId, partNumber } = req.body;
     
-    if(!fileName || !uploadId || !partNumber) {
-      return badRequestResponse(res, false, "Missing required fields.")
+//     if(!fileName || !uploadId || !partNumber) {
+//       return badRequestResponse(res, false, "Missing required fields.")
+//     }
+//     try {
+//       const filePath = req.file?.path || '';
+      
+//       if (!fs.existsSync(filePath)) {
+//         return badRequestResponse(res, false, "Uploaded file not found.");
+//       }
+      
+//       const fileStream = fs.createReadStream(filePath);
+//       const response = await uploadAWSChunk( fileName, fileStream, uploadId, parseInt(partNumber));
+//       console.log(fileStream,  ":::responsessss")
+//       // fs.unlinkSync(filePath);
+//       const data = {
+//         Etag : response.ETag, PartNumber : partNumber
+//       }
+//       return successWithDataResponse(
+//         res,
+//         true,
+//         "File part uploading...",
+//         data
+//       );
+//     } catch (error) {
+//       return badRequestResponse(res, false, "Error file chunk uploading.", error);
+//     }
+
+//   })
+// };
+
+
+export const postImageUploadChunk = async (req, res) => {
+  upload.single('file')(req, res, async (err) => {
+    if (err) {
+      console.error("Multer error:", err);
+      return badRequestResponse(res, false, "Error processing uploaded file.", err);
     }
+
+    const file = req.file;
+    if (!file) {
+      return badRequestResponse(res, false, "No file received.");
+    }
+
+    console.log(req.body, "Request body");
+    const { fileName, uploadId, partNumber } = req.body;
+    const filePath = file.path;
+    const mimetype = file.mimetype;
+
     try {
-      const filePath = req.file?.path || '';
-      
-      if (!fs.existsSync(filePath)) {
-        return badRequestResponse(res, false, "Uploaded file not found.");
+      // Upload Full File
+      console.log(mimetype, "MimeTypessss.");
+      if (!uploadId || !partNumber) {
+        console.log(mimetype, "Full file upload detected.");
+
+        // Upload entire file to AWS
+        const response = await uploadFullFileToAWS(fileName, mimetype, fs.createReadStream(filePath));
+        
+        fs.unlinkSync(filePath); // Delete temp file after upload
+        console.log(response, 'full image')
+        return successWithDataResponse(res, true, "Full file uploaded successfully.", response);
       }
-      
+
+      console.log(`Chunk Upload: Part ${partNumber}`);
+      // Upload in chunk.
       const fileStream = fs.createReadStream(filePath);
-      const response = await uploadAWSChunk( fileName, fileStream, uploadId, parseInt(partNumber));
-      console.log(fileStream,  ":::responsessss")
-      // fs.unlinkSync(filePath);
-      const data = {
-        Etag : response.ETag, PartNumber : partNumber
-      }
-      return successWithDataResponse(
-        res,
-        true,
-        "File part uploading...",
-        data
-      );
+      const response = await uploadAWSChunk(fileName, fileStream, uploadId, parseInt(partNumber));
+
+      fs.unlinkSync(filePath); 
+
+      return successWithDataResponse(res, true, "File part uploaded successfully.", {
+        ETag: response.ETag,
+        PartNumber: partNumber,
+      });
+
     } catch (error) {
-      return badRequestResponse(res, false, "Error file chunk uploading.", error);
+      console.error("Upload error:", error);
+      return badRequestResponse(res, false, "Error uploading file.", error);
     }
-
-  })
+  });
 };
-
 
 export const postImageUploadComplete = async (req, res) => {
   const { uploadId, fileName, uploadedParts } = req.body;

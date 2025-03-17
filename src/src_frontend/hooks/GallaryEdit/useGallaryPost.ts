@@ -10,6 +10,7 @@ interface data {
 interface gallaryPostImges {
   property_id: number;
   img_title: string;
+  image_category?:string
   images: File;
 }
 

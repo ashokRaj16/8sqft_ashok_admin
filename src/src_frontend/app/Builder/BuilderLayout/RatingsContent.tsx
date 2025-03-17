@@ -11,7 +11,7 @@ const RatingsContent = () => {
   const stars = Array(5).fill(0);
 
   return (
-    <div className="flex flex-col w-[689px] gap-5 p-4 bg-white">
+    <div className="flex flex-col  gap-5 p-4 bg-white border rounded-lg">
       <section className="flex flex-col gap-5">
         <h1 className="font-light text-2xl text-black">Review</h1>
 

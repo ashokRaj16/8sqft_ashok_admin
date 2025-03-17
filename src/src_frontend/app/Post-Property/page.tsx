@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PostPropertyformComponent from "./Post-Propertyform";
 import PostPropertyStaticComponent from "./Post-PropertyStatic";
 import Image from "next/image";
@@ -78,8 +78,27 @@ export default function PostProperty() {
     }
   };
 
+
+  // function openWhatsapp() {
+  //   window.open(
+  //     "https://web.whatsapp.com/send?phone=917219009062&text=Hi,%20I%20want%20to%20post%20my%20project/property",
+  //     "_blank"
+  //   );
+  // }
+
+  function openWhatsapp() {
+    const phoneNumber = '917219009062'; // Ensure this is in international format without '+' or spaces
+    const message = 'Hi, I want to post my project/property';
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+  
+    window.open(whatsappURL, '_blank');
+  }
+  
+
   return (
     <>
+
       <div className="flex bg-[#C8DFF1] lg:bg-[url('/assets/postproperty/postpropertyBanner.svg')] bg-cover  h-fit py-4 w-full max-w-full mx-auto m-10">
         <div className="w-full max-w-[100vw] flex justify-center items-center lg:justify-end lg:mr-40  lg:p-14 ">
           <PostPropertyformComponent />
@@ -97,10 +116,12 @@ export default function PostProperty() {
           />
           <p>
             &nbsp;Give a Hii... message to{" "}
-            <span className="text-primary border-b-2 border-primary">
-              +917219009062
-            </span>{" "}
-            to get help with your property listing
+            <span onClick={openWhatsapp} className="text-primary border-b-2 border-primary">
+             
+                +917219009062
+            
+            </span>
+            to get help with your project/property listing
           </p>
         </div>
 
@@ -115,7 +136,7 @@ export default function PostProperty() {
                   </span>{" "}
                   via Whatsapp
                 </p>
-                <button className="mt-4 flex items-center justify-center bg-primary text-white text-sm font-medium px-4 py-2 rounded-md shadow-md hover:bg-orange-600">
+                <button onClick={openWhatsapp}  className="mt-4 flex items-center justify-center bg-primary text-white text-sm font-medium px-4 py-2 rounded-md shadow-md hover:bg-orange-600">
                   <Image
                     src="/assets/Post_Property_latest/whatsapp/whatsapp.svg"
                     alt="Whatsapp Icon"
@@ -126,7 +147,7 @@ export default function PostProperty() {
                   Post property via Whatsapp
                 </button>
                 <p className="mt-2 text-sm text-gray-600 italic">
-                  * Feature available only for home owners
+                  * Feature available for builders and owners
                 </p>
               </div>
             </div>
@@ -235,83 +256,8 @@ allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; pic
           </div>
         </div>
 
-        {/* video section */}
-        {/* <section className="py-12 bg-gray-50">
-          <div className="container lg:flex flex-row  mx-auto space-x-4 px-6">
-            <div className="flex flex-col items-center justify-between mb-6">
-            
-              <h2 className="text-2xl font-bold text-primary">Testimonial</h2>
 
-           
-              <div className="flex space-x-2">
-                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-primary text-primary hover:bg-orange-100">
-            
-                  &#8592;
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-primary text-primary hover:bg-orange-100">
-              
-                  &#8594;
-                </button>
-              </div>
-            </div>
 
-            <div className="flex flex-wrap gap-6 justify-center">
-        
-              <div className="w-72 bg-white shadow-lg rounded-lg overflow-hidden border ">
-                <div className="relative">
-
-                  <iframe
-                    width="300" height="160" src="https://www.youtube.com/embed/UIm1PAoDztI?si=juFubzrqV5BCKD2a" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
-
-                </div>
-                <div className="p-4 text-center">
-                  <div className="flex items-center justify-center space-x-2">
-                  
-                    <div className="w-5 h-5 rounded-full border-2 border-primary bg-primary flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">&#10003;</span> 
-                    </div>
-                   
-                    <p className="text-sm font-bold text-gray-700">VERIFIED TENANT</p>
-                  </div>
-                </div>
-              </div>
-
-          
-              <div className="w-72 bg-white shadow-lg rounded-lg overflow-hidden border">
-                <div className="relative">
-                  <iframe width="300" height="160" src="https://www.youtube.com/embed/t7Tzen7amvM?si=Wp8iNZH-1TVY46v6" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
-
-                </div>
-                <div className="p-4 text-center">
-                  <div className="flex items-center justify-center space-x-2">
-                  
-                    <div className="w-5 h-5 rounded-full border-2 border-primary bg-primary flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">&#10003;</span> 
-                    </div>
-                    <p className="text-sm font-bold text-gray-700">VERIFIED TENANT</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-72 bg-white shadow-lg rounded-lg overflow-hidden border">
-                <div className="relative">
-                  <iframe width="300" height="160" src="https://www.youtube.com/embed/b8n-wpvBjrw?si=VvaeXsFSs8L_u-5b" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
-
-                </div>
-
-                <div className="p-4 text-center">
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-5 h-5 rounded-full border-2 border-primary bg-primary flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">&#10003;</span> 
-                    </div>
-                    <p className="text-sm font-bold text-gray-700">VERIFIED TENANT</p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </section> */}
 
         <section className="py-12 ml-4 bg-gray-50">
           <div className="container lg:flex flex-row mx-auto px-10 justify-center align-middle space-x-6  ">
@@ -341,34 +287,7 @@ allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; pic
               ref={scrollContainerRef}
               className="flex overflow-x-auto gap-6 scrollbar-hide w-[71%]"
             >
-              {/* {videos.map((video, index) => (
-                <div
-                  key={index}
-                  className="flex-shrink-0 w-72 bg-white shadow-lg rounded-lg overflow-hidden  border"
-                >
-                  <div className="relative">
-                    <iframe
-                      width="300"
-                      height="160"
-                      src={video}
-                      title={`YouTube video player ${index}`}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allowFullScreen
-                    />
-                  </div>
 
-                  <div className="p-4 text-center">
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="w-5 h-5 rounded-full border-2 border-primary bg-primary flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">&#10003;</span>
-                      </div>
-                      <p className="text-sm font-bold text-gray-700">VERIFIED TENANT</p>
-                    </div>
-                  </div>
-                </div>
-              ))} */}
               <iframe
                 width="300"
                 height="160"
@@ -382,94 +301,7 @@ allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; pic
           </div>
         </section>
 
-        {/* review section */}
-        {/* <section className="py-12 ml-4 bg-gray-50">
-          <div className="container lg:flex flex-row  mx-auto space-x-4 px-6">
-            <div className="flex flex-col items-center justify-between mb-6">
-          
-              <h2 className="text-2xl font-bold text-primary">Happy<br />
-                Property<br />
-                Owner</h2>
 
-              <div className="flex space-x-2">
-                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-primary text-primary hover:bg-orange-100">
-                  &#8592;
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-primary text-primary hover:bg-orange-100">
-                  &#8594;
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-6 justify-center">
-              <div className="w-72 bg-white shadow-lg rounded-lg overflow-hidden border ">
-                <div className="relative flex flex-row p-4">
-
-                  <Image
-                    src="/assets/Post_Property_latest/Image1.png"
-                    alt="profile"
-                    width={100}
-                    height={100}
-                    className="h-[70px] w-[80px] object-cover"
-                  />
-                  <div className="flex flex-col justify-end">
-                    <h3 className="font-semibold">Rohan
-                      Kamble</h3>
-                    <p>Hinjewadi,Pune</p>
-                  </div>
-
-                </div>
-                <div className="p-4 text-center">
-                  <p className="text-[#636363]">I rented out my 1BHK flat quickly through 8sqft.com, and the best part was that there was no brokerage involved. The process was smooth, and the platform is very user-friendly. Highly recommend their services!</p>
-                </div>
-              </div>
-
-              <div className="w-72 bg-white shadow-lg rounded-lg overflow-hidden border ">
-                <div className="relative flex flex-row p-4">
-
-                  <Image
-                    src="/assets/Post_Property_latest/Image.png"
-                    alt="profile"
-                    width={100}
-                    height={100}
-                    className="h-[70px] w-[80px] object-cover"
-                  />
-                  <div className="flex flex-col justify-end">
-                    <h3 className="font-semibold">Suraj
-                      Kamble</h3>
-                    <p>Pune</p>
-                  </div>
-
-                </div>
-                <div className="p-4 text-center">
-                  <p className="text-[#636363]">My 2BHK flat was rented out without brokerage with the help of 8sqft.com. I had a smooth experience with their platform. The team is professional, and the process is simple. Highly recommended for buying, selling, or renting properties hassle-free!</p>
-                </div>
-              </div>
-
-              <div className="w-72 bg-white shadow-lg rounded-lg overflow-hidden border ">
-                <div className="relative flex flex-row p-4">
-
-                  <Image
-                    src="/assets/Post_Property_latest/Image 2.png"
-                    alt="profile"
-                    width={100}
-                    height={100}
-                    className="h-[70px] w-[80px] object-cover"
-                  />
-                  <div className="flex flex-col justify-end">
-                    <h3 className="font-semibold">Akshay
-                      Patel</h3>
-                    <p>Wakad,Pune</p>
-                  </div>
-
-                </div>
-                <div className="p-4 text-center">
-                  <p className="text-[#636363]">Thanks to 8sqft.com, I rented out my 3BHK flat without any hassle. Their team was professional and supportive throughout. A great platform for anyone looking for a brokerage-free experience!</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section> */}
 
         <section className="py-12 ml-4 bg-gray-50">
           <div className="container lg:flex flex-row mx-auto px-10 justify-center align-middle space-x-6">
@@ -536,6 +368,7 @@ allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; pic
           <PostPropertyStaticComponent />
         </div>
       </div>
+
     </>
   );
 }

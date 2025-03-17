@@ -2,7 +2,8 @@ import { jwtDecode } from "jwt-decode";
 
 interface DecodedToken {
   id: number;
-  email: string;
+  email?: string;
+  mobile?: string,
   iat: number;
   exp: number;
 }

@@ -76,6 +76,7 @@ import {
   CardFooter,
   CardTitle,
 } from "@/ui/card";
+import { formatNumber } from "@/utils/priceFormatter";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -108,7 +109,7 @@ export default function RecommendationCard({
    
    <>
 
-<Card onClick={()=>moveToDetailsHandler(id)} className="relative w-[350px] h-[200px] rounded-lg overflow-hidden shadow-lg  " >
+<Card onClick={()=>moveToDetailsHandler(id)} className="relative h-[200px] rounded-lg overflow-hidden shadow-lg  " >
       {/* Background image with gradient overlay */}
       <div
      
@@ -142,9 +143,9 @@ export default function RecommendationCard({
               </CardDescription>
             </div>
             <div className="text-right whitespace-nowrap">
-              <p className="text-sm text-white">{area || ''}</p>
-              <p className="text-sm text-white">Deposit: {deposit}</p>
-              <p className="text-sm text-white">Rent: {rent}</p>
+              {/* <p className="text-sm text-white">{area || ''}</p> */}
+              <p className="text-sm text-white">Deposit: ₹ {formatNumber(Number(deposit))}</p>
+              <p className="text-sm text-white">Rent: ₹ {formatNumber(Number(rent))}</p>
             </div>
           </div>
         </CardFooter>

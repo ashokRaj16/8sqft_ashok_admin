@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "."; // Ensure the path matches your project's structure
+import { string } from "yup";
 
 // ✅ Interface for Image Object
 interface PropertyImage {
@@ -14,6 +15,12 @@ interface PropertyImage {
   status: string;
   created_at: string;
   updated_at: string;
+}
+
+
+interface PropertyFaqs {
+  faq_question:string;
+  faq_answer:string;
 }
 
 // ✅ Interface for Configuration Object
@@ -36,11 +43,13 @@ interface PropertyConfiguration {
   status?: string | null;
   created_at: string;
   updated_at: string;
+  unit_price_type:string;
 }
 
 // ✅ Main Property Interface
 interface useBuilderDetails {
   id: number;
+  
   user_id: number;
   form_step_id: string;
   form_status: string;
@@ -130,11 +139,16 @@ interface useBuilderDetails {
   per_sqft_amount?: string | null
   pg_rules?: string | null;
   images: PropertyImage[]; // Array of images linked to the property
+  faq:PropertyFaqs[]
   company_name: string;
   intrestedCount: number;
   shortlistedCount: number;
   configuration: PropertyConfiguration[]; // Array of configurations linked to the property
   unique_view_count: number;
+  mobile:number;
+  unit_price_type:string;
+  full_address:string;
+  title_slug: string;
   
 }
 
@@ -143,6 +157,7 @@ interface useBuilderDetailResponse {
   data: useBuilderDetails;
   status: boolean;
   message: string;
+  content:PropertyConfiguration;
 }
 
 // ✅ Error interface
@@ -151,12 +166,12 @@ interface useBuilderDetailError {
 }
 
 // ✅ Hook to fetch property details by ID
-const useBuilderDetail = (id: number) => {
+const useBuilderDetail = (id: number | null) => {
   return useQuery<useBuilderDetailResponse, useBuilderDetailError>({
     queryKey: ["useBuilderDetail", id],
     queryFn: async () => {
       const response = await axios.get(
-        `https://api.8sqft.com/api/v1/front/property/${id}`,
+        `/api/v1/front/property/${id}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -165,8 +180,12 @@ const useBuilderDetail = (id: number) => {
       );
       return response.data;
     },
-    enabled: !!id, // Only run query if ID is valid
-    staleTime: 1000 * 60 * 5, // Data remains fresh for 5 minutes
+    enabled: !!id, // ✅ Runs only if `id` exists
+    staleTime: 0, // ✅ Forces a fresh request every time
+    // cacheTime: 0, // ✅ Prevents caching, always fetches new data
+    refetchOnMount: true, // ✅ Ensures new data when component mounts
+    refetchOnWindowFocus: true, // ✅ Refetch when user switches back to the page
+    refetchOnReconnect: true, // ✅ Refetch when the network reconnects
   });
 };
 

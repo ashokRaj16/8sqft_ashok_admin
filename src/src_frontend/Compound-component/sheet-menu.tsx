@@ -22,11 +22,11 @@ export default function SlideMenu() {
     setTrue(!isTrue);
   };
   return (
-    <div className="z-50">
+    <div className="z-50 text-black">
       {/* Trigger Button */}
       <Button
         variant="ghost"
-        className="p-0 transition-transform duration-200 hover:scale-105 flex self-center"
+        className="text-white p-0 transition-transform duration-200 hover:scale-105 flex self-center"
         aria-label={isOpen ? "Close Menu" : "Open Menu"}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -35,13 +35,13 @@ export default function SlideMenu() {
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed mt-6 inset-0 bg-[#a1a1a180] backdrop-blur-sm transition-opacity duration-300"
+          className="fixed mt-10 inset-0 bg-[#a1a1a180] backdrop-blur-sm transition-opacity duration-300"
           onClick={() => setIsOpen(false)}
         >
           {/* Sidebar */}
           <div
-            className={`  bg-white fixed mt-10 right-0 h-screen overflow-y-scroll shadow-lg transform transition-transform duration-500
-               ease-in-out w-[200px] ${isOpen ? "" : "-translate-x-full"}`}
+            className={`bg-white fixed mt-10 right-0 h-screen overflow-y-scroll shadow-lg transform transition-transform duration-500
+               ease-in-out w-[300px] ${isOpen ? "" : "-translate-x-full"}`}
           >
             <div className="flex flex-col h-full">
               {/* Menu Links */}
@@ -53,13 +53,13 @@ export default function SlideMenu() {
                 <Link
                   href="/Post-Property"
                   onClick={() => setIsOpen(false)}
-                  className="block transform transition-all duration-200 hover:scale-[1.02]"
+                  className="block transform transition-all duration-200 hover:scale-[1.02] bg-[#FC6600]"
                 >
-                  <p className="text-md font-normal text-gray-700 hover:text-black rounded-md p-3 hover:border-primary transition-all duration-300">
+                  <p className="text-md font-normal text-white hover:text-white rounded-md p-3 hover:border-primary transition-all duration-300">
                     Post Your Property
                   </p>
                 </Link>
-                <Link
+                {/* <Link
                   href="/Rental-Agreement"
                   onClick={() => setIsOpen(false)}
                   className="block transform transition-all duration-200 hover:scale-[1.02]"
@@ -67,7 +67,7 @@ export default function SlideMenu() {
                   <p className="text-md font-normal text-gray-700 hover:text-black rounded-md p-3 hover:border-primary transition-all duration-300">
                     Rental Agreement
                   </p>
-                </Link>
+                </Link> */}
                 <div className="relative">
                   {/* Set parent div as relative */}
                   <Link

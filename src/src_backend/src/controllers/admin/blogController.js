@@ -17,6 +17,8 @@ import {
   successWithDataResponse,
 } from "../../utils/response.js";
 import validator from "validator";
+import slugify from "slugify";
+
 
 export const listBlogs = async (req, res) => {
   try {
@@ -118,6 +120,8 @@ export const addBlog = async (req, res) => {
     description,
     short_description,
     banner_image,
+    banner_size,
+    banner_type,
     banner_video,
     youtube_url,
     cat_id,
@@ -130,12 +134,16 @@ export const addBlog = async (req, res) => {
     publish_date,
   } = req.body;
 
+  //console.log(req.body, "bodyyyyy");
+  
   try {
     const data = {
       title: title && sanitizedField( title, true, 'CAPITALIZE', {replaceMultipleSpaces: true}) || null,
       description: description && sanitizedField(description, true) || null,
       short_description: short_description && sanitizedField(short_description, true) || null,
       banner_image: banner_image || null,
+      banner_size : banner_size || null,
+      banner_type : banner_type || null,
       banner_video: banner_video || null,
       youtube_url : youtube_url || null,
       cat_id: cat_id || 0,
@@ -150,6 +158,21 @@ export const addBlog = async (req, res) => {
     };
 
     const result = await createBlogAdmin(data);
+
+    if (result && result.insertId) {
+      const titleSlug = slugify(sanitizedTitle, {
+        lower: true,
+        strict: true,
+        replacement: "-",
+      });
+
+      const finalSlug = `${titleSlug}-${result.insertId}`;
+
+      // Update the blog entry with the generated slug
+      await updateBlogSlug(result.insertId, finalSlug);
+    }
+
+
     return successWithDataResponse(
       res,
       true,
@@ -181,6 +204,17 @@ export const updateBlog = async (req, res) => {
   } = req.body;
 
   try {
+
+
+      const sanitizedTitle = title
+      ? sanitizedField(title, true, "CAPITALIZE", { replaceMultipleSpaces: true })
+      : null;
+
+      // Generate new slug if title is updated
+      const titleSlug = sanitizedTitle
+      ? `${slugify(sanitizedTitle, { lower: true, strict: true })}-${id}`
+      : null;
+
     const data = {
       title: title || null,
       description: description || null,
@@ -196,6 +230,7 @@ export const updateBlog = async (req, res) => {
       meta_description: meta_description || null,
       meta_keyword: meta_keyword || null,
       publish_date : publish_date || null,
+      title_slug: titleSlug || null,
       added_by: req.userId,
     };
 

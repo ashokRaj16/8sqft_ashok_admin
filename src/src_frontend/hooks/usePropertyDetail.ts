@@ -89,7 +89,7 @@ const usePropertyDetail = (id: number) => {
   return useQuery<PropertyDetailResponse, PropertyDetailError>({
     queryKey: ["propertyDetail", id],
     queryFn: async () => {
-      const response = await axios.get(`https://api.8sqft.com/api/v1/front/property/${id}`, {
+      const response = await axios.get(`/api/v1/front/property/${id}`, {
         headers: {
           "Content-Type": "application/json",
         },

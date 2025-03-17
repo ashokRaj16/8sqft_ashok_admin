@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { validationPromotionSchema } from './promotionValidation';
 import { createPromotionProperty, getPromotionSequenceByCategories } from '../../../models/promotionModel';
 import { getPropertyList } from '../../../models/propertyModel';
+import { useDebounce } from '../../../hooks/useDebounce';
 import SearchSelect from '../Component/SearchSelect';
 
 const AddPromtion = () => {

@@ -2,7 +2,6 @@ import * as Yup from 'yup';
 
 const yotubeRegEx = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[\w-]{11}(&\S*)?$/;
 
-
 export const blogValidationSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     description: Yup.string().required("Description is required"),
@@ -15,7 +14,7 @@ export const blogValidationSchema = Yup.object().shape({
     author_name: Yup.string().required("Author name is required"),
     publish_date: Yup.date().required("Publish date is required"),
     
-    meta_title: Yup.string().required("Meta title is required"),
-    meta_description: Yup.string().max(160, "Meta description must not exceed 160 characters"),
-    meta_keyword: Yup.string().required("Meta keywords are required")
+    // meta_title: Yup.string().required("Meta title is required"),
+    // meta_description: Yup.string().max(160, "Meta description must not exceed 160 characters"),
+    // meta_keyword: Yup.string().required("Meta keywords are required")
   });

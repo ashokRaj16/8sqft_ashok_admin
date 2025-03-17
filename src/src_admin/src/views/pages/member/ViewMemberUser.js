@@ -31,44 +31,40 @@ import {
   CCardTitle,
   CCardText,
   CSpinner,
+  CTooltip,
 } from '@coreui/react'
-import { FaEye } from 'react-icons/fa'
+import {
+  FaArrowCircleLeft,
+  FaCheck,
+  FaCheckCircle,
+  FaCloudscale,
+  FaCross,
+  FaEye,
+  FaTicketAlt,
+  FaTimes,
+  FaTimesCircle,
+} from 'react-icons/fa'
 
 import _ from 'lodash'
 
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { ToastMessage } from '@component/ToastMessage'
-import { constant } from '@util/constant'
 import Loader from '@util/Loader'
 
 // ### change update status property to update user status. // need work
-import { updateStatusProperty, sendPropertyMails } from '@model/propertyModel'
+
 import { getMemberUserById, getListedPropertyByMember } from '@model/usersModel.js'
 import { getShortlistPropertyByUsers } from '@model/shortlistModel.js'
 import { getIntrestedPropertyByUsers } from '@model/intrestedModel.js'
+import { formattedDate } from '../../../utils/date'
+import { userStatus, mailTypes } from './data'
+import { updateMemberUser } from '../../../models/usersModel'
+import { usePushToastHelper } from '../../../utils/toastHelper'
 
-const mailTypes = [
-  { id: 1, title: 'Porperty Approved' },
-  { id: 2, title: 'Porperty Rejected' },
-  { id: 3, title: 'Porperty Pending' },
-  { id: 4, title: 'Porperty Notification' },
-]
-
-const userStatus = [
-  { id: 1, title: constant.USER_STATUS.ACTIVE },
-  { id: 2, title: constant.USER_STATUS.INACTIVE },
-  { id: 3, title: constant.USER_STATUS.PENDING },
-  { id: 4, title: constant.USER_STATUS.BLOCK },
-  { id: 5, title: constant.USER_STATUS.DISABLED },
-  { id: 6, title: constant.USER_STATUS.SUSPENDED },
-  { id: 7, title: constant.USER_STATUS.REJECTED },
-]
 
 const ViewMemberUser = () => {
-  const { id } = useParams() // Get property ID from the URL
+  const { id } = useParams()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const isEditParam = searchParams.get('isEdit')
 
   const [memberDetails, setMemberDetails] = useState([])
   const [intrestDetails, setIntrestDetails] = useState([])
@@ -84,30 +80,25 @@ const ViewMemberUser = () => {
   const [shortlistPage, setShortlistPage] = useState(1)
 
   const [mailOption, setMailOptions] = useState(null)
-  const [statusOption, setStatusOption] = useState({ statusText: '', status: '' })
+  const [statusOption, setStatusOption] = useState({ status: '' })
 
-  const [isEdit, setIsEdit] = useState(isEditParam)
   const [loading, setLoading] = useState(false)
-  const [toast, addToast] = useState(0)
 
   const toaster = useRef()
+  const { toasts, pushToastsMessage } = usePushToastHelper();
 
-  console.log(isEdit, id)
+  // console.log(isEdit, id)
 
   const loadMemberData = async () => {
     try {
       setLoading(true)
-      // const offset = (currentPage);
       const result = await getMemberUserById(id)
-      console.log('UI:', result.data)
       setMemberDetails(() => result.data)
-      setStatusOption({ statusText: result.data.status_text, status: result.data.status })
+      setStatusOption({ status: result.data?.status })
 
       setLoading(false)
     } catch (error) {
-      console.log('Error: ', error)
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      pushToastsMessage('error', error.message)
       setLoading(false)
       setTimeout(() => {
         navigate(-1)
@@ -118,7 +109,7 @@ const ViewMemberUser = () => {
   const loadIntrestData = async () => {
     try {
       setLoading(true)
-     
+
       const intrestResult = await getIntrestedPropertyByUsers(id, {
         page: intrestPage,
         limit: pageLimit,
@@ -136,11 +127,10 @@ const ViewMemberUser = () => {
           return updatedDetails
         })
       }
-    
+
       setLoading(false)
     } catch (error) {
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      pushToastsMessage('error', error.message)
       setLoading(false)
     }
   }
@@ -167,15 +157,14 @@ const ViewMemberUser = () => {
       }
       setLoading(false)
     } catch (error) {
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      pushToastsMessage('error', error.message)
       setLoading(false)
     }
   }
 
   const loadListedData = async () => {
     try {
-      setLoading(true)     
+      setLoading(true)
 
       const listResult = await getListedPropertyByMember(id, { page: listPage, limit: pageLimit })
       if (listResult) {
@@ -194,8 +183,7 @@ const ViewMemberUser = () => {
       }
       setLoading(false)
     } catch (error) {
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      pushToastsMessage('error', error.message)
       setLoading(false)
     }
   }
@@ -227,33 +215,23 @@ const ViewMemberUser = () => {
     setMailOptions(value)
   }
 
-  const changePropertyStatus = (event) => {
-    // console.log(value, name)
+  const changeMemberStatus = (event) => {
     const { value } = event.target
-    const selectedText = event.target.options[event.target.selectedIndex]
-    console.log(event.target, selectedText.text)
-    setStatusOption({ statusText: selectedText.text, status: value })
+    setStatusOption({ status: value })
   }
-
-  // console.log(memberDetails?.status, mailOption, statusOption)
 
   const handleStatusSubmit = async (e) => {
     e.preventDefault()
     try {
       setLoading(true)
-      const result = await updateStatusProperty(id, statusOption)
-      console.log('UI:', result)
+      const result = await updateMemberUser(id, statusOption)
       if (result) {
-        const toastContent = (
-          <ToastMessage type="success" message={result.data.message} onClick="close" />
-        )
-        addToast(toastContent)
+        pushToastsMessage('success', result.message)        
       }
       setLoading(false)
     } catch (error) {
       console.log('Error: ', error)
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      pushToastsMessage('error', error.message)
       setLoading(false)
     }
   }
@@ -262,20 +240,18 @@ const ViewMemberUser = () => {
     e.preventDefault()
     try {
       setLoading(true)
-      const result = await sendPropertyMails(id, mailOption)
-      console.log('UI:', result.data.property)
-      if (result) {
-        loadPropertyData()
-        const toastContent = (
-          <ToastMessage type="success" message={result.data.message} onClick="close" />
-        )
-        addToast(toastContent)
-      }
+      // const result = await sendPropertyMails(id, mailOption)   //change to user Mail
+      // console.log('UI:', result.data.property)
+      // if (result) {
+      //   loadPropertyData()
+      //   pushToastsMessage('success', result.message)
+      // }
       setLoading(false)
     } catch (error) {
       console.log('Error: ', error)
-      const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
-      addToast(toastContent)
+      
+      pushToastsMessage('error', error.message)
+
       setLoading(false)
     }
   }
@@ -335,13 +311,134 @@ const ViewMemberUser = () => {
                               </CCol>
                               <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
                                 <p className="fw-bold m-2">Mobile: </p>
-                                <p className="m-2">{memberDetails?.mobile || '-'} </p>
+                                <p className="m-2">{memberDetails?.mobile || '-'} 
+                                {memberDetails?.is_mobile_verified &&
+                                memberDetails?.is_mobile_verified === '1' ? (
+                                  <CTooltip content="Mobile Verified" title="ver">
+                                    <small>
+                                      <FaCheckCircle className='ms-2' color="green" />
+                                    </small>
+                                  </CTooltip>
+                                ) : (
+                                  <CTooltip content="Mobile Not Verified">
+                                    <small>
+                                      <FaTimesCircle className='ms-2' color="red" />
+                                    </small>
+                                  </CTooltip>
+                                )}
+                                </p>
                               </CCol>
                             </CRow>
                             <CRow>
                               <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
                                 <p className="fw-bold m-2">Email: </p>
-                                <p className="m-2">{memberDetails?.email || '-'} </p>
+                                <p className="m-2">{memberDetails?.email || '-'}
+                                {memberDetails?.is_email_verified &&
+                                memberDetails?.is_email_verified === '1' ? (
+                                  <CTooltip content="Email Verified" title="ver">
+                                    <small>
+                                      <FaCheckCircle className='ms-2' color="green" />
+                                    </small>
+                                  </CTooltip>
+                                ) : (
+                                  <CTooltip content="Email Not Verified">
+                                    <small>
+                                      <FaTimesCircle className='ms-2' color="red" />
+                                    </small>
+                                  </CTooltip>
+                                )}
+                                 </p>
+                              </CCol>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Contact 2: </p>
+                                <p className="m-2">{memberDetails?.contact_2 || '-'} </p>
+                              </CCol>
+                            </CRow>
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Company Name : </p>
+                                <p className="m-2">{memberDetails?.company_name || '-'} </p>
+                                {/* <small>3 days ago</small> */}
+                              </CCol>
+                            </CRow>
+                            <hr />
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Address: </p>
+                                <p className="m-2">{
+                                  [memberDetails?.address_1, memberDetails.city_name, memberDetails.state_name ].filter(Boolean).join(',')
+                                } 
+                                </p>
+                                {/* <small>3 days ago</small> */}
+                              </CCol>
+                            </CRow>
+
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">lattitude: </p>
+                                <p className="m-2">{memberDetails?.latitude || '-'} </p>
+                              </CCol>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">longitude: </p>
+                                <p className="m-2">{memberDetails?.longitude || '-'} </p>
+                              </CCol>
+                            </CRow>
+                            <hr />
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Facebook : </p>
+                                <p className="m-2">{memberDetails?.facebook_url || '-'} </p>
+                                {/* <small>3 days ago</small> */}
+                              </CCol>
+                            </CRow>
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Instagram: </p>
+                                <p className="m-2">{memberDetails?.instagram_url || '-'} </p>
+                                {/* <small>3 days ago</small> */}
+                              </CCol>
+                            </CRow>
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Youtube: </p>
+                                <p className="m-2">{memberDetails?.youtube_url || '-'} </p>
+                                {/* <small>3 days ago</small> */}
+                              </CCol>
+                            </CRow>
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Whatsapp Notification: </p>
+                                <p className="m-2">
+                                  {memberDetails?.whatsapp_notification === '1'
+                                    ? 'Yes'
+                                    : 'No' || '-'}{' '}
+                                </p>
+                                {/* <small>3 days ago</small> */}
+                              </CCol>
+                            </CRow>
+                            <hr />
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Added Date: </p>
+                                <p className="m-2">
+                                  {(memberDetails?.created_at &&
+                                    formattedDate(memberDetails?.created_at)) ||
+                                    '-'}{' '}
+                                </p>
+                                {/* <small>3 days ago</small> */}
+                              </CCol>
+                            </CRow>
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">IP Address: </p>
+                                <p className="m-2">{memberDetails?.ip_address || '-'} </p>
+                                {/* <small>3 days ago</small> */}
+                              </CCol>
+                            </CRow>
+                            <CRow>
+                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
+                                <p className="fw-bold m-2">Register Device: </p>
+                                <p className="m-2">{memberDetails?.user_agent || '-'} </p>
                                 {/* <small>3 days ago</small> */}
                               </CCol>
                             </CRow>
@@ -579,20 +676,19 @@ const ViewMemberUser = () => {
                                 </CTableBody>
                               </CTable>
                               {shorlistDetails.length >= pageLimit &&
-                               shorlistTotalCount > shorlistDetails.length && (
-                              
-                                <div className="d-flex justify-content-end">
-                                  <CLink
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => {
-                                      setShortlistPage((prevPage) => prevPage + 1)
-                                    }}
-                                    className="float-end"
-                                  >
-                                    View More
-                                  </CLink>
-                                </div>
-                              )}
+                                shorlistTotalCount > shorlistDetails.length && (
+                                  <div className="d-flex justify-content-end">
+                                    <CLink
+                                      style={{ cursor: 'pointer' }}
+                                      onClick={() => {
+                                        setShortlistPage((prevPage) => prevPage + 1)
+                                      }}
+                                      className="float-end"
+                                    >
+                                      View More
+                                    </CLink>
+                                  </div>
+                                )}
                             </CAccordionBody>
                           </CAccordionItem>
                         )}
@@ -633,14 +729,16 @@ const ViewMemberUser = () => {
                         <strong>Status</strong>
                         <CFormSelect
                           name="userStatus"
-                          onChange={(e) => changeUserStatus(e)}
+                          value={statusOption.status}
+                          onChange={(e) => 
+                            changeMemberStatus(e)
+                          }
                           className="mb-2"
                         >
-                          <option value="-1">Select Status</option>
                           {userStatus.map((item) => (
                             <option
                               value={item.id}
-                              selected={memberDetails?.status == item.id ? true : ''}
+                              key={item.id}
                             >
                               {item.title}
                             </option>
@@ -676,7 +774,7 @@ const ViewMemberUser = () => {
           </CCard>
         </CCol>
       </CRow>
-      <CToaster ref={toaster} push={toast} placement="top-end" />
+      <CToaster ref={toaster} push={toasts} placement="top-end" />
     </>
   )
 }

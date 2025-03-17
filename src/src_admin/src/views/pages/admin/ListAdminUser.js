@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -33,22 +32,32 @@ import {
 // import * as XLSX from 'xlsx';
 import { FaSort, FaSortUp, FaSortDown, FaFileExcel, FaFilePdf, FaEdit, FaTrash, FaEye, FaAngleDoubleLeft, FaAngleLeft, FaAngleDoubleRight, FaAngleRight } from 'react-icons/fa';
 import { ToastMessage } from '../../../components/ToastMessage';
-import { deleteAdminUser, getAdminUser, getMemberUser } from '../../../models/usersModel';
+import { deleteAdminUser, getAdminUser } from '../../../models/usersModel';
 import { useDebounce } from '../../../hooks/useDebounce';
 import Loader from '../../../utils/Loader';
 import { formattedDate } from '../../../utils/date';
 
-
 const getStatusBadge = (status) => {
   switch (status) {
-    case 'verified':
-      return 'success';
-    case 'Inverified':
-      return 'secondary';
+    case 'inactive':
+      return 'secondary'
+    case 'active':
+      return 'success'
+    case 'pending':
+        return 'secondary'
+    case 'blocked':
+      return 'secondary'
+    case 'disabled':
+      return 'secondary'
+    case 'suspended':
+      return 'secondary'
+    case 'rejected':
+      return 'secondary'
     default:
-      return 'primary';
+      return 'primary'
   }
-};
+}
+
 
 const ListAdminUser = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -245,7 +254,12 @@ const ListAdminUser = () => {
     }
   }
 
-  const handleEditAction = (id, isEdit = true) => {
+  const handleEditAction = (id) => {
+    console.log(id);
+    navigate(`/admin/edit/${id}`)
+  }
+
+  const handleViewAction = (id) => {
     console.log(id);
     navigate(`/admin/view/${id}`)
   }
@@ -368,6 +382,9 @@ const ListAdminUser = () => {
               <CTableHeaderCell onClick={() => requestSort('is_verified')}>
                 Address {getSortIcon('address_1')}
               </CTableHeaderCell>
+              <CTableHeaderCell >
+                Role
+              </CTableHeaderCell>
               <CTableHeaderCell>
                 Created Date 
               </CTableHeaderCell>
@@ -391,18 +408,40 @@ const ListAdminUser = () => {
                 <CTableDataCell>{user.email}</CTableDataCell>
                 <CTableDataCell>{user.mobile}</CTableDataCell>
                 <CTableDataCell>{user.address || "-"}</CTableDataCell>
-
+                <CTableDataCell>{user.role_id || "-"}</CTableDataCell>
+                <CTableDataCell>
+                  { user.status === '0' ? (
+                    <CBadge color={getStatusBadge('inactive')}>Inactive</CBadge>
+                  ) : user.status === '1' ? (
+                    <CBadge color={getStatusBadge('active')}>Active</CBadge>
+                  ) : user.status === '2' ? (
+                    <CBadge color={getStatusBadge('pending')}>Pending</CBadge>
+                  ) : user.status === '3' ? (
+                    <CBadge color={getStatusBadge('blocked')}>Blocked</CBadge>
+                  ) : user.status === '4' ? (
+                    <CBadge color={getStatusBadge('disabled')}>Disabled</CBadge>
+                  ) : user.status === '5' ? (
+                    <CBadge color={getStatusBadge('suspended')}>Suspended</CBadge>
+                  ) : (
+                    <CBadge color={getStatusBadge('rejected')}>Rejected</CBadge>
+                  )
+                }
+                </CTableDataCell>
                 <CTableDataCell>{formattedDate(user?.created_at) || '-'}</CTableDataCell>
                 
                 <CTableDataCell>
                   <CButton 
                     size='sm' 
                     color="primary" 
-                    onClick={() => handleEditAction(user.id)} 
+                    onClick={() => handleViewAction(user.id)} 
                     className="me-2 mb-1">
                       <FaEye />
                   </CButton>
-                  <CButton size='sm' color="primary" className="me-2 mb-1">
+                  <CButton 
+                    onClick={() => handleEditAction(user.id)} 
+                    size='sm' 
+                    color="primary" 
+                    className="me-2 mb-1">
                       <FaEdit />
                   </CButton>
                   <CButton 

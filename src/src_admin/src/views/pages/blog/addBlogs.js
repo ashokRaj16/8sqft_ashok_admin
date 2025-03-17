@@ -17,7 +17,7 @@ import {
   CToaster,
   CImage,
 } from '@coreui/react'
-import { Formik, Field, Form, ErrorMessage } from 'formik'
+import { Formik, Field, Form, ErrorMessage, useFormikContext } from 'formik'
 import { blogValidationSchema } from './blogValidation'
 import { initialBlogValues } from './data'
 
@@ -28,79 +28,92 @@ import { ToastMessage } from '../../../components/ToastMessage'
 import { useNavigate } from 'react-router-dom'
 import { uploadBlogImage } from '../../../models/blogModel'
 import { constant } from '../../../utils/constant'
+import GalleryModal from '../Component/GalleryModal';
 
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { usePushToastHelper } from '../../../utils/toastHelper'
+
 
 const AddBlog = () => {
-  // Validation Schema
-  const [toast, addToast] = useState(0)
   const [category, setCategory] = useState([])
   const [previewImage, setPreviewImage] = useState('');
+  
   const [uploading, setUploading] = useState(false);
   const [savedRange, setSavedRange] = useState({ index: 0, length: 0 });
-  
+  const [selectedImages, setSelectedImages] = useState('');
+  const [isVisible, setIsVisible] = useState('');
+  const { toasts, pushToastsMessage  } = usePushToastHelper();
+
   const quillRef = useRef(null);
   const navigate = useNavigate()
   const toaster = useRef()
 
   const handleSubmit = async (values, resetForm, setSubmitting) => {
-    console.log('Blog Submitted:', values)
-    // Perform API call to save the blog
+    console.log('Blog Submitted:', selectedImages[0], values)
     try {
-      const blogValues = {
-        banner_image: '',
-        banner_video: '',
-        ...values,
+      if(!selectedImages || selectedImages.length <= 0 ) {
+        pushToastsMessage('error', 'Atleast one banner image required.')
+        return;
       }
+      const file = selectedImages[0].orgFile;
+      const blogValues = {
+        ...values,
+        banner_image: selectedImages[0]?.url,
+        banner_size: file?.size || '',
+        banner_type: file?.type || '',
+        banner_video: '',
+      }
+
+      // console.log(blogValues, "updated values");
       const result = await createBlog(blogValues)
       console.log(result)
       if (result) {
-        addToast(<ToastMessage type="success" message={result.message} />)
+        pushToastsMessage('success', result.message)
       }
       resetForm()
+      setSelectedImages('');
     } catch (error) {
-      addToast(<ToastMessage type="error" message={error.message} />)
+      pushToastsMessage('error', error.message)
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleUploadImage = async (e, setFieldValue, setFieldError) => {
-    console.log('Blog Submitted:', e.target)
-    setUploading(true)
-    try {
-      const fileData = e.currentTarget.files[0];
+  // const handleUploadImage = async (e, setFieldValue, setFieldError) => {
+  //   console.log('Blog Submitted:', e.target)
+  //   setUploading(true)
+  //   try {
+  //     const fileData = e.currentTarget.files[0];
       
-      if(fileData) {
+  //     if(fileData) {
         
-        const allowedTypes = [ constant.FILE_TYPE.IMAGE_JPG, constant.FILE_TYPE.IMAGE_PNG];
-        if(!allowedTypes.includes( fileData.type) ) {
-          console.log(fileData, allowedTypes);
+  //       const allowedTypes = [ constant.FILE_TYPE.IMAGE_JPG, constant.FILE_TYPE.IMAGE_PNG];
+  //       if(!allowedTypes.includes( fileData.type) ) {
+  //         console.log(fileData, allowedTypes);
 
-          setFieldError("banner_image", "Only PNG and JPEG files are allowed.");
-          return;
-        }
-        // ### call image upload url and set it to given form values.
-        setPreviewImage(URL.createObjectURL(fileData));
+  //         setFieldError("banner_image", "Only PNG and JPEG files are allowed.");
+  //         return;
+  //       }
+  //       // ### call image upload url and set it to given form values.
+  //       setPreviewImage(URL.createObjectURL(fileData));
         
-        // const result = await uploadBlogImage(fileData);
-        // if(result.success) {
-        //   const imgURL = result.data.imgUrl;
-        //   setFieldValue(imgURL)
-        //   setPreviewImage(URL.createObjectURL(imgURL));
-        // }
-      }
-      else {
-        setFieldError("banner_image", 'Please select image.')
-      }
-    } catch (error) {
-      console.log(error);
-      // addToast(<ToastMessage type="error" message={error.message} />)
-      setFieldError("banner_image", error.message || 'Error uploading image.')
-    }
-    setUploading(false);
-  }
+  //       // const result = await uploadBlogImage(fileData);
+  //       // if(result.success) {
+  //       //   const imgURL = result.data.imgUrl;
+  //       //   setFieldValue(imgURL)
+  //       //   setPreviewImage(URL.createObjectURL(imgURL));
+  //       // }
+  //     }
+  //     else {
+  //       setFieldError("banner_image", 'Please select image.')
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //     setFieldError("banner_image", error.message || 'Error uploading image.')
+  //   }
+  //   setUploading(false);
+  // }
 
   const EditorOptions = {
     toolbar : {
@@ -109,7 +122,8 @@ const AddBlog = () => {
       [ { header: [1, 2, 3, 4, 5, false]}],
       ['bold', 'italic', 'underline'],
       [{ list: "ordered" }, { list: "bullet" }],
-      ["link"]
+      ["link"],
+      ['table']
       // ["link", "image"]
      ],
       // handlers : {
@@ -118,66 +132,82 @@ const AddBlog = () => {
     },
   }
 
-  function handleImageInsert() {
-    const editor = quillRef.current.getEditor();
-    const range = editor.getSelection();
+
+  // function handleImageInsert() {
+  //   const editor = quillRef.current.getEditor();
+  //   const range = editor.getSelection();
   
-    if (!range) {
-      alert("Place the cursor where you want the image before inserting.");
-      return;
-    }
+  //   if (!range) {
+  //     alert("Place the cursor where you want the image before inserting.");
+  //     return;
+  //   }
   
-    const updateSavedRange = { index: range.index, length: range.length }; // ✅ Save the range safely
-    // setSavedRange(updateSavedRange);
+  //   const updateSavedRange = { index: range.index, length: range.length }; // ✅ Save the range safely
+  //   // setSavedRange(updateSavedRange);
   
-    const url = prompt("Enter the image URL:");
-    if (url) {
-      insertImage(url, updateSavedRange); // Pass the range directly
-    }
-  }
-  
-  console.error("inserting image:", savedRange);
-  
-  function insertImage(url, range) {
-    const editor = quillRef.current.getEditor();
-    editor.focus(); // Refocus to restore cursor
+  //   const url = prompt("Enter the image URL:");
+  //   if (url) {
+  //     insertImage(url, updateSavedRange); // Pass the range directly
+  //   }
+  // }
   
   
-    try {
-      // const response = await fetch(url);
-      // const blob = await response.blob();
+  // function insertImage(url, range) {
+  //   const editor = quillRef.current.getEditor();
+  //   editor.focus();
   
-      const length = editor.getLength();
-      const index = Math.min(range.index, length - 1); // Prevent index out of bounds
+  //   try {
+  //     // const response = await fetch(url);
+  //     // const blob = await response.blob();
   
-      editor.setSelection(index, range.length); // Restore the saved selection
-      editor.insertEmbed(index, "image", url); // You can use the URL directly here, unless you handle blobs
-    } catch (error) {
-      console.error("Error inserting image:", error);
-      alert("Could not insert the image.");
-    }
-  }
+  //     const length = editor.getLength();
+  //     const index = Math.min(range.index, length - 1);
+  
+  //     editor.setSelection(index, range.length);
+  //     editor.insertEmbed(index, "image", url);
+  //   } catch (error) {
+  //     console.error("Error inserting image:", error);
+  //     alert("Could not insert the image.");
+  //   }
+  // }
 
   // get blog categories & tags.
+ 
   useEffect(() => {
-    ;(async () => {
+    (async () => {
       try {
         const categoryResult = await getBlogCategory()
         console.log(categoryResult.data.category)
         setCategory(categoryResult.data.category)
       } catch (error) {
-        addToast(<ToastMessage type="error" message={error.message} />)
+        pushToastsMessage('error', error.message)
       }
     })()
 
     return () => {}
   }, [])
 
+  // const { setFieldValue } = useFormikContext();
+  
+  // useEffect(() => {
+  //   console.log(selectedImages, "images")
+  //   if(selectedImages) {
+  //     setFieldValue('banner_image', selectedImages[0].url )
+  //   }
+
+  //   return null;
+  // }, [selectedImages])
+
   return (
     <>
       {/* <CContainer> */}
       {/* <CRow> */}
       {/* <CCol> */}
+      <GalleryModal 
+        visible={isVisible} 
+        setVisible={setIsVisible} 
+        selectImageCount={1}
+        onSelectImages={setSelectedImages} />
 
       <CCard className="mb-4">
         <CCardHeader>
@@ -189,14 +219,16 @@ const AddBlog = () => {
         <CCardBody>
           <div className="mt-2">
             <Formik
+              enableReinitialize
               initialValues={initialBlogValues}
               validationSchema={blogValidationSchema}
               onSubmit={(values, { resetForm, setSubmitting }) => {
                 handleSubmit(values, resetForm, setSubmitting)
               }}
             >
-              {({ setFieldValue, setFieldError, values, handleChange, handleBlur, isSubmitting }) => (
-                console.log(values, "values"),
+              {({ setFieldValue, setFieldError, values, errors, handleChange, handleBlur, isSubmitting }) => (
+                console.log(values, errors, "values"),
+
                 <Form>
                   <CRow className="mb-3">
                     <CCol lg={8} md={8} sm={12} className="mb-2">
@@ -284,28 +316,26 @@ const AddBlog = () => {
 
                           {/* upload image seperately and set image url */}
                           <CRow className="mb-3">
-                            <CCol md="12">
-                              <CFormLabel>Banner Image</CFormLabel>
-                              <CFormInput
-                                type="file"
-                                className='mb-2'
-                                name="banner_image"
-                                value={values.banner_image}
-                                onChange={(e) => {
-                                  handleUploadImage(e, setFieldValue, setFieldError)
-                                }}
-                                // onBlur={handleBlur}
-                                // onChange={(event) =>
-                                //   setFieldValue('banner_image', event.currentTarget.files[0])
-                                // }
-                              />
+                            <CCol md="12">                              
+                              <CButton 
+                                onClick={ () => setIsVisible(true)}
+                                className='btn btn-info mb-2'
+                                color='white'
+                                >
+                                Select Banner
+                              </CButton>
+                              </CCol>
+
                               {/* Show server uploaded image url. */}
-                              { previewImage &&
+                              <CCol md="12">
+                              { 
+                              (selectedImages && selectedImages.length > 0) &&
                                 <CImage 
-                                width={200}
-                                height={100}
-                                 className="w-full h-full object-cover"
-                                src={previewImage || ''} />
+                                  width={200}
+                                  height={100}
+                                  className="w-full h-full object-cover"
+                                  src={ selectedImages[0]?.url || ''}
+                                 />
                               }
                               <ErrorMessage
                                 name="banner_image"
@@ -535,7 +565,7 @@ const AddBlog = () => {
       {/* </CCol> */}
       {/* </CRow> */}
       {/* </CContainer> */}
-      <CToaster ref={toaster} push={toast} placement="top-end" />
+      <CToaster ref={toaster} push={toasts} placement="top-end" />
     </>
   )
 }

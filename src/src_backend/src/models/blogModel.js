@@ -56,18 +56,19 @@ export const createBlogAdmin = async (data) => {
     // console.log(data)
     try {
       const inserQuery = `INSERT INTO tbl_blogs 
-        (title, description, short_description, banner_image, banner_video, youtube_url,
+        (title, description, short_description, banner_image, 
+        banner_size, banner_type, banner_video, youtube_url,
         cat_id, tags, comment_enabled, author_name, meta_title, 
         meta_description, meta_keyword, publish_date, added_by) 
         VALUES 
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`;
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`;
       const paramsData = [title, description, short_description, banner_image, 
-        banner_video, youtube_url, cat_id, tags, comment_enabled, author_name, meta_title, 
+        banner_size, banner_type, banner_video, youtube_url, 
+        cat_id, tags, comment_enabled, author_name, meta_title, 
         meta_description, meta_keyword, publish_date, user_id ];
 
       const [result] = await pool.execute( inserQuery, paramsData );
   
-      console.log(result)
       return { insertId : result.insertId, affectedRows: result.affectedRows, ...data };
 
     } catch (error) {
@@ -242,3 +243,14 @@ export const deleteCategoryAdmin = async (id) => {
         throw new Error('Unable to delete category.');
     }
 };
+
+export const updateBlogSlug = async (blogId, titleSlug) => {
+    try {
+      const query = "UPDATE blogs SET title_slug = ? WHERE id = ?";
+      await db.execute(query, [titleSlug, blogId]);
+      return true;
+    } catch (error) {
+      console.error("Error updating blog slug:", error);
+      throw error;
+    }
+  };

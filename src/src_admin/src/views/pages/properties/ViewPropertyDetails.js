@@ -38,7 +38,19 @@ import {
 import _, { values } from 'lodash'
 import CIcon from '@coreui/icons-react'
 import { cilTrash, cilInfo, cilBed } from '@coreui/icons'
-import { FaCheck, FaCheckCircle, FaClock, FaExternalLinkAlt, FaEye, FaPencilAlt, FaShare, FaTimesCircle, FaTrash } from 'react-icons/fa'
+import {
+  FaCheck,
+  FaCheckCircle,
+  FaClock,
+  FaExternalLinkAlt,
+  FaEye,
+  FaPencilAlt,
+  FaShare,
+  FaTimes,
+  FaTimesCircle,
+  FaTrash,
+  FaUserAlt,
+} from 'react-icons/fa'
 import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 
@@ -101,9 +113,19 @@ import {
   NearbyOptions,
   availableYears,
   availableMonths,
-  unitNameConfigOption
+  unitNameConfigOption,
 } from './data'
-import { createPropertyImage, createPropertyNearby, deletePropertyImage, deletePropertyNearby, getPropertyNearbyAllCategory, updatePropertyImage, updatePropertyNearby } from '../../../models/propertyModel'
+import {
+  createPropertyImage,
+  createPropertyNearby,
+  deletePropertyImage,
+  deletePropertyNearby,
+  getPropertyNearbyAllCategory,
+  updatePropertyImage,
+  updatePropertyNearby,
+} from '../../../models/propertyModel'
+import SearchSelectMaster from '../Component/SearchSelectMaster'
+import { getMemberUser } from '../../../models/usersModel'
 
 const ViewPropertyDetails = () => {
   const { id } = useParams()
@@ -128,12 +150,12 @@ const ViewPropertyDetails = () => {
 
   const [previewImage, setPreviewImage] = useState('')
   const [previewImageGallery, setPreviewImageGalllery] = useState('')
-  
+
   const [mailOption, setMailOptions] = useState(null)
   const [statusOption, setStatusOption] = useState({ statusText: '', status: '' })
 
   const [loading, setLoading] = useState(false)
-  
+  const [userMemberList, setUserMemberList] = useState([])
   const toaster = useRef()
   const [toast, setToasts] = useState(0)
 
@@ -141,8 +163,8 @@ const ViewPropertyDetails = () => {
     const newToast = {
       id: Date.now(),
       component: <ToastMessage key={Date.now()} type={type} message={message} />,
-    };
-    setToasts((prevToasts) => newToast.component);
+    }
+    setToasts((prevToasts) => newToast.component)
 
     // if (toaster.current) {
     //   toaster.current.push(newToast.component);
@@ -199,8 +221,9 @@ const ViewPropertyDetails = () => {
         property_age: values.property_age,
         is_maintenance: values.is_maintenance,
         property_current_status: values.property_current_status,
-        possession_date: values.possession_month ? 
-          `${values.possession_month ? _.startCase(values.possession_month) : ''}, ${ values.possession_year ? values.possession_year : ''} `
+        possession_date: values.possession_month
+          ? `${values.possession_month ? _.startCase(values.possession_month) : ''}, ${values.possession_year ? values.possession_year : ''} `
+
           : '',
         is_rera_number: values.is_rera_number,
         rera_number: values.rera_number,
@@ -253,7 +276,8 @@ const ViewPropertyDetails = () => {
       }
       changeEditSectionHandler(false)
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -268,18 +292,18 @@ const ViewPropertyDetails = () => {
         faq_answer: values.faq_answer,
       }
 
-      console.log('update details:', updatedPropertyFandQ)
+      console.log('update F&Q:', updatedPropertyFandQ)
       const result = await createPropertyFandQ(propertyDetails.id, updatedPropertyFandQ)
 
       console.log('Result: ', result)
       if (result) {
         addToast('success', result.message)
       }
-      // changeEditSectionHandler(false)
       loadPropertyData()
       resetForm()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -303,7 +327,8 @@ const ViewPropertyDetails = () => {
       changeEditSectionHandler(false)
       resetForm()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -319,25 +344,25 @@ const ViewPropertyDetails = () => {
       }
       loadPropertyData()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
     } finally {
       setSubmitting(false)
     }
   }
 
   // Nearby Secion
-  
+
   const handleCreatePropertyNearbySubmit = async (values, resetForm, setSubmitting) => {
     try {
       // console.log('values: ', values)
       const updatedPropertyNearby = {
         location_title: values.location_title,
         location_value: values.location_value,
-        nearby_id : values.nearby_id,
-        distance : values.distance,
-        time : values.time,
-        latitude : values.latitude,
-        longitude : values.longitude
+        nearby_id: values.nearby_id,
+        distance: values.distance,
+        time: values.time,
+        latitude: values.latitude,
+        longitude: values.longitude,
       }
 
       console.log('update details:', updatedPropertyNearby)
@@ -351,7 +376,8 @@ const ViewPropertyDetails = () => {
       loadPropertyData()
       resetForm()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -363,11 +389,11 @@ const ViewPropertyDetails = () => {
       const updatedPropertyNearby = {
         location_title: values.location_title,
         location_value: values.location_value,
-        nearby_id : values.nearby_id,
-        distance : values.distance,
-        time : values.time,
-        latitude : values.latitude,
-        longitude : values.longitude
+        nearby_id: values.nearby_id,
+        distance: values.distance,
+        time: values.time,
+        latitude: values.latitude,
+        longitude: values.longitude,
       }
 
       console.log('update details:', updatedPropertyNearby)
@@ -380,7 +406,8 @@ const ViewPropertyDetails = () => {
       changeEditSectionHandler(false)
       resetForm()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -396,7 +423,8 @@ const ViewPropertyDetails = () => {
       }
       loadPropertyData()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -435,7 +463,8 @@ const ViewPropertyDetails = () => {
       resetForm()
       setPreviewImage('')
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -463,7 +492,8 @@ const ViewPropertyDetails = () => {
       changeEditSectionHandler(false)
       resetForm()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -478,7 +508,8 @@ const ViewPropertyDetails = () => {
       }
       loadPropertyData()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -512,7 +543,8 @@ const ViewPropertyDetails = () => {
       resetForm()
       setPreviewImageGalllery('')
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
@@ -556,19 +588,25 @@ const ViewPropertyDetails = () => {
       }
       loadPropertyData()
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleUpdatePropertyImageSubmit = async (sid, statusVal = null, img_title = null, image_category = null) => {
+  const handleUpdatePropertyImageSubmit = async (
+    sid,
+    statusVal = null,
+    img_title = null,
+    image_category = null,
+  ) => {
     try {
-      console.log("Status:::", statusVal, sid)
+      console.log('Status:::', statusVal, sid)
       const data = {
-        img_title : img_title || null, 
-        image_category : image_category || null,
-        status : statusVal && statusVal.toString() || null
+        img_title: img_title || null,
+        image_category: image_category || null,
+        status: (statusVal && statusVal.toString()) || null,
       }
       const result = await updatePropertyImage(propertyDetails.id, sid, data)
 
@@ -576,26 +614,25 @@ const ViewPropertyDetails = () => {
         addToast('success', result.message)
       }
 
-      setPropertyDetails((prev) => {        
-        let updatedImages = prev.images.map((item) =>{
+      setPropertyDetails((prev) => {
+        let updatedImages = prev.images.map((item) => {
           // return (item.id == sid ) ? { ...item, status : statusVal.toString() } : item
           if (item.id === sid) {
-            if(statusVal) {
-              return { ...item, status: statusVal.toString() };
+            if (statusVal) {
+              return { ...item, status: statusVal.toString() }
             }
-            if(img_title) {
-              return { ...item, img_title: img_title };
+            if (img_title) {
+              return { ...item, img_title: img_title }
             }
-          } 
-          
-          return item;
-        }
-      );
-        return { ...prev, images: updatedImages };
-      });
-      
+          }
+
+          return item
+        })
+        return { ...prev, images: updatedImages }
+      })
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
+
     } finally {
       // setSubmitting(false)
     }
@@ -607,36 +644,29 @@ const ViewPropertyDetails = () => {
       const result = await getPropertyById(id)
       // console.log(result)
       setPropertyDetails(() => {
-        const possessionDate = result.data?.possession_date ? result.data?.possession_date.trim() : null;
-    
-        let possession_month = null;
-        let possession_year = null;
-    
-        if (typeof possessionDate === "string" && /^[A-Za-z]+,\s\d{4}$/.test(possessionDate)) {
-            
-          possession_month = possessionDate.split(',')[0].trim().toLowerCase();
-          possession_year = possessionDate.split(',')[1].trim();
+        const possessionDate = result.data?.possession_date
+          ? result.data?.possession_date.trim()
+          : null
+
+        let possession_month = null
+        let possession_year = null
+
+        if (typeof possessionDate === 'string' && /^[A-Za-z]+,\s\d{4}$/.test(possessionDate)) {
+          possession_month = possessionDate.split(',')[0].trim().toLowerCase()
+          possession_year = possessionDate.split(',')[1].trim()
         }
-        console.log( possessionDate, possession_month, possession_year, "monthsss" );
+
         return {
           ...result.data,
           possession_month,
-          possession_year
-      };
-        // const propertyData = {
-        //   possession_month : result.data.possession_date && result.data.possession_date.split(',')[0].trim(),
-        //   possession_year : result.data.possession_date && result.data.possession_date.split(',')[1].trim(),
-          
-        //   ...result.data
-        // } 
-        // return propertyData;
-      }
-      )
+          possession_year,
+        }
+      })
       setStatusOption({ statusText: result.data.status_text, status: result.data.status })
       setLoading(false)
     } catch (error) {
-      console.log(error, "errorr")
-        addToast('error', error.message)
+      console.log(error, 'errorr')
+      addToast('error', error.message)
       setLoading(false)
       setTimeout(() => {
         navigate(-1)
@@ -649,21 +679,25 @@ const ViewPropertyDetails = () => {
     try {
       setLoading(true)
 
-      const shorlistResult = await getShortlistUsersByProperty(id)
+      const [shorlistResult, intrestResult] = await Promise.all([
+        getShortlistUsersByProperty(id),
+        getIntrestedUsersByProperty(id)
+      ])
+      // const shorlistResult = await getShortlistUsersByProperty(id)
+      // const intrestResult = await getIntrestedUsersByProperty(id)
       setShorlistDetails(() => shorlistResult.data)
-
-      const intrestResult = await getIntrestedUsersByProperty(id)      
       setIntrestDetails(() => intrestResult.data)
+
 
       setLoading(false)
     } catch (error) {
-        addToast('error', error.message)
+      addToast('error', error.message)
       setLoading(false)
     }
   }
 
   const loadCities = () => {
-    (async () => {
+    ;(async () => {
       try {
         const result = await getAllCities()
         setCities(result.data)
@@ -674,7 +708,7 @@ const ViewPropertyDetails = () => {
   }
 
   const loadNearbyCategory = () => {
-    (async () => {
+    ;(async () => {
       try {
         const result = await getPropertyNearbyAllCategory(propertyDetails.id)
         setNearbyCategory(result.data)
@@ -687,20 +721,39 @@ const ViewPropertyDetails = () => {
   useEffect(() => {
     loadCities()
     loadPropertyData()
-    
+
     return () => {}
   }, [])
 
   useEffect(() => {
-    // loadCities()
-    // loadPropertyData()
-    if(propertyDetails && propertyDetails.id) {
+    if (propertyDetails && propertyDetails.id) {
       loadNearbyCategory()
       loadIntrestSholistData()
     }
 
     return () => {}
   }, [propertyDetails.id])
+
+  const [ propertySelectedUser, setPropertySelectedUser ] = useState('');
+  const [ searchTerm, setSearchTerm ] = useState('');
+  const [ isPropertyUserAssign, setIsPropertyUserAssign ] = useState(false);
+
+  console.log(propertySelectedUser, "selected usersss");
+
+  useEffect(() => {
+    (async () => {
+      const result = await getMemberUser(undefined, 5, undefined, undefined, searchTerm)
+      console.log(result, "userlist...")
+      let updatedUsersList = result.data?.users.map((item) => ({
+        value : item.id,
+        label : [ `${item.fname || ''} ${item.mname || ''} ${item.lname || ''}`, item.mobile, item.city_name ].filter(Boolean).join(' | ')
+      }))
+      setUserMemberList(updatedUsersList || [])
+    }
+    )();
+
+    return () => {}
+  }, [searchTerm])
 
   const changePropertyMailSend = (event) => {
     const value = event.target.value
@@ -720,7 +773,34 @@ const ViewPropertyDetails = () => {
       setLoading(true)
       const result = await updateStatusProperty(id, statusOption)
       if (result) {
-        addToast('success', result.data.message)        
+
+        addToast('success', result.data.message)
+      }
+      setLoading(false)
+    } catch (error) {
+      addToast('error', error.message)
+      setLoading(false)
+    }
+  }
+
+  const handlePropertyUserHandler = async (e) => {
+    e.preventDefault()
+    try {
+      if(!propertySelectedUser) {
+        addToast('error', "User not selected. Please select user.");
+        setSearchTerm('')
+        return;
+      }
+      setLoading(true)
+      const updatedUser = {
+        user_id : propertySelectedUser 
+      }
+      const result = await updatePropertyDetails(id, updatedUser)
+      if (result) {
+        addToast('success', 'User successfully assign to property.')
+        setSearchTerm('');
+        setPropertySelectedUser('')
+        loadPropertyData();
       }
       setLoading(false)
     } catch (error) {
@@ -737,7 +817,7 @@ const ViewPropertyDetails = () => {
       console.log('UI:', result.data.property)
       if (result) {
         loadPropertyData()
-        
+
         addToast('success', result.data.message)
       }
       setLoading(false)
@@ -750,10 +830,17 @@ const ViewPropertyDetails = () => {
 
   const handleVisitExternalLink = () => {
     if (_.toUpper(propertyDetails) === constant.PROJECT_ATTR.RENT) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`, '_blank')
+      window.open(
+        `${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`,
+        '_blank',
+      )
     }
     if (_.toUpper(propertyDetails) === constant.PROJECT_ATTR.BUY) {
-      window.open(`${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`, '_blank')
+      window.open(
+        `${constant.FRONT_BASE_URL}/PropertyDetailsPage/${propertyDetails.title_slug}`,
+        '_blank',
+      )
+
     } else {
       window.open(`${constant.FRONT_BASE_URL}/Builder/${propertyDetails.title_slug}`, '_blank')
     }
@@ -825,33 +912,68 @@ const ViewPropertyDetails = () => {
                         <CAccordionItem itemKey={1}>
                           <CAccordionHeader>Property Basic Details</CAccordionHeader>
                           <CAccordionBody>
-                            <CRow className="align-items-center">
-                              <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
-                                
-                                <div className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
-                                  <p className="fw-bold m-2">Owner Name: </p>
-                                  <p className="m-2">
-                                    <Link to={`/member/view/${propertyDetails.user.id}`} >
-                                      {`${propertyDetails.user?.fname || ''} ${propertyDetails.user?.mname || ''} ${propertyDetails.user?.lname || ''}` ||
-                                      '-'}
-                                    </Link>
-                                  </p>
-                                </div>
-
+                          <CRow className="d-flex justify-content-between align-items-center">
+                              
+                              <CCol className="d-flex flex-column flex-md-row justify-content-start">
+                                <p className="fw-bold m-2">Owner Name:</p>
                                 <p className="m-2">
-                                  {(!isEdit || activeTab !== 1) && (
-                                    <CButton
-                                      onClick={() => changeEditSectionHandler(true, 1)}
-                                      size="sm"
-                                      color="primary"
-                                      className="me-2 mb-1"
-                                    >
-                                      <FaPencilAlt />
-                                    </CButton>
-                                  )}
+                                  <Link to={`/member/view/${propertyDetails.user?.id}`}>
+                                    {`${propertyDetails.user?.fname || ''} ${propertyDetails.user?.mname || ''} ${propertyDetails.user?.lname || ''}`.trim() || '-'}
+                                  </Link>
                                 </p>
                               </CCol>
+
+                              <CCol className="d-flex flex-column flex-md-row justify-content-end align-items-center">
+                                <CTooltip content="Assign Property to different user" placement="top">
+                                  <CButton
+                                    onClick={() => setIsPropertyUserAssign((prev) => !prev)}
+                                    size="sm"
+                                    color="primary"
+                                    className="me-2 mb-1"
+                                  >
+                                    <FaUserAlt />
+                                  </CButton>
+                                </CTooltip>
+
+                                {isPropertyUserAssign && (
+                                  <>
+                                    <SearchSelectMaster
+                                      options={userMemberList || []}
+                                      searchTerm={searchTerm}
+                                      setSearchTerm={setSearchTerm}
+                                      selectedValue={propertySelectedUser}
+                                      setSelectedValue={setPropertySelectedUser}
+                                      name="User"
+                                      placeholder="Select User"
+                                    />
+                                    <CButton
+                                      onClick={(e) => handlePropertyUserHandler(e)}
+                                      size="sm"
+                                      color="success"
+                                      className="ms-2 mb-1"
+                                    >
+                                      <FaCheck color="white" />
+                                    </CButton>
+                                    <CButton
+                                      onClick={() => {
+                                        setIsPropertyUserAssign(false);
+                                        setSearchTerm('');
+                                        setPropertySelectedUser('');
+                                      }}
+                                      size="sm"
+                                      color="danger"
+                                      className="me-2 ms-2 mb-1"
+                                    >
+                                      <FaTimes color="white" />
+                                    </CButton>
+                                  </>
+                                )}
+                              </CCol>
                             </CRow>
+
+
+
+
                             <CRow>
                               <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
                                 <p className="fw-bold m-2">Email: </p>
@@ -866,13 +988,39 @@ const ViewPropertyDetails = () => {
                             <hr />
 
                             <CRow className="align-items-center">
+                              <div className="pr-3 d-flex w-100 flex-column align-items-end">
+                                <p className="m-2">
+                                  {(!isEdit || activeTab !== 1) && (
+                                    <CTooltip
+                                      content="Assign property to different user"
+                                      placement="top"
+                                    >
+                                      <CButton
+                                        onClick={() => changeEditSectionHandler(true, 1)}
+                                        size="sm"
+                                        color="primary"
+                                        className="me-2 mb-1"
+                                      >
+                                        <FaPencilAlt />
+                                      </CButton>
+                                    </CTooltip>
+                                  )}
+                                </p>
+                              </div>
+
                               {propertyDetails?.property_type && (
-                                <CCol lg="3" md="6" className="text-center border rounded p-2 m-1">
-                                  <CHeader className="fw-bold d-flex justify-content-center align-items-center">
-                                    {propertyDetails?.property_type || '-'}
-                                  </CHeader>
-                                  <small className="text-secondary">Property Type</small>
-                                </CCol>
+                                <>
+                                  <CCol
+                                    lg="3"
+                                    md="6"
+                                    className="text-center border rounded p-2 m-1"
+                                  >
+                                    <CHeader className="fw-bold d-flex justify-content-center align-items-center">
+                                      {propertyDetails?.property_type || '-'}
+                                    </CHeader>
+                                    <small className="text-secondary">Property Type</small>
+                                  </CCol>
+                                </>
                               )}
                               {propertyDetails?.property_variety && (
                                 <CCol lg="3" md="6" className="text-center border rounded p-2 m-1">
@@ -957,659 +1105,528 @@ const ViewPropertyDetails = () => {
                                 isSubmitting,
                                 resetForm,
                               }) => (
-                                (
-                                  <Form>
-                                    {/* Property Title */}
-                                    <CRow className="align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                        <CCol md={3}>
-                                          <p className="fw-bold m-2">Property Title:</p>
-                                        </CCol>
-                                        <CCol md={9}>
-                                          {isEdit && activeTab == 1 ? (
-                                            <>
+
+                                <Form>
+                                  {/* Property Title */}
+                                  <CRow className="align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      <CCol md={3}>
+                                        <p className="fw-bold m-2">Property Title:</p>
+                                      </CCol>
+                                      <CCol md={9}>
+                                        {isEdit && activeTab == 1 ? (
+                                          <>
+                                            <Field
+                                              name="property_title"
+                                              type="text"
+                                              className="form-control"
+                                              placeholder="Property Title"
+                                              onChange={handleChange}
+                                              onBlur={handleBlur}
+                                            />
+                                            <ErrorMessage
+                                              name="property_title"
+                                              component={CFormText}
+                                              className="text-danger"
+                                            />
+                                          </>
+                                        ) : (
+                                          <p className="m-2">{values?.property_title || '-'}</p>
+                                        )}
+                                      </CCol>
+                                    </CCol>
+                                  </CRow>
+
+                                  <CRow className="d-flex align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      <CCol md={3}>
+                                        <p className="fw-bold m-2">Description: </p>
+                                      </CCol>
+                                      <CCol md={9}>
+                                        {isEdit && activeTab == 1 ? (
+                                          <>
+                                            <Field
+                                              type="textarea"
+                                              name="description"
+                                              as={CFormTextarea}
+                                              rows="5"
+                                              value={values?.description || ''}
+                                              className="form-control"
+                                              placeholder="Description"
+                                              onChange={handleChange}
+                                              onBlur={handleBlur}
+                                            />
+                                            <ErrorMessage
+                                              name="description"
+                                              component={CFormText}
+                                              className="text-danger"
+                                            />
+                                          </>
+                                        ) : (
+                                          <p className="m-2">{values?.description || '-'}</p>
+                                        )}
+                                      </CCol>
+                                    </CCol>
+                                  </CRow>
+
+                                  <CRow className="d-flex align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      <CCol md={3}>
+                                        <p className="fw-bold m-2">Address: </p>
+                                      </CCol>
+                                      <CCol md={9}>
+                                        {isEdit && activeTab == 1 ? (
+                                          <>
+                                            <CCol className="d-flex w-100 flex-row mb-2">
+                                              <p className="fw-bold m-2">Locality: </p>
+
                                               <Field
-                                                name="property_title"
+                                                name="locality"
                                                 type="text"
                                                 className="form-control"
-                                                placeholder="Property Title"
+                                                placeholder="Locality"
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
                                               />
-                                              <ErrorMessage
-                                                name="property_title"
-                                                component={CFormText}
-                                                className="text-danger"
-                                              />
-                                            </>
-                                          ) : (
-                                            <p className="m-2">
-                                              {values?.property_title || '-'}
-                                            </p>
-                                          )}
-                                        </CCol>
-                                      </CCol>
-                                    </CRow>
+                                              <p className="fw-bold m-2">Landmark: </p>
 
-                                    <CRow className="d-flex align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                        <CCol md={3}>
-                                          <p className="fw-bold m-2">Description: </p>
-                                        </CCol>
-                                        <CCol md={9}>
-                                          {isEdit && activeTab == 1 ? (
-                                            <>
                                               <Field
-                                                type="textarea"
-                                                name="description"
-                                                as={CFormTextarea}
-                                                rows="5"
-                                                value={ values?.description || ''}
+                                                name="landmark"
+                                                type="text"
                                                 className="form-control"
-                                                placeholder="Description"
+                                                placeholder="Landmark"
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
                                               />
                                               <ErrorMessage
-                                                name="description"
+                                                name="locality"
                                                 component={CFormText}
                                                 className="text-danger"
                                               />
-                                            </>
-                                          ) : (
-                                            <p className="m-2">{values?.description || '-'}</p>
-                                          )}
-                                        </CCol>
-                                      </CCol>
-                                    </CRow>
-
-                                    <CRow className="d-flex align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                        <CCol md={3}>
-                                          <p className="fw-bold m-2">Address: </p>
-                                        </CCol>
-                                        <CCol md={9}>
-                                          {isEdit && activeTab == 1 ? (
-                                            <>
-                                              <CCol className="d-flex w-100 flex-row mb-2">
-                                                <p className="fw-bold m-2">Locality: </p>
-
-                                                <Field
-                                                  name="locality"
-                                                  type="text"
-                                                  className="form-control"
-                                                  placeholder="Locality"
-                                                  onChange={handleChange}
-                                                  onBlur={handleBlur}
-                                                />
-                                                <p className="fw-bold m-2">Landmark: </p>
-                                                <Field
-                                                  name="landmark"
-                                                  type="text"
-                                                  className="form-control"
-                                                  placeholder="Landmark"
-                                                  onChange={handleChange}
-                                                  onBlur={handleBlur}
-                                                />
-                                                <ErrorMessage
-                                                  name="locality"
-                                                  component={CFormText}
-                                                  className="text-danger"
-                                                />
-                                                <ErrorMessage
-                                                  name="landmark"
-                                                  component={CFormText}
-                                                  className="text-danger"
-                                                />
-                                              </CCol>
-                                              <CCol className="d-flex w-100 flex-row">
-                                                <p className="fw-bold m-2">City: </p>
-                                                <Field
-                                                  name="city_id"
-                                                  as={CFormSelect}
-                                                  className="form-control"
-                                                  onChange={(e) => {
-                                                    const selectedCity = cities.find(
-                                                      (city) =>
-                                                        city.id === parseInt(e.target.value, 10),
+                                              <ErrorMessage
+                                                name="landmark"
+                                                component={CFormText}
+                                                className="text-danger"
+                                              />
+                                            </CCol>
+                                            <CCol className="d-flex w-100 flex-row">
+                                              <p className="fw-bold m-2">City: </p>
+                                              <Field
+                                                name="city_id"
+                                                as={CFormSelect}
+                                                className="form-control"
+                                                onChange={(e) => {
+                                                  const selectedCity = cities.find(
+                                                    (city) =>
+                                                      city.id === parseInt(e.target.value, 10),
+                                                  )
+                                                  if (selectedCity) {
+                                                    setFieldValue('city_id', selectedCity.id)
+                                                    setFieldValue(
+                                                      'city_name',
+                                                      selectedCity.city_name,
                                                     )
-                                                    if (selectedCity) {
-                                                      setFieldValue('city_id', selectedCity.id)
-                                                      setFieldValue(
-                                                        'city_name',
-                                                        selectedCity.city_name,
-                                                      )
-                                                    } else {
-                                                      setFieldValue('city_id', '')
-                                                      setFieldValue('city_name', '')
-                                                    }
-                                                  }}
-                                                >
-                                                  <option value="-1">Select city</option>
-                                                  {cities.map((item) => (
-                                                    <option 
-                                                      key={item.id} 
-                                                      value={item.id} >
-                                                      {item.city_name}
-                                                    </option>
-                                                  ))}
-                                                </Field>
+                                                  } else {
+                                                    setFieldValue('city_id', '')
+                                                    setFieldValue('city_name', '')
+                                                  }
+                                                }}
+                                              >
+                                                <option value="-1">Select city</option>
+                                                {cities.map((item) => (
+                                                  <option key={item.id} value={item.id}>
+                                                    {item.city_name}
+                                                  </option>
+                                                ))}
+                                              </Field>
 
-                                                <p className="fw-bold m-2">Pincode: </p>
+                                              <p className="fw-bold m-2">Pincode: </p>
+                                              <Field
+                                                name="pincode"
+                                                type="text"
+
+                                                className="form-control"
+                                                placeholder="Pincode"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                              />
+                                              <ErrorMessage
+                                                name="city_name"
+                                                component={CFormText}
+                                                className="text-danger"
+                                              />
+                                              <ErrorMessage
+                                                name="pincode"
+                                                component={CFormText}
+                                                className="text-danger"
+                                              />
+                                            </CCol>
+                                          </>
+                                        ) : (
+                                          <p className="m-2">
+                                            {[
+                                              values?.landmark,
+                                              values?.locality,
+                                              values?.city_name,
+                                              values?.state_name,
+                                              values?.pincode,
+                                            ]
+                                              .filter(Boolean) // Removes falsy values like null, undefined, empty string
+                                              .join(', ') || '-'}
+                                          </p>
+                                        )}
+                                      </CCol>
+                                    </CCol>
+                                  </CRow>
+
+                                  <CRow className="d-flex align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-row flex-md-row justify-content-left mb-2">
+                                      <CCol md={3}>
+                                        <p className="fw-bold m-2">Co-ordinates: </p>
+                                      </CCol>
+                                      <CCol
+                                        md={12}
+                                        xs={12}
+                                        sm={12}
+                                        className="pr-3 d-flex w-100 flex-row flex-column flex-md-column flex-sm-column justify-content-left mb-2"
+                                      >
+                                        {isEdit && activeTab == 1 ? (
+                                          <>
+                                            <CCol
+                                              md={12}
+                                              sm={12}
+                                              xs={12}
+                                              className="pr-3 d-flex flex-row flex-md-row "
+                                            >
+                                              <CCol md={3} sm={4} xs={4}>
+                                                <p className="fw-bold m-2">Latitude:</p>
+                                              </CCol>
+                                              <CCol md={6} sm={6} xs={4}>
                                                 <Field
-                                                  name="pincode"
+                                                  name="latitude"
                                                   type="text"
                                                   className="form-control"
-                                                  placeholder="Pincode"
+                                                  placeholder="Latitude"
                                                   onChange={handleChange}
                                                   onBlur={handleBlur}
                                                 />
                                                 <ErrorMessage
-                                                  name="city_name"
+                                                  name="latitude"
                                                   component={CFormText}
                                                   className="text-danger"
+                                                />
+                                              </CCol>
+
+                                            </CCol>
+
+                                            {/* Longitude Field */}
+                                            <CCol
+                                              md={12}
+                                              xs={12}
+                                              sm={12}
+                                              className="pr-3 d-flex flex-row flex-md-row"
+                                            >
+                                              <CCol md={3} sm={4} xs={4}>
+                                                <p className="fw-bold m-2">Longitude:</p>
+                                              </CCol>
+                                              <CCol md={6} sm={6} xs={4}>
+                                                <Field
+                                                  name="longitude"
+                                                  type="text"
+                                                  className="form-control"
+                                                  placeholder="Longitude"
+                                                  onChange={handleChange}
+                                                  onBlur={handleBlur}
                                                 />
                                                 <ErrorMessage
-                                                  name="pincode"
+                                                  name="longitude"
                                                   component={CFormText}
                                                   className="text-danger"
                                                 />
                                               </CCol>
-                                            </>
-                                          ) : (
-                                            <p className="m-2">
-                                              {[
-                                                values?.landmark,
-                                                values?.locality,
-                                                values?.city_name,
-                                                values?.state_name,
-                                                values?.pincode,
-                                              ]
-                                                .filter(Boolean) // Removes falsy values like null, undefined, empty string
-                                                .join(', ') || '-'}
-                                            </p>
-                                          )}
-                                        </CCol>
+                                            </CCol>
+                                          </>
+                                        ) : (
+                                          <p className="m-2">
+                                            Latitude:{' '}
+                                            <span className="fst-italic">
+                                              {values?.latitude || '-'}
+                                            </span>
+                                            , Longitude:{' '}
+                                            <span className="fst-italic">
+                                              {values?.longitude || '-'}
+                                            </span>
+                                          </p>
+                                        )}
                                       </CCol>
-                                    </CRow>
+                                    </CCol>
+                                  </CRow>
 
-                                    <CRow className="d-flex align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-row flex-md-row justify-content-left mb-2">
-                                        <CCol md={3}>
-                                          <p className="fw-bold m-2">Co-ordinates: </p>
-                                        </CCol>
-                                        <CCol
-                                          md={12}
-                                          xs={12}
-                                          sm={12}
-                                          className="pr-3 d-flex w-100 flex-row flex-column flex-md-column flex-sm-column justify-content-left mb-2"
-                                        >
-                                          {isEdit && activeTab == 1 ? (
-                                            <>
-                                              <CCol
-                                                md={12}
-                                                sm={12}
-                                                xs={12}
-                                                className="pr-3 d-flex flex-row flex-md-row "
-                                              >
-                                                <CCol md={3} sm={4} xs={4}>
-                                                  <p className="fw-bold m-2">Latitude:</p>
-                                                </CCol>
-                                                <CCol md={6} sm={6} xs={4}>
+                                  {(values?.builtup_area || isEdit) &&
+                                    (propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER ||
+                                      propertyDetails.user_type ===
+                                        constant.PROPERTY_USER_TYPE.OWNER) && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Builtup Area: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <CCol className="d-flex w-100 flex-row">
                                                   <Field
-                                                    name="latitude"
+                                                    name="builtup_area"
                                                     type="text"
-                                                    className="form-control"
-                                                    placeholder="Latitude"
+                                                    className="form-control me-2"
+                                                    placeholder="Builtup Area"
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
+                                                  {/* <p className="fw-bold m-2">Unit: </p> */}
+                                                  <Field
+                                                    as={CFormSelect}
+                                                    name="builtup_area_unit"
+                                                    // type="text"
+                                                    className="form-control"
+                                                    placeholder="Builtup Unit"
+                                                    // onChange={handleChange}
+                                                    // onBlur={handleBlur}
+                                                  >
+                                                    <option value={-1}>Select</option>
+                                                    {configurationUnit.map((item, index) => (
+                                                      <option key={index} value={item.value}>
+                                                        {item.title}
+                                                      </option>
+                                                    ))}
+                                                  </Field>
+                                                </CCol>
+                                                <CCol className="d-flex w-100 flex-row">
                                                   <ErrorMessage
-                                                    name="latitude"
+                                                    name="land_area"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                  <ErrorMessage
+                                                    name="builtup_area_unit"
                                                     component={CFormText}
                                                     className="text-danger"
                                                   />
                                                 </CCol>
-                                              </CCol>
+                                              </>
+                                            ) : (
+                                              <p className="m-2">
+                                                {`${values?.builtup_area} ${values?.builtup_area_unit} `}
+                                              </p>
+                                            )}
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
 
-                                              {/* Longitude Field */}
-                                              <CCol
-                                                md={12}
-                                                xs={12}
-                                                sm={12}
-                                                className="pr-3 d-flex flex-row flex-md-row"
-                                              >
-                                                <CCol md={3} sm={4} xs={4}>
-                                                  <p className="fw-bold m-2">Longitude:</p>
-                                                </CCol>
-                                                <CCol md={6} sm={6} xs={4}>
+                                  {(values?.rera_number || isEdit) &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Rera Number: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <CCol className="d-flex w-100 flex-row">
                                                   <Field
-                                                    name="longitude"
+                                                    name="rera_number"
                                                     type="text"
-                                                    className="form-control"
-                                                    placeholder="Longitude"
+                                                    className="form-control me-2"
+                                                    placeholder="Rera_Number"
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
+                                                </CCol>
+                                                <CCol className="d-flex w-100 flex-row">
                                                   <ErrorMessage
-                                                    name="longitude"
+                                                    name="rera_number"
                                                     component={CFormText}
                                                     className="text-danger"
                                                   />
                                                 </CCol>
-                                              </CCol>
-                                            </>
-                                          ) : (
-                                            <p className="m-2">
-                                              Latitude:{' '}
-                                              <span className="fst-italic">
-                                                {values?.latitude || '-'}
-                                              </span>
-                                              , Longitude:{' '}
-                                              <span className="fst-italic">
-                                                {values?.longitude || '-'}
-                                              </span>
-                                            </p>
-                                          )}
+                                              </>
+                                            ) : (
+                                              <p className="m-2">{`${values?.rera_number}`}</p>
+                                            )}
+                                          </CCol>
                                         </CCol>
-                                      </CCol>
-                                    </CRow>
+                                      </CRow>
+                                    )}
 
-                                    {(values?.builtup_area || isEdit) &&
-                                      (propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER ||
-                                        propertyDetails.user_type ===
-                                          constant.PROPERTY_USER_TYPE.OWNER) && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Builtup Area: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <Field
-                                                      name="builtup_area"
-                                                      type="text"
-                                                      className="form-control me-2"
-                                                      placeholder="Builtup Area"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    {/* <p className="fw-bold m-2">Unit: </p> */}
-                                                    <Field
-                                                      as={CFormSelect}
-                                                      name="builtup_area_unit"
-                                                      // type="text"
-                                                      className="form-control"
-                                                      placeholder="Builtup Unit"
-                                                      // onChange={handleChange}
-                                                      // onBlur={handleBlur}
-                                                    >
-                                                      <option value={-1}>Select</option>
-                                                      {configurationUnit.map((item, index) => (
-                                                        <option 
-                                                          key={index} 
-                                                          value={item.value} >
-                                                          {item.title}
-                                                        </option>
-                                                      ))}
-                                                    </Field>
-                                                  </CCol>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <ErrorMessage
-                                                      name="land_area"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                    <ErrorMessage
-                                                      name="builtup_area_unit"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </CCol>
-                                                </>
-                                              ) : (
-                                                <p className="m-2">
-                                                  {`${values?.builtup_area} ${values?.builtup_area_unit} `}
-                                                </p>
-                                              )}
-                                            </CCol>
-                                          </CCol>
-                                        </CRow>
-                                      )}
-
-                                      {(values?.rera_number || isEdit) &&
+                                  {(values?.land_area || isEdit) &&
+                                    activeTab == 1 &&
+                                    (propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER ||
                                       propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Rera Number: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <Field
-                                                      name="rera_number"
-                                                      type="text"
-                                                      className="form-control me-2"
-                                                      placeholder="Rera_Number"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                  
-                                                  </CCol>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <ErrorMessage
-                                                      name="rera_number"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </CCol>
-                                                </>
-                                              ) : (
-                                                <p className="m-2">
-                                                  {`${values?.rera_number}`}
-                                                </p>
-                                              )}
-                                            </CCol>
+                                        constant.PROPERTY_USER_TYPE.OWNER) && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Land Area: </p>
+
                                           </CCol>
-                                        </CRow>
-                                      )}
-
-                                    {(values?.land_area || isEdit) &&
-                                      activeTab == 1 &&
-                                      (propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER ||
-                                        propertyDetails.user_type ===
-                                          constant.PROPERTY_USER_TYPE.OWNER) && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Land Area: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <Field
-                                                      name="land_area"
-                                                      type="text"
-                                                      className="form-control me-2"
-                                                      placeholder="Land Area"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-
-                                                    <Field
-                                                      name="land_area_unit"
-                                                      // type="text"
-                                                      as={CFormSelect}
-                                                      className="form-control"
-                                                      placeholder="Land Unit"
-                                                      // onChange={handleChange}
-                                                      // onBlur={handleBlur}
-                                                    >
-                                                      <option value={-1}>Select</option>
-                                                      {configurationUnit.map((item, index) => (
-                                                        <option 
-                                                          value={item.value}
-                                                          key={index} >
-                                                          {item.title}
-                                                        </option>
-                                                      ))}
-                                                    </Field>
-                                                  </CCol>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <ErrorMessage
-                                                      name="land_area"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                    <ErrorMessage
-                                                      name="land_area_unit"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </CCol>
-                                                </>
-                                              ) : (
-                                                <p className="m-2">
-                                                  {`${values?.land_area} ${values?.land_area_unit} `}
-                                                </p>
-                                              )}
-                                            </CCol>
-                                          </CCol>
-                                        </CRow>
-                                      )}
-
-                                    {(values?.project_area || isEdit) &&
-                                      propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Project Area: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <Field
-                                                      name="project_area"
-                                                      type="text"
-                                                      className="form-control me-2"
-                                                      placeholder="Project Area"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-
-                                                    <Field
-                                                      name="project_area_unit"
-                                                      type="text"
-                                                      as={CFormSelect}
-                                                      className="form-control"
-                                                      placeholder="Project Unit"
-                                                      onChange={(e) =>
-                                                        setFieldValue(
-                                                          'project_area_unit',
-                                                          e.target.value !== '-1'
-                                                            ? e.target.value
-                                                            : null,
-                                                        )
-                                                      }
-                                                    >
-                                                      <option value={-1}>Select</option>
-                                                      {projectAreaUnit.map((item, index) => (
-                                                        <option key={index} value={item.value}>
-                                                          {item.title}
-                                                        </option>
-                                                      ))}
-                                                    </Field>
-                                                  </CCol>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <ErrorMessage
-                                                      name="project_area_unit"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                    <ErrorMessage
-                                                      name="project_area"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </CCol>
-                                                </>
-                                              ) : (
-                                                <p className="m-2">
-                                                  {`${values?.project_area} ${values?.project_area_unit} `}
-                                                </p>
-                                              )}
-                                            </CCol>
-                                          </CCol>
-                                        </CRow>
-                                      )}
-
-                                    {(values?.rent_amount || isEdit) &&
-                                      activeTab == 1 &&
-                                      propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.OWNER && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Expected Rent: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <Field
-                                                      name="rent_amount"
-                                                      type="text"
-                                                      className="form-control me-2"
-                                                      placeholder="Rent Amount"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-
-                                                    <Field
-                                                      name="rent_is_nogotiable"
-                                                      type="text"
-                                                      as={CFormSelect}
-                                                      className="form-control"
-                                                      placeholder="Negotiable"
-                                                      onChange={(e) =>
-                                                        setFieldValue(
-                                                          'rent_is_nogotiable',
-                                                          e.target.value !== '-1'
-                                                            ? e.target.value
-                                                            : null,
-                                                        )
-                                                      }
-                                                    >
-                                                      <option value="-1">Select</option>
-                                                      {NegotiableType.map((item, index) => (
-                                                        <option key={index} value={item.value}>
-                                                          {item.title}
-                                                        </option>
-                                                      ))}
-                                                    </Field>
-                                                  </CCol>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <ErrorMessage
-                                                      name="rent_amount"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                    <ErrorMessage
-                                                      name="rent_is_nogotiable"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </CCol>
-                                                </>
-                                              ) : (
-                                                <p className="m-2">
-                                                  {`₹ ${values?.rent_amount && Number(values?.rent_amount || 0).toFixed(2)} 
-                                                  ${values?.rent_is_nogotiable == 0 ? 'Non Negotiable' : 'Negotiable'} `}
-                                                </p>
-                                              )}
-                                            </CCol>
-                                          </CCol>
-                                        </CRow>
-                                      )}
-
-                                    {/* ### need two textbox */}
-                                    {(values?.deposite_amount || isEdit) &&
-                                      activeTab == 1 &&
-                                      propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.OWNER && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Expected Deposite: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <Field
-                                                      name="deposite_amount"
-                                                      type="text"
-                                                      className="form-control me-2"
-                                                      placeholder="Deposite Amount"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-
-                                                    <Field
-                                                      name="deposite_is_negotiable"
-                                                      as={CFormSelect}
-                                                      className="form-control"
-                                                      placeholder="Negotiable"
-                                                      onChange={(e) =>
-                                                        setFieldValue(
-                                                          'deposite_is_negotiable',
-                                                          e.target.value !== '-1'
-                                                            ? e.target.value
-                                                            : null,
-                                                        )
-                                                      }
-                                                    >
-                                                      <option value="-1">Select</option>
-                                                      {NegotiableType.map((item, index) => (
-                                                        <option key={index} value={item.value}>
-                                                          {item.title}
-                                                        </option>
-                                                      ))}
-                                                    </Field>
-                                                  </CCol>
-                                                  <CCol className="d-flex w-100 flex-row">
-                                                    <ErrorMessage
-                                                      name="deposite_amount"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                    <ErrorMessage
-                                                      name="deposite_is_negotiable"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </CCol>
-                                                </>
-                                              ) : (
-                                                <p className="m-2">
-                                                  {`₹ ${values?.deposite_amount && Number(values?.deposite_amount || 0).toFixed(2)} 
-                                                ${values?.deposite_is_negotiable == 0 ? 'Non Negotiable' : 'Negotiable'} `}
-                                                </p>
-                                              )}
-                                            </CCol>
-                                          </CCol>
-                                        </CRow>
-                                      )}
-
-                                    {(values?.door_facing || isEdit) &&
-                                      propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Door Facing: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <CCol className="d-flex w-100 flex-row">
                                                   <Field
-                                                    name="door_facing"
+                                                    name="land_area"
+                                                    type="text"
+                                                    className="form-control me-2"
+                                                    placeholder="Land Area"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+
+                                                  <Field
+                                                    name="land_area_unit"
+                                                    // type="text"
                                                     as={CFormSelect}
                                                     className="form-control"
-                                                    placeholder="Door Facing"
+                                                    placeholder="Land Unit"
+                                                    // onChange={handleChange}
+                                                    // onBlur={handleBlur}
+                                                  >
+                                                    <option value={-1}>Select</option>
+                                                    {configurationUnit.map((item, index) => (
+                                                      <option value={item.value} key={index}>
+                                                        {item.title}
+                                                      </option>
+                                                    ))}
+                                                  </Field>
+                                                </CCol>
+                                                <CCol className="d-flex w-100 flex-row">
+                                                  <ErrorMessage
+                                                    name="land_area"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                  <ErrorMessage
+                                                    name="land_area_unit"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </CCol>
+                                              </>
+                                            ) : (
+                                              <p className="m-2">
+                                                {`${values?.land_area} ${values?.land_area_unit} `}
+                                              </p>
+                                            )}
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
+
+                                  {(values?.project_area || isEdit) &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Project Area: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <CCol className="d-flex w-100 flex-row">
+                                                  <Field
+                                                    name="project_area"
+                                                    type="text"
+                                                    className="form-control me-2"
+                                                    placeholder="Project Area"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+
+                                                  <Field
+                                                    name="project_area_unit"
+                                                    type="text"
+                                                    as={CFormSelect}
+                                                    className="form-control"
+                                                    placeholder="Project Unit"
                                                     onChange={(e) =>
                                                       setFieldValue(
-                                                        'door_facing',
+                                                        'project_area_unit',
+                                                        e.target.value !== '-1'
+                                                          ? e.target.value
+                                                          : null,
+                                                      )
+                                                    }
+                                                  >
+                                                    <option value={-1}>Select</option>
+                                                    {projectAreaUnit.map((item, index) => (
+                                                      <option key={index} value={item.value}>
+                                                        {item.title}
+                                                      </option>
+                                                    ))}
+                                                  </Field>
+                                                </CCol>
+                                                <CCol className="d-flex w-100 flex-row">
+                                                  <ErrorMessage
+                                                    name="project_area_unit"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                  <ErrorMessage
+                                                    name="project_area"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </CCol>
+                                              </>
+                                            ) : (
+                                              <p className="m-2">
+                                                {`${values?.project_area} ${values?.project_area_unit} `}
+                                              </p>
+                                            )}
+
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
+
+                                  {(values?.rent_amount || isEdit) &&
+                                    activeTab == 1 &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.OWNER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Expected Rent: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <CCol className="d-flex w-100 flex-row">
+                                                  <Field
+                                                    name="rent_amount"
+                                                    type="text"
+                                                    className="form-control me-2"
+                                                    placeholder="Rent Amount"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+
+
+                                                  <Field
+                                                    name="rent_is_nogotiable"
+                                                    type="text"
+                                                    as={CFormSelect}
+                                                    className="form-control"
+                                                    placeholder="Negotiable"
+                                                    onChange={(e) =>
+                                                      setFieldValue(
+                                                        'rent_is_nogotiable',
                                                         e.target.value !== '-1'
                                                           ? e.target.value
                                                           : null,
@@ -1617,78 +1634,210 @@ const ViewPropertyDetails = () => {
                                                     }
                                                   >
                                                     <option value="-1">Select</option>
-                                                    {doorFacingOptions.map((item, index) => (
+                                                    {NegotiableType.map((item, index) => (
                                                       <option key={index} value={item.value}>
                                                         {item.title}
                                                       </option>
                                                     ))}
                                                   </Field>
+                                                </CCol>
+                                                <CCol className="d-flex w-100 flex-row">
                                                   <ErrorMessage
-                                                    name="door_facing"
+                                                    name="rent_amount"
                                                     component={CFormText}
                                                     className="text-danger"
                                                   />
-                                                </>
-                                              ) : (
-                                                <p className="m-2">{values?.door_facing || '-'}</p>
-                                              )}
-                                            </CCol>
-                                          </CCol>
-                                        </CRow>
-                                      )}
+                                                  <ErrorMessage
+                                                    name="rent_is_nogotiable"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </CCol>
+                                              </>
+                                            ) : (
+                                              <p className="m-2">
+                                                {`₹ ${values?.rent_amount && Number(values?.rent_amount || 0).toFixed(2)} 
+                                                  ${values?.rent_is_nogotiable == 0 ? 'Non Negotiable' : 'Negotiable'} `}
+                                              </p>
+                                            )}
 
-                                    {(values?.property_age || isEdit) &&
-                                      (propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER ||
-                                        propertyDetails.user_type ===
-                                          constant.PROPERTY_USER_TYPE.OWNER) && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Property Age: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
+
+                                  {/* ### need two textbox */}
+                                  {(values?.deposite_amount || isEdit) &&
+                                    activeTab == 1 &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.OWNER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Expected Deposite: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <CCol className="d-flex w-100 flex-row">
                                                   <Field
-                                                    name="property_age"
+                                                    name="deposite_amount"
                                                     type="text"
-                                                    className="form-control"
-                                                    placeholder="Property Age"
+                                                    className="form-control me-2"
+                                                    placeholder="Deposite Amount"
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
+
+                                                  <Field
+                                                    name="deposite_is_negotiable"
+                                                    as={CFormSelect}
+                                                    className="form-control"
+                                                    placeholder="Negotiable"
+                                                    onChange={(e) =>
+                                                      setFieldValue(
+                                                        'deposite_is_negotiable',
+                                                        e.target.value !== '-1'
+                                                          ? e.target.value
+                                                          : null,
+                                                      )
+                                                    }
+                                                  >
+                                                    <option value="-1">Select</option>
+                                                    {NegotiableType.map((item, index) => (
+                                                      <option key={index} value={item.value}>
+                                                        {item.title}
+                                                      </option>
+                                                    ))}
+                                                  </Field>
+                                                </CCol>
+                                                <CCol className="d-flex w-100 flex-row">
                                                   <ErrorMessage
-                                                    name="property_age"
+                                                    name="deposite_amount"
                                                     component={CFormText}
                                                     className="text-danger"
                                                   />
-                                                </>
-                                              ) : (
-                                                <p className="m-2">{values?.property_age || '-'}</p>
-                                              )}
-                                            </CCol>
+                                                  <ErrorMessage
+                                                    name="deposite_is_negotiable"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </CCol>
+                                              </>
+                                            ) : (
+                                              <p className="m-2">
+                                                {`₹ ${values?.deposite_amount && Number(values?.deposite_amount || 0).toFixed(2)} 
+                                                ${values?.deposite_is_negotiable == 0 ? 'Non Negotiable' : 'Negotiable'} `}
+                                              </p>
+                                            )}
                                           </CCol>
-                                        </CRow>
-                                      )}
+                                        </CCol>
+                                      </CRow>
+                                    )}
 
-                                      {(values?.possession_date || isEdit) &&
+                                  {(values?.door_facing || isEdit) &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Door Facing: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <Field
+                                                  name="door_facing"
+                                                  as={CFormSelect}
+                                                  className="form-control"
+                                                  placeholder="Door Facing"
+                                                  onChange={(e) =>
+                                                    setFieldValue(
+                                                      'door_facing',
+                                                      e.target.value !== '-1'
+                                                        ? e.target.value
+                                                        : null,
+                                                    )
+                                                  }
+                                                >
+                                                  <option value="-1">Select</option>
+                                                  {doorFacingOptions.map((item, index) => (
+                                                    <option key={index} value={item.value}>
+                                                      {item.title}
+                                                    </option>
+                                                  ))}
+                                                </Field>
+                                                <ErrorMessage
+                                                  name="door_facing"
+                                                  component={CFormText}
+                                                  className="text-danger"
+                                                />
+                                              </>
+                                            ) : (
+                                              <p className="m-2">{values?.door_facing || '-'}</p>
+                                            )}
+
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
+
+                                  {(values?.property_age || isEdit) &&
+                                    (propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER ||
                                       propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Possession Date: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <CRow className='d-flex flex-column flex-md-row'>
-                                                  <CCol md={6} className='mb-2'>
+
+                                        constant.PROPERTY_USER_TYPE.OWNER) && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Property Age: </p>
+
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <Field
+                                                  name="property_age"
+                                                  type="text"
+                                                  className="form-control"
+                                                  placeholder="Property Age"
+                                                  onChange={handleChange}
+                                                  onBlur={handleBlur}
+                                                />
+                                                <ErrorMessage
+                                                  name="property_age"
+                                                  component={CFormText}
+                                                  className="text-danger"
+                                                />
+                                              </>
+                                            ) : (
+                                              <p className="m-2">{values?.property_age || '-'}</p>
+                                            )}
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
+
+                                  {(values?.possession_date || isEdit) &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Possession Date: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <CRow className="d-flex flex-column flex-md-row">
+                                                <CCol md={6} className="mb-2">
                                                   <Field
                                                     name="possession_month"
                                                     as={CFormSelect}
                                                     className="form-control"
-                                                    value={values.possession_month?.toLowerCase() || '-1' }
+                                                    value={
+                                                      values.possession_month?.toLowerCase() || '-1'
+                                                    }
                                                     placeholder="Possession month"
                                                     onChange={(e) => {
                                                       setFieldValue(
@@ -1699,10 +1848,13 @@ const ViewPropertyDetails = () => {
                                                       )
                                                     }}
                                                   >
+
                                                     <option value="-1">Select Date</option>
                                                     {availableMonths.map((item, index) => (
-                                                      <option key={index} 
-                                                        value={item.title?.toLowerCase()} >
+                                                      <option
+                                                        key={index}
+                                                        value={item.title?.toLowerCase()}
+                                                      >
                                                         {item.title}
                                                       </option>
                                                     ))}
@@ -1713,7 +1865,7 @@ const ViewPropertyDetails = () => {
                                                     className="text-danger"
                                                   />
                                                 </CCol>
-                                                <CCol md={6} className='mb-2'>
+                                                <CCol md={6} className="mb-2">
                                                   <Field
                                                     name="possession_year"
                                                     as={CFormSelect}
@@ -1730,6 +1882,7 @@ const ViewPropertyDetails = () => {
                                                   >
                                                     <option value="-1">Select Year</option>
                                                     {availableYears.map((item, index) => (
+
                                                       <option key={index} value={item.value}>
                                                         {item.title}
                                                       </option>
@@ -1740,507 +1893,502 @@ const ViewPropertyDetails = () => {
                                                     component={CFormText}
                                                     className="text-danger"
                                                   />
-                                                  </CCol>
-                                                </CRow>
-                                              ) : (
-                                                <p className="m-2">
-                                                  { values.possession_date ? `${_.startCase(values?.possession_month)}, ${values.possession_year}` : '-'}
-                                                </p>
-                                              )}
-                                            </CCol>
+                                                </CCol>
+                                              </CRow>
+                                            ) : (
+                                              <p className="m-2">
+                                                {values.possession_date
+                                                  ? `${_.startCase(values?.possession_month)}, ${values.possession_year}`
+                                                  : '-'}
+                                              </p>
+                                            )}
                                           </CCol>
-                                        </CRow>
-                                      )}
+                                        </CCol>
+                                      </CRow>
+                                    )}
 
+                                  {(values?.preferred_tenent || isEdit) &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.OWNER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Preferred Tenent: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <Field
+                                                  name="preferred_tenent"
+                                                  as={CFormSelect}
+                                                  className="form-control"
+                                                  placeholder="Preferred Tenent"
+                                                  onChange={(e) => {
+                                                    setFieldValue(
+                                                      'preferred_tenant',
+                                                      e.target.value !== '-1'
+                                                        ? e.target.value
+                                                        : null,
+                                                    )
+                                                  }}
+                                                >
+                                                  <option value="-1">Select</option>
+                                                  {PreferredTenent.map((item, index) => (
+                                                    <option key={index} value={item.value}>
+                                                      {item.title}
+                                                    </option>
+                                                  ))}
+                                                </Field>
+                                                <ErrorMessage
+                                                  name="preferred_tenent"
+                                                  component={CFormText}
+                                                  className="text-danger"
+                                                />
+                                              </>
+                                            ) : (
+                                              <p className="m-2">
+                                                {values?.preferred_tenent || '-'}
+                                              </p>
+                                            )}
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
 
-                                    {(values?.preferred_tenent || isEdit) &&
+                                  {(values?.is_maintenance || isEdit) &&
+                                    (propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER ||
                                       propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.OWNER && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Preferred Tenent: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
-                                                  <Field
-                                                    name="preferred_tenent"
-                                                    as={CFormSelect}
-                                                    className="form-control"
-                                                    placeholder="Preferred Tenent"
-                                                    onChange={(e) => {
-                                                      setFieldValue(
-                                                        'preferred_tenant',
-                                                        e.target.value !== '-1'
-                                                          ? e.target.value
-                                                          : null,
-                                                      )
-                                                    }}
-                                                  >
-                                                    <option value="-1">Select</option>
-                                                    {PreferredTenent.map((item, index) => (
-                                                      <option key={index} value={item.value}>
-                                                        {item.title}
-                                                      </option>
-                                                    ))}
-                                                  </Field>
-                                                  <ErrorMessage
-                                                    name="preferred_tenent"
-                                                    component={CFormText}
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              ) : (
-                                                <p className="m-2">
-                                                  {values?.preferred_tenent || '-'}
-                                                </p>
-                                              )}
-                                            </CCol>
+                                        constant.PROPERTY_USER_TYPE.OWNER) && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Maintenance: </p>
                                           </CCol>
-                                        </CRow>
-                                      )}
-
-                                    {(values?.is_maintenance || isEdit) &&
-                                      (propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER ||
-                                        propertyDetails.user_type ===
-                                          constant.PROPERTY_USER_TYPE.OWNER) && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Maintenance: </p>
-                                            </CCol>
-                                            <CCol md={9}>
-                                              {isEdit && activeTab == 1 ? (
-                                                <>
-                                                  <Field
-                                                    name="is_maintenance"
-                                                    as={CFormSelect}
-                                                    className="form-control"
-                                                    placeholder="Is Maintenance"
-                                                    onChange={(e) => {
-                                                      setFieldValue(
-                                                        'is_maintenance',
-                                                        e.target.value !== '-1'
-                                                          ? e.target.value
-                                                          : null,
-                                                      )
-                                                    }}
-                                                  >
-                                                    <option value="-1">Select</option>
-                                                    {isMaintenanceOptions.map((item, index) => (
-                                                      <option key={index} value={item.value}>
-                                                        {item.title}
-                                                      </option>
-                                                    ))}
-                                                  </Field>
-                                                  <ErrorMessage
-                                                    name="is_maintenance"
-                                                    component={CFormText}
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              ) : (
-                                                <p className="m-2">
-                                                  {values?.is_maintenance}
-                                                </p>
-                                              )}
-                                            </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <Field
+                                                  name="is_maintenance"
+                                                  as={CFormSelect}
+                                                  className="form-control"
+                                                  placeholder="Is Maintenance"
+                                                  onChange={(e) => {
+                                                    setFieldValue(
+                                                      'is_maintenance',
+                                                      e.target.value !== '-1'
+                                                        ? e.target.value
+                                                        : null,
+                                                    )
+                                                  }}
+                                                >
+                                                  <option value="-1">Select</option>
+                                                  {isMaintenanceOptions.map((item, index) => (
+                                                    <option key={index} value={item.value}>
+                                                      {item.title}
+                                                    </option>
+                                                  ))}
+                                                </Field>
+                                                <ErrorMessage
+                                                  name="is_maintenance"
+                                                  component={CFormText}
+                                                  className="text-danger"
+                                                />
+                                              </>
+                                            ) : (
+                                              <p className="m-2">{values?.is_maintenance}</p>
+                                            )}
                                           </CCol>
-                                        </CRow>
-                                      )}
+                                        </CCol>
+                                      </CRow>
+                                    )}
 
-                                    {(values?.monthly_maintenance || isEdit) &&
-                                      propertyDetails.user_type ===
-                                        constant.PROPERTY_USER_TYPE.BUILDER && (
-                                        <CRow className="d-flex align-items-center">
-                                          <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                            <CCol md={3}>
-                                              <p className="fw-bold m-2">Monthly Maintenance: </p>
+                                  {(values?.monthly_maintenance || isEdit) &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Monthly Maintenance: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <Field
+                                                  name="monthly_maintenance"
+                                                  type="text"
+                                                  className="form-control"
+                                                  placeholder="Monthly Maintenance"
+                                                  onChange={handleChange}
+                                                  onBlur={handleBlur}
+                                                />
+                                                <ErrorMessage
+                                                  name="monthly_maintenance"
+                                                  component={CFormText}
+                                                  className="text-danger"
+                                                />
+                                              </>
+                                            ) : (
+                                              <p className="m-2">
+                                                {`₹ ${values?.monthly_maintenance}`}
+                                              </p>
+                                            )}
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
+
+                                  <hr />
+                                  <CRow className="d-flex align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      {(values?.unit_number || isEdit) &&
+                                        (propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.BUILDER ||
+                                          propertyDetails.user_type ===
+                                            constant.PROPERTY_USER_TYPE.OWNER) && (
+                                          <>
+                                            <CCol xs={6} lg={3} md={3}>
+                                              <p className="fw-bold m-2">Unit Number: </p>
                                             </CCol>
-                                            <CCol md={9}>
+                                            <CCol xs={6} lg={3} md={3}>
                                               {isEdit && activeTab == 1 ? (
                                                 <>
                                                   <Field
-                                                    name="monthly_maintenance"
+                                                    name="unit_number"
                                                     type="text"
                                                     className="form-control"
-                                                    placeholder="Monthly Maintenance"
+                                                    placeholder="Unit Number"
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
                                                   />
                                                   <ErrorMessage
-                                                    name="monthly_maintenance"
+                                                    name="unit_number"
                                                     component={CFormText}
                                                     className="text-danger"
                                                   />
                                                 </>
                                               ) : (
-                                                <p className="m-2">
-                                                  {`₹ ${values?.monthly_maintenance}`}
-                                                </p>
+                                                <p className="m-2">{values?.unit_number || '-'}</p>
                                               )}
                                             </CCol>
-                                          </CCol>
-                                        </CRow>
-                                      )}
+                                          </>
+                                        )}
 
-                                    <hr />
-                                    <CRow className="d-flex align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                        {(values?.unit_number || isEdit) &&
-                                          (propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.BUILDER ||
-                                            propertyDetails.user_type ===
-                                              constant.PROPERTY_USER_TYPE.OWNER) && (
-                                            <>
-                                              <CCol xs={6} lg={3} md={3}>
-                                                <p className="fw-bold m-2">Unit Number: </p>
-                                              </CCol>
-                                              <CCol xs={6} lg={3} md={3}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="unit_number"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Unit Number"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="unit_number"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">
-                                                    {values?.unit_number || '-'}
-                                                  </p>
-                                                )}
-                                              </CCol>
-                                            </>
-                                          )}
+                                      {(values?.washrooms || isEdit) &&
+                                        propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.BUILDER && (
+                                          <>
+                                            <CCol md={2}>
+                                              <p className="fw-bold m-2">Washrooms: </p>
+                                            </CCol>
+                                            <CCol md={4}>
+                                              {isEdit && activeTab == 1 ? (
+                                                <>
+                                                  <Field
+                                                    name="washrooms"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Washrooms"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+                                                  <ErrorMessage
+                                                    name="washrooms"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </>
+                                              ) : (
+                                                <p className="m-2">{values?.washrooms || '-'}</p>
+                                              )}
+                                            </CCol>
+                                          </>
+                                        )}
+                                    </CCol>
+                                  </CRow>
 
-                                        {(values?.washrooms || isEdit) &&
+                                  <CRow className="d-flex align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      {(values?.total_units || isEdit) &&
+                                        (propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.BUILDER ||
                                           propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.BUILDER && (
+                                            constant.PROPERTY_USER_TYPE.OWNER) && (
+                                          <>
+                                            <CCol xs={6} lg={3} md={3}>
+                                              <p className="fw-bold m-2">Total Units: </p>
+                                            </CCol>
+                                            <CCol xs={6} lg={3} md={3}>
+                                              {isEdit && activeTab == 1 ? (
+                                                <>
+                                                  <Field
+                                                    name="total_units"
+                                                    type="text"
+                                                    className="form-control"
+
+                                                    placeholder="Total Units"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+                                                  <ErrorMessage
+                                                    name="total_units"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </>
+                                              ) : (
+                                                <p className="m-2">{values?.total_units || '-'}</p>
+                                              )}
+                                            </CCol>
+                                          </>
+                                        )}
+                                    </CCol>
+                                  </CRow>
+                                  <CRow className="d-flex align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      {(values?.total_wing || isEdit) &&
+                                        propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.OWNER && (
+                                          <>
+                                            <CCol md={3}>
+                                              <p className="fw-bold m-2">Total Wing: </p>
+                                            </CCol>
+                                            <CCol md={3}>
+                                              {isEdit && activeTab == 1 ? (
+                                                <>
+                                                  <Field
+                                                    name="total_wing"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Total Wing"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+
+                                                  <ErrorMessage
+                                                    name="total_wing"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </>
+                                              ) : (
+                                                <p className="m-2">{values?.total_wing || '-'}</p>
+                                              )}
+                                            </CCol>
+                                          </>
+                                        )}
+
+                                      {(values?.wing_name || isEdit) &&
+                                        propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.OWNER && (
+                                          <>
+                                            <CCol md={2}>
+                                              <p className="fw-bold m-2">Wing Name: </p>
+                                            </CCol>
+                                            <CCol md={4}>
+                                              {isEdit && activeTab == 1 ? (
+                                                <>
+                                                  <Field
+                                                    name="wing_name"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Wing Name"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+
+                                                  <ErrorMessage
+                                                    name="wing_name"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </>
+                                              ) : (
+                                                <p className="m-2">{values?.wing_name || '-'}</p>
+                                              )}
+                                            </CCol>
+                                          </>
+                                        )}
+                                    </CCol>
+                                  </CRow>
+                                  <CRow className="d-flex align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      {(values?.total_floors || isEdit) &&
+                                        propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.BUILDER && (
+                                          <>
+                                            <CCol md={3}>
+                                              <p className="fw-bold m-2">Total Floors: </p>
+                                            </CCol>
+                                            <CCol md={3}>
+                                              {isEdit && activeTab == 1 ? (
+                                                <>
+                                                  <Field
+                                                    name="total_floors"
+                                                    type="text"
+                                                    className="form-control"
+
+                                                    placeholder="Total Floors"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+
+                                                  <ErrorMessage
+                                                    name="total_floors"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </>
+                                              ) : (
+                                                <p className="m-2">{values?.total_floors || '-'}</p>
+                                              )}
+                                            </CCol>
+                                          </>
+                                        )}
+
+                                      {(values?.floor_number || isEdit) &&
+                                        (propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.BUILDER ||
+                                          propertyDetails.user_type ===
+                                            constant.PROPERTY_USER_TYPE.OWNER) && (
+                                          <>
+                                            <CCol md={2}>
+                                              <p className="fw-bold m-2">Floor No: </p>
+                                            </CCol>
+                                            <CCol md={4}>
+                                              {isEdit && activeTab == 1 ? (
+                                                <>
+                                                  <Field
+                                                    name="floor_number"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Floor Number"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+
+                                                  <ErrorMessage
+                                                    name="floor_number"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </>
+                                              ) : (
+                                                <p className="m-2">{values?.floor_number || '-'}</p>
+                                              )}
+                                            </CCol>
+                                          </>
+                                        )}
+                                    </CCol>
+                                  </CRow>
+
+                                  <CRow className="d-flex align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      {(values?.bed_rooms || isEdit) &&
+                                        propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.OWNER && (
+                                          <>
+                                            <CCol md={3}>
+                                              <p className="fw-bold m-2">Bed Rooms: </p>
+                                            </CCol>
+                                            <CCol md={3}>
+                                              {isEdit && activeTab == 1 ? (
+                                                <>
+                                                  <Field
+                                                    name="bed_rooms"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Bed Rooms"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+                                                  <ErrorMessage
+                                                    name="bed_rooms"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </>
+                                              ) : (
+                                                <p className="m-2">{values?.bed_rooms || '-'}</p>
+                                              )}
+                                            </CCol>
+                                          </>
+                                        )}
+
+
+                                      {(values?.balcony || isEdit) &&
+                                        propertyDetails.user_type ===
+                                          constant.PROPERTY_USER_TYPE.OWNER && (
+                                          <>
+                                            <CCol md={2}>
+                                              <p className="fw-bold m-2">Balcony: </p>
+                                            </CCol>
+                                            <CCol md={4}>
+                                              {isEdit && activeTab == 1 ? (
+                                                <>
+                                                  <Field
+                                                    name="balcony"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Balcony"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+                                                  <ErrorMessage
+                                                    name="balcony"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </>
+                                              ) : (
+                                                <p className="m-2">{values?.balcony || '-'}</p>
+                                              )}
+                                            </CCol>
+                                          </>
+                                        )}
+                                    </CCol>
+                                  </CRow>
+
+                                  <CRow className="d-flex align-items-center">
+                                    {isEdit && activeTab == 1 && (
+                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left ">
+                                        <CButton
+                                          type="submit"
+                                          color="primary"
+                                          className="m-2"
+                                          disabled={isSubmitting}
+                                        >
+                                          {isSubmitting ? (
                                             <>
-                                              <CCol md={2}>
-                                                <p className="fw-bold m-2">Washrooms: </p>
-                                              </CCol>
-                                              <CCol md={4}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="washrooms"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Washrooms"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="washrooms"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">{values?.washrooms || '-'}</p>
-                                                )}
-                                              </CCol>
+                                              <CSpinner size="sm" /> Update
                                             </>
+                                          ) : (
+                                            'Update'
                                           )}
+                                        </CButton>
+
+                                        <CButton
+                                          type="button"
+                                          color="primary"
+                                          className="m-2"
+                                          onClick={() => {
+                                            changeEditSectionHandler(false)
+                                            resetForm()
+                                          }}
+                                          disabled={isSubmitting}
+                                        >
+                                          {isSubmitting ? (
+                                            <>
+                                              <CSpinner size="sm" /> Cancel
+                                            </>
+                                          ) : (
+                                            'Cancel'
+                                          )}
+                                        </CButton>
                                       </CCol>
-                                    </CRow>
-
-                                    <CRow className="d-flex align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                        {(values?.total_units || isEdit) &&
-                                          (propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.BUILDER ||
-                                            propertyDetails.user_type ===
-                                              constant.PROPERTY_USER_TYPE.OWNER) && (
-                                            <>
-                                              <CCol xs={6} lg={3} md={3}>
-                                                <p className="fw-bold m-2">Total Units: </p>
-                                              </CCol>
-                                              <CCol xs={6} lg={3} md={3}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="total_units"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Total Units"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="total_units"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">
-                                                    {values?.total_units || '-'}
-                                                  </p>
-                                                )}
-                                              </CCol>
-                                            </>
-                                          )}
-
-                                       
-                                      </CCol>
-                                    </CRow>
-                                    <CRow className="d-flex align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                        {(values?.total_wing || isEdit) &&
-                                          propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.OWNER && (
-                                            <>
-                                              <CCol md={3}>
-                                                <p className="fw-bold m-2">Total Wing: </p>
-                                              </CCol>
-                                              <CCol md={3}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="total_wing"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Total Wing"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="total_wing"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">{values?.total_wing || '-'}</p>
-                                                )}
-                                              </CCol>
-                                            </>
-                                          )}
-
-                                        {(values?.wing_name || isEdit) &&
-                                          propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.OWNER && (
-                                            <>
-                                              <CCol md={2}>
-                                                <p className="fw-bold m-2">Wing Name: </p>
-                                              </CCol>
-                                              <CCol md={4}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="wing_name"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Wing Name"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="wing_name"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">{values?.wing_name || '-'}</p>
-                                                )}
-                                              </CCol>
-                                            </>
-                                          )}
-                                      </CCol>
-                                    </CRow>
-                                    <CRow className="d-flex align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                        {(values?.total_floors || isEdit) &&
-                                          propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.BUILDER && (
-                                            <>
-                                              <CCol md={3}>
-                                                <p className="fw-bold m-2">Total Floors: </p>
-                                              </CCol>
-                                              <CCol md={3}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="total_floors"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Total Floors"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="total_floors"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">
-                                                    {values?.total_floors || '-'}
-                                                  </p>
-                                                )}
-                                              </CCol>
-                                            </>
-                                          )}
-
-                                        {(values?.floor_number || isEdit) &&
-                                          (propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.BUILDER ||
-                                            propertyDetails.user_type ===
-                                              constant.PROPERTY_USER_TYPE.OWNER) && (
-                                            <>
-                                              <CCol md={2}>
-                                                <p className="fw-bold m-2">Floor No: </p>
-                                              </CCol>
-                                              <CCol md={4}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="floor_number"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Floor Number"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="floor_number"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">
-                                                    {values?.floor_number || '-'}
-                                                  </p>
-                                                )}
-                                              </CCol>
-                                            </>
-                                          )}
-                                      </CCol>
-                                    </CRow>
-
-                                    <CRow className="d-flex align-items-center">
-                                      <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
-                                        {(values?.bed_rooms || isEdit) &&
-                                          propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.OWNER && (
-                                            <>
-                                              <CCol md={3}>
-                                                <p className="fw-bold m-2">Bed Rooms: </p>
-                                              </CCol>
-                                              <CCol md={3}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="bed_rooms"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Bed Rooms"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="bed_rooms"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">{values?.bed_rooms || '-'}</p>
-                                                )}
-                                              </CCol>
-                                            </>
-                                          )}
-
-                                        {(values?.balcony || isEdit) &&
-                                          propertyDetails.user_type ===
-                                            constant.PROPERTY_USER_TYPE.OWNER && (
-                                            <>
-                                              <CCol md={2}>
-                                                <p className="fw-bold m-2">Balcony: </p>
-                                              </CCol>
-                                              <CCol md={4}>
-                                                {isEdit && activeTab == 1 ? (
-                                                  <>
-                                                    <Field
-                                                      name="balcony"
-                                                      type="text"
-                                                      className="form-control"
-                                                      placeholder="Balcony"
-                                                      onChange={handleChange}
-                                                      onBlur={handleBlur}
-                                                    />
-                                                    <ErrorMessage
-                                                      name="balcony"
-                                                      component={CFormText}
-                                                      className="text-danger"
-                                                    />
-                                                  </>
-                                                ) : (
-                                                  <p className="m-2">{values?.balcony || '-'}</p>
-                                                )}
-                                              </CCol>
-                                            </>
-                                          )}
-                                      </CCol>
-                                    </CRow>
-
-                                    <CRow className="d-flex align-items-center">
-                                      {isEdit && activeTab == 1 && (
-                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left ">
-                                          <CButton
-                                            type="submit"
-                                            color="primary"
-                                            className="m-2"
-                                            disabled={isSubmitting}
-                                          >
-                                            {isSubmitting ? (
-                                              <>
-                                                <CSpinner size="sm" /> Update
-                                              </>
-                                            ) : (
-                                              'Update'
-                                            )}
-                                          </CButton>
-
-                                          <CButton
-                                            type="button"
-                                            color="primary"
-                                            className="m-2"
-                                            onClick={() => {
-                                              changeEditSectionHandler(false)
-                                              resetForm()
-                                            }}
-                                            disabled={isSubmitting}
-                                          >
-                                            {isSubmitting ? (
-                                              <>
-                                                <CSpinner size="sm" /> Cancel
-                                              </>
-                                            ) : (
-                                              'Cancel'
-                                            )}
-                                          </CButton>
-                                        </CCol>
-                                      )}
-                                    </CRow>
-                                  </Form>
-                                )
+                                    )}
+                                  </CRow>
+                                </Form>
                               )}
                             </Formik>
                           </CAccordionBody>
@@ -2990,18 +3138,22 @@ const ViewPropertyDetails = () => {
                                         <CCol md={12}>
                                           <p className="m-2">
                                             {values.other_amenities &&
-                                              values?.other_amenities.split(',').map((item, index) => (
-                                                <CButton
-                                                  key={index}
-                                                  disabled
-                                                  className="rounded-pill m-1"
-                                                  color="success"
-                                                  variant="outline"
-                                                  size="sm"
-                                                >
-                                                  {item}
-                                                </CButton>
-                                              ))}
+
+                                              values?.other_amenities
+                                                .split(',')
+                                                .map((item, index) => (
+                                                  <CButton
+                                                    key={index}
+                                                    disabled
+                                                    className="rounded-pill m-1"
+                                                    color="success"
+                                                    variant="outline"
+                                                    size="sm"
+                                                  >
+                                                    {item}
+                                                  </CButton>
+                                                ))}
+
                                           </p>
                                         </CCol>
                                       </CRow>
@@ -3058,13 +3210,11 @@ const ViewPropertyDetails = () => {
                           <CAccordionHeader>Images</CAccordionHeader>
                           <CAccordionBody>
                             <CRow>
+                              {propertyDetails.images.length <= 0 && (
+                                <CHeader> No Images found.</CHeader>
+                              )}
 
-                              {
-                                propertyDetails.images.length <= 0 &&
-                                  <CHeader> No Images found.</CHeader>
-                              }
-
-{isEdit && activeTab == 3 && (
+                              {isEdit && activeTab == 3 && (
                                 <CCol className="mt-4">
                                   <CButton
                                     className="me-2"
@@ -3085,7 +3235,8 @@ const ViewPropertyDetails = () => {
                                 </CCol>
                               )}
 
-{((isImageAddNew && isEdit) || propertyDetails.images?.length <= 0) && (
+                              {((isImageAddNew && isEdit) ||
+                                propertyDetails.images?.length <= 0) && (
                                 <CRow>
                                   <CRow>
                                     <Formik
@@ -3116,21 +3267,18 @@ const ViewPropertyDetails = () => {
                                             <CCol md={10}>
                                               <>
                                                 <Field
-                                                  name="img_title"                                                  
+                                                  name="img_title"
                                                   as={CFormSelect}
                                                   className="form-control"
                                                   placeholder="Title"
                                                 >
-                                                  <option value="-1" >Select</option>
-                                                  {
-                                                    ImageOptions.map((item, index) => (
-                                                      <option 
-                                                        key={item.id}
-                                                        value={item.title} >
-                                                          {item.title}
-                                                      </option>
-                                                    ))
-                                                  }
+                                                  <option value="-1">Select</option>
+                                                  {ImageOptions.map((item, index) => (
+                                                    <option key={item.id} value={item.title}>
+                                                      {item.title}
+                                                    </option>
+                                                  ))}
+
                                                 </Field>
                                                 <ErrorMessage
                                                   name="img_title"
@@ -3157,21 +3305,25 @@ const ViewPropertyDetails = () => {
                                                   onBlur={handleBlur}
                                                 /> */}
                                                 <Field
-                                                  name="image_category"                                                  
+                                                  name="image_category"
                                                   as={CFormSelect}
                                                   className="form-control"
                                                   placeholder="Title"
                                                 >
-                                                  <option value="-1" >Select</option>
-                                                  {                                                    
-                                                    [ ...new Set(ImageOptions.map((item, index) => item.category))].map((item, index) => (
-                                                      <option 
-                                                        key={index}
-                                                        value={item} >
-                                                          {item}
-                                                      </option>
-                                                    ))
-                                                  }
+
+                                                  <option value="-1">Select</option>
+                                                  {[
+                                                    ...new Set(
+                                                      ImageOptions.map(
+                                                        (item, index) => item.category,
+                                                      ),
+                                                    ),
+                                                  ].map((item, index) => (
+                                                    <option key={index} value={item}>
+                                                      {item}
+                                                    </option>
+                                                  ))}
+
                                                 </Field>
                                                 <ErrorMessage
                                                   name="image_category"
@@ -3200,11 +3352,13 @@ const ViewPropertyDetails = () => {
                                                     setFieldValue('images', e.target.files[0])
                                                     setFieldValue('youtube_link', '')
                                                     setFieldValue('images_type', file.type)
-                                                    setPreviewImageGalllery(URL.createObjectURL(file))                                                    
+                                                    setPreviewImageGalllery(
+                                                      URL.createObjectURL(file),
+                                                    )
                                                   }
                                                 }}
                                               />
-                                              
+
                                               {/* {values.images_type + previewImageGallery} */}
                                               <ErrorMessage
                                                 name="images"
@@ -3229,7 +3383,7 @@ const ViewPropertyDetails = () => {
                                                 onChange={(e) => {
                                                   const file = e.target.value
                                                   if (file) {
-                                                    console.log(file);
+                                                    console.log(file)
                                                     setFieldValue('images', '')
                                                     setFieldValue('youtube_link', e.target.value)
                                                     setFieldValue('images_type', constant.YOUTUBE)
@@ -3246,52 +3400,64 @@ const ViewPropertyDetails = () => {
                                             </CCol>
                                           </CRow>
 
-                                          {previewImageGallery && (
-                                                (
-                                                  values.images_type === constant.FILE_TYPE.IMAGE_PNG ||
-                                                values.images_type === constant.FILE_TYPE.IMAGE_JPG || 
-                                                values.images_type === constant.FILE_TYPE.IMAGE_BMP ) ? (
-                                                <CImage
-                                                  width={200}
-                                                  height={100}
-                                                  className="w-full h-full object-cover"
-                                                  src={previewImageGallery || ''}
-                                                />
-                                              ) :
-                                              ( values.images_type === constant.FILE_TYPE.VIDEO_MP4 ||
-                                                values.images_type === constant.FILE_TYPE.VIDEO_MOV || 
-                                                values.images_type === constant.FILE_TYPE.VIDEO_WEBM)
-                                                ? (
-                                                  <video
-                                                  src={`${previewImageGallery}`}
-                                                  width={200}
-                                                  height={100}
-                                                  controls
-                                                  className="w-full h-full object-cover"
-                                                  allow="fullscreen"
-                                                > </video>
-                                                ) :                                                
-                                                (
-                                                values.images_type === constant.FILE_TYPE.PDF ||
-                                                values.images_type === constant.YOUTUBE
-                                              ) ? (
-                                                <iframe 
-                                                  src={
-                                                    previewImageGallery.includes('youtube.com/watch?v=')
-                                                      ? previewImageGallery.replace('watch?v=', 'embed/')
-                                                      : previewImageGallery.includes('youtu.be/')
-                                                      ? previewImageGallery.replace('youtu.be/', 'youtube.com/embed/')
-                                                      : previewImageGallery.includes('youtube.com/shorts/')
-                                                      ? previewImageGallery.replace('youtube.com/shorts/', 'youtube.com/embed/')
-                                                      : `${previewImageGallery}`
-                                                  }
-                                                  width={200}
-                                                  height={100}
-                                                  className="w-full h-full object-cover"
-                                                  allow="fullscreen"
-                                                > </iframe>
-                                              ) : null
-                                            )}
+                                          {previewImageGallery &&
+                                            (values.images_type === constant.FILE_TYPE.IMAGE_PNG ||
+                                            values.images_type === constant.FILE_TYPE.IMAGE_JPG ||
+                                            values.images_type === constant.FILE_TYPE.IMAGE_BMP ? (
+                                              <CImage
+                                                width={200}
+                                                height={100}
+                                                className="w-full h-full object-cover"
+                                                src={previewImageGallery || ''}
+                                              />
+                                            ) : values.images_type ===
+                                                constant.FILE_TYPE.VIDEO_MP4 ||
+                                              values.images_type === constant.FILE_TYPE.VIDEO_MOV ||
+                                              values.images_type ===
+                                                constant.FILE_TYPE.VIDEO_WEBM ? (
+                                              <video
+                                                src={`${previewImageGallery}`}
+                                                width={200}
+                                                height={100}
+                                                controls
+                                                className="w-full h-full object-cover"
+                                                allow="fullscreen"
+                                              >
+                                                {' '}
+                                              </video>
+                                            ) : values.images_type === constant.FILE_TYPE.PDF ||
+                                              values.images_type === constant.YOUTUBE ? (
+                                              <iframe
+                                                src={
+                                                  previewImageGallery.includes(
+                                                    'youtube.com/watch?v=',
+                                                  )
+                                                    ? previewImageGallery.replace(
+                                                        'watch?v=',
+                                                        'embed/',
+                                                      )
+                                                    : previewImageGallery.includes('youtu.be/')
+                                                      ? previewImageGallery.replace(
+                                                          'youtu.be/',
+                                                          'youtube.com/embed/',
+                                                        )
+                                                      : previewImageGallery.includes(
+                                                            'youtube.com/shorts/',
+                                                          )
+                                                        ? previewImageGallery.replace(
+                                                            'youtube.com/shorts/',
+                                                            'youtube.com/embed/',
+                                                          )
+                                                        : `${previewImageGallery}`
+                                                }
+                                                width={200}
+                                                height={100}
+                                                className="w-full h-full object-cover"
+                                                allow="fullscreen"
+                                              >
+                                                {' '}
+                                              </iframe>
+                                            ) : null)}
                                           <CButton
                                             disabled={isSubmitting}
                                             type="submit"
@@ -3307,7 +3473,7 @@ const ViewPropertyDetails = () => {
                                 </CRow>
                               )}
 
-                              { (propertyDetails.images && propertyDetails.images.length > 0) && (
+                              {propertyDetails.images && propertyDetails.images.length > 0 && (
                                 <>
                                   <p className="m-2 text-end">
                                     {(!isEdit || activeTab !== 6) && (
@@ -3321,64 +3487,61 @@ const ViewPropertyDetails = () => {
                                       </CButton>
                                     )}
                                   </p>
-                              
-                                {propertyDetails.images.map((item, index) => {
-                                  return (
-                                    <CCol 
-                                      key={index}
-                                      xs="12" 
-                                      md="4" 
-                                      lg="4">
-                                      
-                                      <CCard className="mb-2">
-                                        {/* Image Section */}
-                                        {item.file_type === constant.FILE_TYPE.IMAGE_JPG ||
-                                        item.file_type === constant.FILE_TYPE.IMAGE_PNG ? (
-                                          <CCardImage
-                                            style={{
-                                              position: 'relative',
-                                              height: '150px',
-                                              objectFit: 'cover',
-                                              borderBottom: '1px solid grey',
-                                            }}
-                                            orientation="top"
-                                            src={
-                                              item?.property_img_url ||
-                                              '/assets/images/no_image/no_image.png'
-                                            }
-                                            alt={item?.img_title || 'property images'}
-                                          />
-                                        ) : item.file_type === constant.FILE_TYPE.VIDEO_AVI ||
-                                          item.file_type === constant.FILE_TYPE.VIDEO_MP4 ? (
-                                          <video
-                                            controls
-                                            style={{
-                                              position: 'relative',
-                                              height: '150px',
-                                              objectFit: 'cover',
-                                              borderBottom: '1px solid grey',
-                                            }}
-                                          >
-                                            <source
-                                              src={item.property_img_url}
-                                              type={item.file_type}
+
+
+                                  {propertyDetails.images.map((item, index) => {
+                                    return (
+                                      <CCol key={index} xs="12" md="4" lg="4">
+                                        <CCard className="mb-2">
+                                          {/* Image Section */}
+                                          {item.file_type === constant.FILE_TYPE.IMAGE_JPG ||
+                                          item.file_type === constant.FILE_TYPE.IMAGE_PNG ? (
+                                            <CCardImage
+                                              style={{
+                                                position: 'relative',
+                                                height: '150px',
+                                                objectFit: 'cover',
+                                                borderBottom: '1px solid grey',
+                                              }}
+                                              orientation="top"
+                                              src={
+                                                item?.property_img_url ||
+                                                '/assets/images/no_image/no_image.png'
+                                              }
+                                              alt={item?.img_title || 'property images'}
                                             />
-                                            Your browser does not support the video tag.
-                                          </video>
-                                        ) : item.file_type === constant.FILE_TYPE.PDF ? (
-                                          <iframe
-                                            src={item.property_img_url}
-                                            style={{
-                                              position: 'relative',
-                                              height: '150px',
-                                              objectFit: 'cover',
-                                              borderBottom: '1px solid grey',
-                                            }}
-                                          />
-                                        ) : (
-                                          <p>No Supported format.</p>
-                                        )}
-                                        {/* <CCardImage
+                                          ) : item.file_type === constant.FILE_TYPE.VIDEO_AVI ||
+                                            item.file_type === constant.FILE_TYPE.VIDEO_MP4 ? (
+                                            <video
+                                              controls
+                                              style={{
+                                                position: 'relative',
+                                                height: '150px',
+                                                objectFit: 'cover',
+                                                borderBottom: '1px solid grey',
+                                              }}
+                                            >
+                                              <source
+                                                src={item.property_img_url}
+                                                type={item.file_type}
+                                              />
+                                              Your browser does not support the video tag.
+                                            </video>
+                                          ) : item.file_type === constant.FILE_TYPE.PDF ? (
+                                            <iframe
+
+                                              src={item.property_img_url}
+                                              style={{
+                                                position: 'relative',
+                                                height: '150px',
+                                                objectFit: 'cover',
+                                                borderBottom: '1px solid grey',
+                                              }}
+                                            />
+                                          ) : (
+                                            <p>No Supported format.</p>
+                                          )}
+                                          {/* <CCardImage
                                             style={{
                                               position: 'relative',
                                               height: '150px',
@@ -3392,86 +3555,90 @@ const ViewPropertyDetails = () => {
                                             }
                                             alt={item?.img_title || 'property images'}
                                           /> */}
-                                        {/* Text and Icons Section */}
-                                        <CCardBody className="d-flex justify-content-between align-items-center p-1">
-                                          <CCol className='m-2'>
-                                                                 
-                                            {(isEdit && activeTab === 3) ? (
+                                          {/* Text and Icons Section */}
+                                          <CCardBody className="d-flex justify-content-between align-items-center p-1">
+                                            <CCol className="m-2">
+                                              {isEdit && activeTab === 3 ? (
+                                                <CFormSelect
+                                                  name="img_title"
+                                                  className="form-control"
+                                                  placeholder="Title"
+                                                  value={item.img_title}
+                                                  onChange={(e) => {
+                                                    console.log(item.id)
+                                                    let imgTitle = e.target.value
+                                                    let imageObject = ImageOptions.find(
+                                                      (e) => e.title === imgTitle,
+                                                    )
+                                                    // console.log("logasss", imgTitle, imageObject.category);
+                                                    handleUpdatePropertyImageSubmit(
+                                                      item.id,
+                                                      undefined,
+                                                      imgTitle,
+                                                      imageObject.category,
+                                                    )
+                                                  }}
+                                                >
+                                                  {ImageOptions.map((item, index) => (
+                                                    <option value={item.title}>{item.title}</option>
+                                                  ))}
+                                                </CFormSelect>
+                                              ) : (
+                                                <span>{item?.img_title}</span>
+                                              )}
+                                            </CCol>
 
-                                              <CFormSelect
-                                                    name="img_title"
-                                                    
-                                                    className="form-control"
-                                                    placeholder="Title"
-                                                    value={item.img_title}
-                                                    onChange={(e) => {
-                                                      console.log(item.id)
-                                                      let imgTitle = e.target.value;
-                                                      let imageObject = ImageOptions.find((e) =>e.title === imgTitle)
-                                                      // console.log("logasss", imgTitle, imageObject.category);
-                                                      handleUpdatePropertyImageSubmit(item.id, undefined, imgTitle, imageObject.category)
-                                                    }}
-                                                  >
-                                                    
-                                                    {
-                                                      ImageOptions.map((item, index) => (
-                                                        <option value={item.title} >{item.title}</option>
-                                                      ))
-                                                    }
-                                                  </CFormSelect>
-                                              ) : 
-                                            <span>{item?.img_title}</span>
-                                          }
-                                          </CCol>
-
-
-                                          {item.file_type === constant.FILE_TYPE.PDF && (
-                                            <CButton
-                                              color="link"
-                                              className="text-danger p-0 me-2"
-                                              onClick={() =>
-                                                window.open(`${item.property_img_url}`, '_blank')
-                                              }
-                                            >
-                                              <FaExternalLinkAlt />
-                                            </CButton>
-                                          )}
-                                          {(isEdit && activeTab === 3) && (
-                                            <div className="d-flex align-items-center">
-                                              {/* Trash Icon */}
-                                              {isEdit}
+                                            {item.file_type === constant.FILE_TYPE.PDF && (
                                               <CButton
                                                 color="link"
                                                 className="text-danger p-0 me-2"
                                                 onClick={() =>
-                                                  handleDeletePropertyImageSubmit(
-                                                    item.id,
-                                                  )
+                                                  window.open(`${item.property_img_url}`, '_blank')
                                                 }
                                               >
-                                                {/* <CIcon icon={cilTrash} size="lg" /> */}
-                                                <FaTrash  />
+                                                <FaExternalLinkAlt />
                                               </CButton>
-                                              {/* Info Icon */}
-                                              <CButton 
-                                                color="link" 
-                                                onClick={() =>
-                                                  handleUpdatePropertyImageSubmit(item.id, item.status === "0" ? "1" : "0" )
-                                                }
-                                                className="text-primary p-0">
-                                                {
-                                                  item.status === "1" ? <FaCheckCircle  color='green'/> : <FaTimesCircle color='grey' />
-                                                }
-                                              </CButton>
-                                            </div>
-                                          )}
-                                        </CCardBody>
-                                      </CCard>
-                                    </CCol>
-                                  )
-                                }) }
+                                            )}
+                                            {isEdit && activeTab === 3 && (
+                                              <div className="d-flex align-items-center">
+                                                {/* Trash Icon */}
+                                                {isEdit}
+                                                <CButton
+                                                  color="link"
+                                                  className="text-danger p-0 me-2"
+                                                  onClick={() =>
+                                                    handleDeletePropertyImageSubmit(item.id)
+                                                  }
+                                                >
+                                                  {/* <CIcon icon={cilTrash} size="lg" /> */}
+                                                  <FaTrash />
+                                                </CButton>
+                                                {/* Info Icon */}
+                                                <CButton
+                                                  color="link"
+                                                  onClick={() =>
+                                                    handleUpdatePropertyImageSubmit(
+                                                      item.id,
+                                                      item.status === '0' ? '1' : '0',
+                                                    )
+                                                  }
+                                                  className="text-primary p-0"
+                                                >
+                                                  {item.status === '1' ? (
+                                                    <FaCheckCircle color="green" />
+                                                  ) : (
+                                                    <FaTimesCircle color="grey" />
+                                                  )}
+                                                </CButton>
+                                              </div>
+                                            )}
+                                          </CCardBody>
+                                        </CCard>
+                                      </CCol>
+                                    )
+                                  })}
                                 </>
-                              ) }
+                              )}
                             </CRow>
                           </CAccordionBody>
                         </CAccordionItem>
@@ -3480,11 +3647,10 @@ const ViewPropertyDetails = () => {
                         <CAccordionItem itemKey={4}>
                           <CAccordionHeader>Nearby Locations</CAccordionHeader>
                           <CAccordionBody>
-                            {propertyDetails.nearby &&
-                              propertyDetails.nearby.length <= 0 && (
-                                <>
-                                  <CFormLabel>No Nearby found.</CFormLabel>
-                                </>
+                            {propertyDetails.nearby && propertyDetails.nearby.length <= 0 && (
+                              <>
+                                <CFormLabel>No Nearby found.</CFormLabel>
+                              </>
                             )}
 
                             {isEdit && activeTab === 4 && (
@@ -3517,8 +3683,8 @@ const ViewPropertyDetails = () => {
                                 <CRow>
                                   <Formik
                                     initialValues={initialPropertyNearbyValues}
-                                    validationSchema={ validationPropertyNearbySchema }
-                                    onSubmit={(values, { setSubmitting, resetForm }) => {                                     
+                                    validationSchema={validationPropertyNearbySchema}
+                                    onSubmit={(values, { setSubmitting, resetForm }) => {
                                       handleCreatePropertyNearbySubmit(
                                         values,
                                         resetForm,
@@ -3535,33 +3701,33 @@ const ViewPropertyDetails = () => {
                                       setFieldValue,
                                       errors,
                                     }) => (
-                                      (
-                                        <Form>
-                                          <CRow className="mt-2">
-                                            <CCol md={2} className="fw-bold">
-                                              Location Name:
-                                            </CCol>
-                                            <CCol md={10}>
-                                              <>
-                                                <Field
-                                                  name="location_title"
-                                                  type="text"
-                                                  className="form-control"
-                                                  placeholder="Title Name"
-                                                  onChange={handleChange}
-                                                  onBlur={handleBlur}
-                                                />
-                                                <ErrorMessage
-                                                  name="location_title"
-                                                  // component={CFormText}
-                                                  component="div"
-                                                  className="text-danger"
-                                                />
-                                              </>
-                                            </CCol>
-                                          </CRow>
 
-                                          {/* <CRow className="mt-2">
+                                      <Form>
+                                        <CRow className="mt-2">
+                                          <CCol md={2} className="fw-bold">
+                                            Location Name:
+                                          </CCol>
+                                          <CCol md={10}>
+                                            <>
+                                              <Field
+                                                name="location_title"
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Title Name"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                              />
+                                              <ErrorMessage
+                                                name="location_title"
+                                                // component={CFormText}
+                                                component="div"
+                                                className="text-danger"
+                                              />
+                                            </>
+                                          </CCol>
+                                        </CRow>
+
+                                        {/* <CRow className="mt-2">
                                             <CCol md={2} className="fw-bold">
                                               Location Value:
                                             </CCol>
@@ -3585,258 +3751,244 @@ const ViewPropertyDetails = () => {
                                             </CCol>
                                           </CRow> */}
 
-                                          <CRow className="mt-2">
-                                            <CCol md={2} className="fw-bold">
-                                              Category:
-                                            </CCol>
-                                            <CCol md={10}>
-                                              <>                                                
-                                                 <Field
-                                                  name="nearby_id"
-                                                  as={CFormSelect}
-                                                  className="form-control"
-                                                  placeholder="Unit"
-                                                  onChange={handleChange}
-                                                  onBlur={handleBlur}
-                                                >
-                                                  <option value="-1"> Select </option>
-                                                  {nearbyCategory.map((item, index) => {
-                                                    return (
-                                                      <option 
-                                                        key={index}
-                                                        value={item.id} >
-                                                        {item.locations_name}
-                                                      </option>
-                                                    )
-                                                  })}
-                                                </Field>
-                                                <ErrorMessage
-                                                  name="nearby_id"
-                                                  component={CFormText}
-                                                  className="text-danger"
-                                                />
-                                              </>
-                                            </CCol>
-                                          </CRow>
+                                        <CRow className="mt-2">
+                                          <CCol md={2} className="fw-bold">
+                                            Category:
+                                          </CCol>
+                                          <CCol md={10}>
+                                            <>
+                                              <Field
+                                                name="nearby_id"
+                                                as={CFormSelect}
+                                                className="form-control"
+                                                placeholder="Unit"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                              >
+                                                <option value="-1"> Select </option>
+                                                {nearbyCategory.map((item, index) => {
+                                                  return (
+                                                    <option key={index} value={item.id}>
+                                                      {item.locations_name}
+                                                    </option>
+                                                  )
+                                                })}
+                                              </Field>
+                                              <ErrorMessage
+                                                name="nearby_id"
+                                                component={CFormText}
+                                                className="text-danger"
+                                              />
+                                            </>
+                                          </CCol>
+                                        </CRow>
 
-                                          <CRow className="mt-2">
-                                            <CCol md={2} className="fw-bold">
-                                              Distance: (in km)
-                                            </CCol>
-                                            <CCol md={4}>
-                                              <>
-                                                <Field
-                                                  name="distance"
-                                                  type="text"
-                                                  as={CFormInput}
-                                                  className="form-control"
-                                                  placeholder="Distance"
-                                                  onChange={handleChange}
-                                                  onBlur={handleBlur}
-                                                />
-                                                <ErrorMessage
-                                                  name="distance"
-                                                  component={CFormText}
-                                                  className="text-danger"
-                                                />
-                                              </>
-                                            </CCol>
-                                            <CCol md={2} className="fw-bold">
-                                              Time : (in min)
-                                            </CCol>
-                                            <CCol md={4}>
-                                              <>
-                                                <Field
-                                                  name="time"
-                                                  as={CFormInput}
-                                                  className="form-control"
-                                                  placeholder="Time"
-                                                  onChange={handleChange}
-                                                  onBlur={handleBlur}
-                                                />
-                                                <ErrorMessage
-                                                  name="time"
-                                                  component={CFormText}
-                                                  className="text-danger"
-                                                />
-                                              </>
-                                            </CCol>
-                                          </CRow>
+                                        <CRow className="mt-2">
+                                          <CCol md={2} className="fw-bold">
+                                            Distance: (in km)
+                                          </CCol>
+                                          <CCol md={4}>
+                                            <>
+                                              <Field
+                                                name="distance"
+                                                type="text"
+                                                as={CFormInput}
+                                                className="form-control"
+                                                placeholder="Distance"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                              />
+                                              <ErrorMessage
+                                                name="distance"
+                                                component={CFormText}
+                                                className="text-danger"
+                                              />
+                                            </>
+                                          </CCol>
+                                          <CCol md={2} className="fw-bold">
+                                            Time : (in min)
+                                          </CCol>
+                                          <CCol md={4}>
+                                            <>
+                                              <Field
+                                                name="time"
+                                                as={CFormInput}
+                                                className="form-control"
+                                                placeholder="Time"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                              />
+                                              <ErrorMessage
+                                                name="time"
+                                                component={CFormText}
+                                                className="text-danger"
+                                              />
+                                            </>
+                                          </CCol>
+                                        </CRow>
 
-                                          <CRow className="mt-2">
-                                            <CCol md={2} className="fw-bold">
-                                              Longitude:
-                                            </CCol>
-                                            <CCol md={4}>
-                                              <>
-                                                <Field
-                                                  name="longitude"
-                                                  type="text"
-                                                  as={CFormInput}
-                                                  className="form-control"
-                                                  placeholder="Longitude"
-                                                  onChange={handleChange}
-                                                  onBlur={handleBlur}
-                                                />
-                                                <ErrorMessage
-                                                  name="longitude"
-                                                  component={CFormText}
-                                                  className="text-danger"
-                                                />
-                                              </>
-                                            </CCol>
+                                        <CRow className="mt-2">
+                                          <CCol md={2} className="fw-bold">
+                                            Longitude:
+                                          </CCol>
+                                          <CCol md={4}>
+                                            <>
+                                              <Field
+                                                name="longitude"
+                                                type="text"
+                                                as={CFormInput}
+                                                className="form-control"
+                                                placeholder="Longitude"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                              />
+                                              <ErrorMessage
+                                                name="longitude"
+                                                component={CFormText}
+                                                className="text-danger"
+                                              />
+                                            </>
+                                          </CCol>
 
-                                            <CCol md={2} className="fw-bold">
-                                              Latitude :
-                                            </CCol>
-                                            <CCol md={4}>
-                                              <>
-                                                <Field
-                                                  name="latitude"
-                                                  as={CFormInput}
-                                                  className="form-control"
-                                                  placeholder="Area"
-                                                  onChange={handleChange}
-                                                  onBlur={handleBlur}
-                                                />
-                                                <ErrorMessage
-                                                  name="latitude"
-                                                  component={CFormText}
-                                                  className="text-danger"
-                                                />
-                                              </>
-                                            </CCol>
-                                          </CRow>
+                                          <CCol md={2} className="fw-bold">
+                                            Latitude :
+                                          </CCol>
+                                          <CCol md={4}>
+                                            <>
+                                              <Field
+                                                name="latitude"
+                                                as={CFormInput}
+                                                className="form-control"
+                                                placeholder="Area"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                              />
+                                              <ErrorMessage
+                                                name="latitude"
+                                                component={CFormText}
+                                                className="text-danger"
+                                              />
+                                            </>
+                                          </CCol>
+                                        </CRow>
 
-                                          <CButton
-                                            disabled={isSubmitting}
-                                            type="submit"
-                                            color="primary"
-                                          >
-                                            {isSubmitting && <CSpinner size="sm" />}
-                                            Save
-                                          </CButton>
-                                        </Form>
-                                      )
+                                        <CButton
+                                          disabled={isSubmitting}
+                                          type="submit"
+                                          color="primary"
+                                        >
+                                          {isSubmitting && <CSpinner size="sm" />}
+                                          Save
+                                        </CButton>
+                                      </Form>
                                     )}
                                   </Formik>
                                 </CRow>
                               </CRow>
                             )}
 
-                            {propertyDetails.nearby &&
-                              propertyDetails.nearby.length > 0 && (
-                                <>
-                                  <p className="m-2 text-end">
-                                    {(!isEdit || activeTab !== 4) && (
-                                      <CButton
-                                        onClick={() => changeEditSectionHandler(true, 4)}
-                                        size="sm"
-                                        color="primary"
-                                        className="me-2 mb-1"
-                                      >
-                                        <FaPencilAlt />
-                                      </CButton>
-                                    )}
-                                  </p>
+                            {propertyDetails.nearby && propertyDetails.nearby.length > 0 && (
+                              <>
+                                <p className="m-2 text-end">
+                                  {(!isEdit || activeTab !== 4) && (
+                                    <CButton
+                                      onClick={() => changeEditSectionHandler(true, 4)}
+                                      size="sm"
+                                      color="primary"
+                                      className="me-2 mb-1"
+                                    >
+                                      <FaPencilAlt />
+                                    </CButton>
+                                  )}
+                                </p>
 
-                                  <CTable align="middle" className="mb-0 border" hover responsive>
-                                    <CTableHead color="light">
-                                      <CTableRow>
-                                        <CTableHeaderCell>Id</CTableHeaderCell>
-                                        <CTableHeaderCell>Location Name</CTableHeaderCell>
-                                        <CTableHeaderCell>Category</CTableHeaderCell>
-                                        <CTableHeaderCell>Distance</CTableHeaderCell>
-                                        <CTableHeaderCell>Time</CTableHeaderCell>
-                                        <CTableHeaderCell>Latitude</CTableHeaderCell>
-                                        <CTableHeaderCell>Longitude</CTableHeaderCell>
-                                        <CTableHeaderCell>Action</CTableHeaderCell>
-                                      </CTableRow>
-                                    </CTableHead>
+                                <CTable align="middle" className="mb-0 border" hover responsive>
+                                  <CTableHead color="light">
+                                    <CTableRow>
+                                      <CTableHeaderCell>Id</CTableHeaderCell>
+                                      <CTableHeaderCell>Location Name</CTableHeaderCell>
+                                      <CTableHeaderCell>Category</CTableHeaderCell>
+                                      <CTableHeaderCell>Distance</CTableHeaderCell>
+                                      <CTableHeaderCell>Time</CTableHeaderCell>
+                                      <CTableHeaderCell>Latitude</CTableHeaderCell>
+                                      <CTableHeaderCell>Longitude</CTableHeaderCell>
+                                      <CTableHeaderCell>Action</CTableHeaderCell>
+                                    </CTableRow>
+                                  </CTableHead>
 
-                                    <CTableBody>
-                                      {propertyDetails.nearby.length > 0 &&
-                                        propertyDetails.nearby.map(
-                                          (location, index) => (
-                                            <CTableRow key={index}>
-                                              <CTableDataCell>{index + 1} </CTableDataCell>
-                                              <CTableDataCell>
-                                                {location.location_title
-                                                  ? location.location_title
-                                                  : '-'}
-                                              </CTableDataCell>
-                                              {/* <CTableDataCell>
+                                  <CTableBody>
+                                    {propertyDetails.nearby.length > 0 &&
+                                      propertyDetails.nearby.map((location, index) => (
+                                        <CTableRow key={index}>
+                                          <CTableDataCell>{index + 1} </CTableDataCell>
+                                          <CTableDataCell>
+                                            {location.location_title
+                                              ? location.location_title
+                                              : '-'}
+                                          </CTableDataCell>
+                                          {/* <CTableDataCell>
                                                 {location.location_value
                                                   ? location.location_value
                                                   : '-'}
                                               </CTableDataCell> */}
-                                              <CTableDataCell>
-                                                {location.locations_name
-                                                  ? `${location.locations_name}`
-                                                  : '-'}
-                                              </CTableDataCell>
-                                              <CTableDataCell>
-                                                {location.distance
-                                                  ? `${location.distance} ${constant.CALCULATION_UNITS.MIN.key }`
-                                                  : '-'}
-                                              </CTableDataCell>
-                                              <CTableDataCell>
-                                                {location.time
-                                                  ? `${location.time} ${constant.CALCULATION_UNITS.KM.key }`
-                                                  : '-'}
-                                              </CTableDataCell>
-                                              <CTableDataCell>
-                                                {location.longitude
-                                                  ? `${location.longitude}`
-                                                  : '-'}
-                                              </CTableDataCell>
-                                              <CTableDataCell>
-                                                {location.latitude
-                                                  ? `${location.latitude}`
-                                                  : '-'}
-                                              </CTableDataCell>
-                                              <CTableDataCell>
-                                                <CTooltip content="View on Map" placement="top">
-                                                  <CButton
-                                                    onClick={() =>
-                                                      // ###put map url
-                                                      window.open (
-                                                        `${location.latitude}`,
-                                                        '_blank',
-                                                      )
-                                                    }
-                                                    size="sm"
-                                                    color="info"
-                                                    label="View Map"
-                                                    className="me-2 mb-1"
-                                                  >
-                                                    <FaExternalLinkAlt color="white" />
-                                                  </CButton>
-                                                </CTooltip>
-                                                {isEdit && activeTab === 4 && (
-                                                  <CTooltip content="Delete Nearby" placement="top">
-                                                    <CButton
-                                                      onClick={() =>
-                                                        handleDeletePropertyNearbySubmit(
-                                                          location.id,
-                                                        )
-                                                      }
-                                                      size="sm"
-                                                      color="danger"
-                                                      label="Delete property"
-                                                      className="me-2 mb-1"
-                                                    >
-                                                      <FaTrash color="white" />
-                                                    </CButton>
-                                                  </CTooltip>
-                                                )}
-                                              </CTableDataCell>
-                                            </CTableRow>
-                                          ),
-                                        )}
-                                    </CTableBody>
-                                  </CTable>
-                                </>
+                                          <CTableDataCell>
+                                            {location.locations_name
+                                              ? `${location.locations_name}`
+                                              : '-'}
+                                          </CTableDataCell>
+                                          <CTableDataCell>
+                                            {location.distance
+                                              ? `${location.distance} ${constant.CALCULATION_UNITS.MIN.key}`
+                                              : '-'}
+                                          </CTableDataCell>
+                                          <CTableDataCell>
+                                            {location.time
+                                              ? `${location.time} ${constant.CALCULATION_UNITS.KM.key}`
+                                              : '-'}
+                                          </CTableDataCell>
+                                          <CTableDataCell>
+                                            {location.longitude ? `${location.longitude}` : '-'}
+                                          </CTableDataCell>
+                                          <CTableDataCell>
+                                            {location.latitude ? `${location.latitude}` : '-'}
+                                          </CTableDataCell>
+                                          <CTableDataCell>
+                                            <CTooltip content="View on Map" placement="top">
+                                              <CButton
+                                                onClick={() =>
+                                                  // ###put map url
+                                                  window.open(`${location.latitude}`, '_blank')
+                                                }
+                                                size="sm"
+                                                color="info"
+                                                label="View Map"
+                                                className="me-2 mb-1"
+                                              >
+                                                <FaExternalLinkAlt color="white" />
+                                              </CButton>
+                                            </CTooltip>
+                                            {isEdit && activeTab === 4 && (
+                                              <CTooltip content="Delete Nearby" placement="top">
+                                                <CButton
+                                                  onClick={() =>
+                                                    handleDeletePropertyNearbySubmit(location.id)
+                                                  }
+                                                  size="sm"
+                                                  color="danger"
+                                                  label="Delete property"
+                                                  className="me-2 mb-1"
+                                                >
+
+                                                  <FaTrash color="white" />
+                                                </CButton>
+                                              </CTooltip>
+                                            )}
+                                          </CTableDataCell>
+                                        </CTableRow>
+                                      ))}
+                                  </CTableBody>
+                                </CTable>
+                              </>
                             )}
                           </CAccordionBody>
                         </CAccordionItem>
@@ -3955,7 +4107,7 @@ const ViewPropertyDetails = () => {
                                 </CRow>
                               )}
 
-                              { propertyDetails.faq && propertyDetails.faq.length > 0 && (
+                              {propertyDetails.faq && propertyDetails.faq.length > 0 && (
                                 <>
                                   {(!isEdit || activeTab !== 5) && (
                                     <p className="m-2 text-end">
@@ -3973,7 +4125,7 @@ const ViewPropertyDetails = () => {
                                   {propertyDetails?.faq &&
                                     propertyDetails?.faq.map((item, index) => {
                                       return (
-                                        <div key={index} >
+                                        <div key={index}>
                                           <CRow className="mt-2">
                                             <CCol md={2} className="fw-bold">
                                               QN.
@@ -4016,7 +4168,7 @@ const ViewPropertyDetails = () => {
                         </CAccordionItem>
 
                         {/* Unit Configuration */}
-                        { propertyDetails.property_rent_buy === constant.PROJECT_ATTR.PROJECT &&
+                        {propertyDetails.property_rent_buy === constant.PROJECT_ATTR.PROJECT && (
                           <CAccordionItem itemKey={6}>
                             <CAccordionHeader>Unit Configuration</CAccordionHeader>
                             <CAccordionBody>
@@ -4056,8 +4208,10 @@ const ViewPropertyDetails = () => {
                                   <CRow>
                                     <Formik
                                       initialValues={initialPropertyConfigurationValues}
-                                      validationSchema={ WrapperValidationPropertyConfigurationSchema(propertyDetails.property_type)}
-                                      onSubmit={(values, { setSubmitting, resetForm }) => {                                     
+                                      validationSchema={WrapperValidationPropertyConfigurationSchema(
+                                        propertyDetails.property_type,
+                                      )}
+                                      onSubmit={(values, { setSubmitting, resetForm }) => {
                                         handleCreatePropertyConfigurationSubmit(
                                           values,
                                           resetForm,
@@ -4074,261 +4228,268 @@ const ViewPropertyDetails = () => {
                                         setFieldValue,
                                         errors,
                                       }) => (
-                                        console.log('config errors:', errors),
-                                        (
-                                          <Form>
-                                            { ( propertyDetails.property_type === constant.PROPERTY_TYPE.RESIDENTIAL && 
-                                                propertyDetails.user_type === constant.PROPERTY_USER_TYPE.BUILDER
-                                            )  &&
-                                            <CRow className="mt-2">
-                                              <CCol md={2} className="fw-bold">
-                                                Unit name:
-                                              </CCol>
-                                              <CCol md={10}>
-                                                <>
-                                                  <Field
-                                                    name="unit_name"
-                                                    type="text"
-                                                    as={CFormSelect}
-                                                    className="form-control"
-                                                    placeholder="Unit Name"
-                                                    onChange={handleChange}
-                                                    onBlur={handleBlur}
-                                                  >
-                                                    <option value={'-1'} >Select</option>
-                                                    {
-                                                      unitNameConfigOption.filter((i) => i.varietyType.includes(propertyDetails.property_variety)).map((item) => (
-                                                        <option value={item.value} >{item.title}</option>
-                                                      ))
-                                                    }
+                                        <Form>
+                                          {propertyDetails.property_type ===
+                                            constant.PROPERTY_TYPE.RESIDENTIAL &&
+                                            propertyDetails.user_type ===
+                                              constant.PROPERTY_USER_TYPE.BUILDER && (
+                                              <CRow className="mt-2">
+                                                <CCol md={2} className="fw-bold">
+                                                  Unit name:
+                                                </CCol>
+                                                <CCol md={10}>
+                                                  <>
+                                                    <Field
+                                                      name="unit_name"
+                                                      type="text"
+                                                      as={CFormSelect}
+                                                      className="form-control"
+                                                      placeholder="Unit Name"
+                                                      onChange={handleChange}
+                                                      onBlur={handleBlur}
+                                                    >
+                                                      <option value={'-1'}>Select</option>
+                                                      {unitNameConfigOption
+                                                        .filter((i) =>
+                                                          i.varietyType.includes(
+                                                            propertyDetails.property_variety,
+                                                          ),
+                                                        )
+                                                        .map((item) => (
+                                                          <option value={item.value}>
+                                                            {item.title}
+                                                          </option>
+                                                        ))}
                                                     </Field>
-                                                  <ErrorMessage
-                                                    name="unit_name"
-                                                    // component={CFormText}
-                                                    component="div"
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              </CCol>
-                                            </CRow>
-  }
-                                            <CRow className="mt-2">
-                                              <CCol md={2} className="fw-bold">
-                                                Carpet Area:
-                                              </CCol>
-                                              <CCol md={10}>
-                                                <>
-                                                  <Field
-                                                    name="carpet_area"
-                                                    type="text"
-                                                    as={CFormInput}
-                                                    className="form-control"
-                                                    placeholder="Area"
-                                                    onChange={handleChange}
-                                                    onBlur={handleBlur}
-                                                  />
-                                                  <ErrorMessage
-                                                    name="carpet_area"
-                                                    component={CFormText}
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              </CCol>
-                                            </CRow>
-
-                                            <CRow className="mt-2">
-                                              <CCol md={2} className="fw-bold">
-                                                Carpet Price:
-                                              </CCol>
-                                              <CCol md={10}>
-                                                <>
-                                                  <Field
-                                                    name="carpet_price"
-                                                    type="text"
-                                                    as={CFormInput}
-                                                    className="form-control"
-                                                    placeholder="Price"
-                                                    onChange={handleChange}
-                                                    onBlur={handleBlur}
-                                                  />
-                                                  <ErrorMessage
-                                                    name="carpet_price"
-                                                    component={CFormText}
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              </CCol>
-                                            </CRow>
-                                            { ( propertyDetails.property_type === constant.PROPERTY_TYPE.OPEN_LAND && 
-                                                propertyDetails.user_type === constant.PROPERTY_USER_TYPE.BUILDER
-                                            )  &&
-                                            <CRow className="mt-2">
-                                              <CCol md={2} className="fw-bold">
-                                                Length:
-                                              </CCol>
-                                              <CCol md={4}>
-                                                <>
-                                                  <Field
-                                                    name="length"
-                                                    type="text"
-                                                    as={CFormInput}
-                                                    className="form-control"
-                                                    placeholder="Length"
-                                                    onChange={handleChange}
-                                                    onBlur={handleBlur}
-                                                  />
-                                                  <ErrorMessage
-                                                    name="length"
-                                                    component={CFormText}
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              </CCol>
-                                              <CCol md={2} className="fw-bold">
-                                                Unit :
-                                              </CCol>
-                                              <CCol md={4}>
-                                                <>
-                                                  <Field
-                                                    name="length_unit"
-                                                    as={CFormSelect}
-                                                    className="form-control"
-                                                    placeholder="Unit"
-                                                    onChange={handleChange}
-                                                    onBlur={handleBlur}
-                                                  >
-                                                    <option value="-1"> Select </option>
-                                                    {configurationUnit.map((item) => {
-                                                      return (
-                                                        <option value={item.value}>
-                                                          {item.title}
-                                                        </option>
-                                                      )
-                                                    })}
-                                                  </Field>
-                                                  <ErrorMessage
-                                                    name="length_unit"
-                                                    component={CFormText}
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              </CCol>
-                                            </CRow>
-  }
-  { ( propertyDetails.property_type === constant.PROPERTY_TYPE.OPEN_LAND && 
-                                                propertyDetails.user_type === constant.PROPERTY_USER_TYPE.BUILDER
-                                            )  &&
-                                            <CRow className="mt-2">
-                                              <CCol md={2} className="fw-bold">
-                                                Width:
-                                              </CCol>
-                                              <CCol md={4}>
-                                                <>
-                                                  <Field
-                                                    name="width"
-                                                    type="text"
-                                                    as={CFormInput}
-                                                    className="form-control"
-                                                    placeholder="Width"
-                                                    onChange={handleChange}
-                                                    onBlur={handleBlur}
-                                                  />
-                                                  <ErrorMessage
-                                                    name="width"
-                                                    component={CFormText}
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              </CCol>
-
-                                              <CCol md={2} className="fw-bold">
-                                                Unit :
-                                              </CCol>
-                                              <CCol md={4}>
-                                                <>
-                                                  <Field
-                                                    name="width_unit"
-                                                    as={CFormSelect}
-                                                    className="form-control"
-                                                    placeholder="Area"
-                                                    onChange={handleChange}
-                                                    onBlur={handleBlur}
-                                                  >
-                                                    <option value="-1"> Select </option>
-                                                    {configurationUnit.map((item) => {
-                                                      return (
-                                                        <option value={item.value}>
-                                                          {item.title}
-                                                        </option>
-                                                      )
-                                                    })}
-                                                  </Field>
-                                                  <ErrorMessage
-                                                    name="width_unit"
-                                                    component={CFormText}
-                                                    className="text-danger"
-                                                  />
-                                                </>
-                                              </CCol>
-                                            </CRow>
-  }
-                                            <CRow className="mb-3 mt-2">
-                                              {/* <CCol md="12"> */}
-                                              <CCol md={2} className="fw-bold">
-                                                Image:
-                                              </CCol>
-                                              <CCol md={10}>
-                                                <CFormInput
-                                                  type="file"
-                                                  className="mb-2"
-                                                  name="image"
-                                                  multiple
-                                                  // value={values.image}
-                                                  onChange={(e) => {
-                                                    console.log(
-                                                      'images: ',
-                                                      values.image,
-                                                      e.target.files[0],
-                                                    )
-                                                    const file = e.target.files[0]
-                                                    if (file) {
-                                                      setFieldValue('image', e.target.files[0])
-                                                      setPreviewImage(URL.createObjectURL(file))
-                                                    }
-                                                  }}
+                                                    <ErrorMessage
+                                                      name="unit_name"
+                                                      // component={CFormText}
+                                                      component="div"
+                                                      className="text-danger"
+                                                    />
+                                                  </>
+                                                </CCol>
+                                              </CRow>
+                                            )}
+                                          <CRow className="mt-2">
+                                            <CCol md={2} className="fw-bold">
+                                              Carpet Area:
+                                            </CCol>
+                                            <CCol md={10}>
+                                              <>
+                                                <Field
+                                                  name="carpet_area"
+                                                  type="text"
+                                                  as={CFormInput}
+                                                  className="form-control"
+                                                  placeholder="Area"
+                                                  onChange={handleChange}
+                                                  onBlur={handleBlur}
                                                 />
-
-                                                {previewImage && (
-                                                  <CImage
-                                                    width={200}
-                                                    height={100}
-                                                    className="w-full h-full object-cover"
-                                                    src={previewImage || ''}
-                                                  />
-                                                )}
                                                 <ErrorMessage
-                                                  name="image"
-                                                  component="div"
+                                                  name="carpet_area"
+                                                  component={CFormText}
                                                   className="text-danger"
                                                 />
-                                              </CCol>
-                                            </CRow>
+                                              </>
+                                            </CCol>
+                                          </CRow>
 
-                                            <CButton
-                                              disabled={isSubmitting}
-                                              type="submit"
-                                              color="primary"
-                                            >
-                                              {isSubmitting && <CSpinner size="sm" />}
-                                              Save
-                                            </CButton>
-                                          </Form>
-                                        )
+                                          <CRow className="mt-2">
+                                            <CCol md={2} className="fw-bold">
+                                              Carpet Price:
+                                            </CCol>
+                                            <CCol md={10}>
+                                              <>
+                                                <Field
+                                                  name="carpet_price"
+                                                  type="text"
+                                                  as={CFormInput}
+                                                  className="form-control"
+                                                  placeholder="Price"
+                                                  onChange={handleChange}
+                                                  onBlur={handleBlur}
+                                                />
+                                                <ErrorMessage
+                                                  name="carpet_price"
+                                                  component={CFormText}
+                                                  className="text-danger"
+                                                />
+                                              </>
+                                            </CCol>
+                                          </CRow>
+                                          {propertyDetails.property_type ===
+                                            constant.PROPERTY_TYPE.OPEN_LAND &&
+                                            propertyDetails.user_type ===
+                                              constant.PROPERTY_USER_TYPE.BUILDER && (
+                                              <CRow className="mt-2">
+                                                <CCol md={2} className="fw-bold">
+                                                  Length:
+                                                </CCol>
+                                                <CCol md={4}>
+                                                  <>
+                                                    <Field
+                                                      name="length"
+                                                      type="text"
+                                                      as={CFormInput}
+                                                      className="form-control"
+                                                      placeholder="Length"
+                                                      onChange={handleChange}
+                                                      onBlur={handleBlur}
+                                                    />
+                                                    <ErrorMessage
+                                                      name="length"
+                                                      component={CFormText}
+                                                      className="text-danger"
+                                                    />
+                                                  </>
+                                                </CCol>
+                                                <CCol md={2} className="fw-bold">
+                                                  Unit :
+                                                </CCol>
+                                                <CCol md={4}>
+                                                  <>
+                                                    <Field
+                                                      name="length_unit"
+                                                      as={CFormSelect}
+                                                      className="form-control"
+                                                      placeholder="Unit"
+                                                      onChange={handleChange}
+                                                      onBlur={handleBlur}
+                                                    >
+                                                      <option value="-1"> Select </option>
+                                                      {configurationUnit.map((item) => {
+                                                        return (
+                                                          <option value={item.value}>
+                                                            {item.title}
+                                                          </option>
+                                                        )
+                                                      })}
+                                                    </Field>
+                                                    <ErrorMessage
+                                                      name="length_unit"
+                                                      component={CFormText}
+                                                      className="text-danger"
+                                                    />
+                                                  </>
+                                                </CCol>
+                                              </CRow>
+                                            )}
+                                          {propertyDetails.property_type ===
+                                            constant.PROPERTY_TYPE.OPEN_LAND &&
+                                            propertyDetails.user_type ===
+                                              constant.PROPERTY_USER_TYPE.BUILDER && (
+                                              <CRow className="mt-2">
+                                                <CCol md={2} className="fw-bold">
+                                                  Width:
+                                                </CCol>
+                                                <CCol md={4}>
+                                                  <>
+                                                    <Field
+                                                      name="width"
+                                                      type="text"
+                                                      as={CFormInput}
+                                                      className="form-control"
+                                                      placeholder="Width"
+                                                      onChange={handleChange}
+                                                      onBlur={handleBlur}
+                                                    />
+                                                    <ErrorMessage
+                                                      name="width"
+                                                      component={CFormText}
+                                                      className="text-danger"
+                                                    />
+                                                  </>
+                                                </CCol>
+
+                                                <CCol md={2} className="fw-bold">
+                                                  Unit :
+                                                </CCol>
+                                                <CCol md={4}>
+                                                  <>
+                                                    <Field
+                                                      name="width_unit"
+                                                      as={CFormSelect}
+                                                      className="form-control"
+                                                      placeholder="Area"
+                                                      onChange={handleChange}
+                                                      onBlur={handleBlur}
+                                                    >
+                                                      <option value="-1"> Select </option>
+                                                      {configurationUnit.map((item) => {
+                                                        return (
+                                                          <option value={item.value}>
+                                                            {item.title}
+                                                          </option>
+                                                        )
+                                                      })}
+                                                    </Field>
+                                                    <ErrorMessage
+                                                      name="width_unit"
+                                                      component={CFormText}
+                                                      className="text-danger"
+                                                    />
+                                                  </>
+                                                </CCol>
+                                              </CRow>
+                                            )}
+                                          <CRow className="mb-3 mt-2">
+                                            {/* <CCol md="12"> */}
+                                            <CCol md={2} className="fw-bold">
+                                              Image:
+                                            </CCol>
+                                            <CCol md={10}>
+                                              <CFormInput
+                                                type="file"
+                                                className="mb-2"
+                                                name="image"
+                                                multiple
+                                                // value={values.image}
+                                                onChange={(e) => {
+                                                  console.log(
+                                                    'images: ',
+                                                    values.image,
+                                                    e.target.files[0],
+                                                  )
+                                                  const file = e.target.files[0]
+                                                  if (file) {
+                                                    setFieldValue('image', e.target.files[0])
+                                                    setPreviewImage(URL.createObjectURL(file))
+                                                  }
+                                                }}
+                                              />
+
+                                              {previewImage && (
+                                                <CImage
+                                                  width={200}
+                                                  height={100}
+                                                  className="w-full h-full object-cover"
+                                                  src={previewImage || ''}
+                                                />
+                                              )}
+                                              <ErrorMessage
+                                                name="image"
+                                                component="div"
+                                                className="text-danger"
+                                              />
+                                            </CCol>
+                                          </CRow>
+
+                                          <CButton
+                                            disabled={isSubmitting}
+                                            type="submit"
+                                            color="primary"
+                                          >
+                                            {isSubmitting && <CSpinner size="sm" />}
+                                            Save
+                                          </CButton>
+                                        </Form>
                                       )}
                                     </Formik>
                                   </CRow>
                                 </CRow>
                               )}
+
 
                               {propertyDetails.configuration &&
                                 propertyDetails.configuration.length > 0 && (
@@ -4408,7 +4569,10 @@ const ViewPropertyDetails = () => {
                                                     </CButton>
                                                   </CTooltip>
                                                   {isEdit && activeTab === 6 && (
-                                                    <CTooltip content="Delete Config" placement="top">
+                                                    <CTooltip
+                                                      content="Delete Config"
+                                                      placement="top"
+                                                    >
                                                       <CButton
                                                         onClick={() =>
                                                           handleDeletePropertyConfigurationSubmit(
@@ -4434,7 +4598,7 @@ const ViewPropertyDetails = () => {
                                 )}
                             </CAccordionBody>
                           </CAccordionItem>
-                        }
+                        )}
                       </CAccordion>
                       <CAccordion activeItemKey={1}>
                         {/* Intrested Users */}
@@ -4462,7 +4626,7 @@ const ViewPropertyDetails = () => {
                                         <CTableDataCell>{index + 1}</CTableDataCell>
                                         <CTableDataCell>
                                           <Link to={`/member/view/${intrestUser.id}`}>
-                                          {intrestUser.fname || '-'}
+                                            {intrestUser.fname || '-'}
                                           </Link>
                                         </CTableDataCell>
                                         <CTableDataCell>{intrestUser.lname || '-'}</CTableDataCell>
@@ -4484,7 +4648,7 @@ const ViewPropertyDetails = () => {
                         )}
 
                         {shorlistDetails && shorlistDetails.users.length > 0 && (
-                          <CAccordionItem itemKey={2} className='mb-2'>
+                          <CAccordionItem itemKey={2} className="mb-2">
                             <CAccordionHeader>Shortlist User</CAccordionHeader>
                             <CAccordionBody>
                               <CTable align="middle" className="mb-0 border" hover responsive>
@@ -4507,7 +4671,7 @@ const ViewPropertyDetails = () => {
                                         <CTableDataCell>{index + 1}</CTableDataCell>
                                         <CTableDataCell>
                                           <Link to={`/member/view/${shortlistUser.id}`}>
-                                          {shortlistUser.fname || '-'}
+                                            {shortlistUser.fname || '-'}
                                           </Link>
                                         </CTableDataCell>
                                         <CTableDataCell>
@@ -4571,12 +4735,14 @@ const ViewPropertyDetails = () => {
                           <hr /> */}
                         {/* Property Status */}
                         <strong>Status</strong>
-                        
+
                         <CFormSelect
                           name="propertyStatus"
                           onChange={(e) => changePropertyStatus(e)}
                           className="mb-2"
-                          value={propertyDetails?.status || '-1'}
+
+                          value={statusOption?.status || '-1'}
+
                         >
                           <option value="-1">Select Status</option>
                           {propertyStatus.map((item) => (
@@ -4607,7 +4773,7 @@ const ViewPropertyDetails = () => {
                           {/* {intrestDetails?.length > 0 && ( */}
                           <CCol lg="5" md="5" className="text-center border rounded p-3 m-1">
                             <CHeader className="fw-bold d-flex justify-content-center align-items-center">
-                              {intrestDetails && intrestDetails.totalCount || '0'}
+                              {(intrestDetails && intrestDetails.totalCount) || '0'}
                             </CHeader>
                             <small className="text-secondary">Total Contacted</small>
                           </CCol>
@@ -4616,7 +4782,7 @@ const ViewPropertyDetails = () => {
                           {/* {shorlistDetails?.length > 0 && ( */}
                           <CCol lg="5" md="5" className="text-center border rounded p-3 m-1">
                             <CHeader className="fw-bold d-flex justify-content-center align-items-center">
-                              {shorlistDetails && shorlistDetails?.totalCount || '0'}
+                              {(shorlistDetails && shorlistDetails?.totalCount) || '0'}
                             </CHeader>
                             <small className="text-secondary">Total Shortlisted</small>
                           </CCol>

@@ -180,6 +180,13 @@ const _nav = [
     to : '/setting',
     role : ['SUPER ADMIN']
   },
+  {
+    component: CNavItem,
+    name: 'Trash',
+    icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
+    to : '/trash',
+    role : ['SUPER ADMIN']
+  },
 ]
 
 export default _nav

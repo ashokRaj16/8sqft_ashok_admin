@@ -77,23 +77,23 @@ export default function BuilderLocation({ lat, lng }: PropertyLocationProps) {
   useEffect(() => {
     if (parsedLat && parsedLng) {
       // Ensure google is available before accessing it
-      if (window.google && window.google.maps) {
-        const geocoder = new window.google.maps.Geocoder(); // Access google from window
-        const latLng = new window.google.maps.LatLng(parsedLat, parsedLng);
-        geocoder.geocode({ location: latLng }, (results, status) => {
-          if (
-            status === window.google.maps.GeocoderStatus.OK &&
-            results &&
-            results[0]
-          ) {
-            setAddress(results[0].formatted_address); // Ensure results is not null
-          } else {
-            setAddress("Address not found");
-          }
-        });
-      } else {
-        console.error("Google Maps API not loaded.");
-      }
+      // if (window.google && window.google.maps) {
+      //   const geocoder = new window.google.maps.Geocoder(); // Access google from window
+      //   const latLng = new window.google.maps.LatLng(parsedLat, parsedLng);
+      //   geocoder.geocode({ location: latLng }, (results, status) => {
+      //     if (
+      //       status === window.google.maps.GeocoderStatus.OK &&
+      //       results &&
+      //       results[0]
+      //     ) {
+      //       setAddress(results[0].formatted_address); // Ensure results is not null
+      //     } else {
+      //       setAddress("Address not found");
+      //     }
+      //   });
+      // } else {
+      //   console.error("Google Maps API not loaded.");
+      // }
     }
   }, [parsedLat, parsedLng]);
 
@@ -107,18 +107,18 @@ export default function BuilderLocation({ lat, lng }: PropertyLocationProps) {
 
   return (
     <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
-      <div className="max-w-screen mx-auto p-6 bg-white  rounded-lg">
+      <div className="max-w-screen mx-auto bg-white  rounded-lg">
         {/* Header */}
         <h2 className="text-xl font-semibold text-black mb-4">
           Property Location and Nearby
         </h2>
 
         {/* Display the User Location Address */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        {/* <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
           <label className="text-sm text-gray-600">
             Your Location: {address}
           </label>
-        </div>
+        </div> */}
 
         {/* Map */}
         <div className="relative h-[300px]  rounded-lg overflow-hidden border border-gray-200">

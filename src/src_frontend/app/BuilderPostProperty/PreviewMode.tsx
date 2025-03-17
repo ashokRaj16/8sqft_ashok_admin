@@ -16,6 +16,8 @@ import useBuilderSubmitDetail from "@/hooks/BuilderFormHooks/useBuilderSubmit";
 import BuilderPreviewModeLayout from "./BuilderPreviewModeLayout/page";
 import BuilderContactSection from "../Builder/BuilderLayout/BuilderContactSection";
 import { formatPrice } from "../Builder/BuilderLayout/overview-mobile";
+import { BsCheck, BsFillInfoCircleFill } from "react-icons/bs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip";
 
 interface PreviewModeProps {
   onNext: () => void; // Receive `onNext` as a prop
@@ -28,9 +30,7 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
   const { mutate } = useBuilderSubmitDetail({
     onSuccess: (data: any) => {
       toast.success(`${data.message}`);
-      // ### show popup/modal for submitted successfully and shift him to post property 
       onNext();
-      router.push('/Post-Property')
     },
     onError: (error: any) => {
       toast.error(error.message);
@@ -64,6 +64,8 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
   const images =
     property?.images?.map((img: any) => ({
       url: img.property_img_url,
+      file_type: img.file_type,
+      title: img.img_title
     })) || [];
 
   const isoDate = property?.availability_date || "";
@@ -77,7 +79,14 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
     }
     return min;
   }, Infinity);
+  const unitPriceType = configurations?.reduce((min, config) => {
+    if (config.unit_price_type !== null && config.carpet_price < min.carpet_price) {
+      return config;
+    }
+    return min;
+  }, { carpet_price: Infinity, unit_price_type: "" }).unit_price_type;
 
+  console.log(unitPriceType, 'unitPriceType')
   const details = [
     {
       label: `₹${property?.rent_amount || "N/A"}`,
@@ -94,16 +103,16 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
           : "Deposit (Negotiable)",
     },
     {
-      label: `${property?.builtup_area || "N/A"} ${
-        property?.builtup_area_unit || ""
-      }`,
+      label: `${property?.builtup_area || "N/A"} ${property?.builtup_area_unit || ""
+        }`,
       subLabel: `Builtup`,
     },
   ];
+  
 
   return (
     <div className="flex flex-col  w-full max-w-7xl mx-auto">
-      <div className="flex flex-col gap-6 p-4 bg-white rounded-lg w-full">
+      <div className="flex flex-col gap-2 lg:p-4 bg-white rounded-lg w-full">
         <div className="flex lg:justify-between items-center ">
           <div className="lg:w-fit flex px-5">
             <span className="text-[10px] lg:text-lg w-full ">
@@ -125,20 +134,32 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
           </Button>
         </div>
 
-        <div className="flex flex-col  w-full max-w-7xl mx-auto">
-          <div className="flex flex-col gap-6 lg:p-4 bg-white rounded-lg lg:shadow-md w-full">
-            <div className="flex items-center justify-between lg:px-4 lg:py-2 bg-white">
-              <div className="flex flex-col w-[688px] gap-4">
-                {/* <div className="hidden lg:flex text-sm text-gray">
-                  Home &gt; Listings &gt; Dehu
-                </div> */}
+        <div className="relative flex flex-col w-full max-w-7xl mx-auto">
 
-                <div className="space-y-2 hidden lg:block">
-                  <h1 className="text-3xl font-medium text-[#222222cc] ">
-                    {property?.property_title || "Property Title"}
-                  </h1>
+          <div className="flex flex-col gap-2 lg:p-4 bg-white rounded-lg w-full">
+            <div className="flex items-center justify-between lg:px-4 lg:py-2 bg-transparent w-full lg:w-auto fixed bottom-0 lg:static z-50 lg:z-auto">
+              <div className="lg:flex flex-col w-[688px] gap-4 hidden">
 
-                  <div className="space-y-1 gap-2">
+                <div className="space-y-2 ">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-3xl font-medium text-[#222222cc]">
+                      {property?.property_title || "Property Title"}
+                    </h1>
+                    <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {property?.rera_number && (<div className="flex bg-[#F4F4F4] border border-[#E6E6E6] gap-1 items-center text-xs">
+                        <BsCheck className="text-[#4EDBA5] text-[25px]" />
+                        RERA <BsFillInfoCircleFill className="text-[#22222280] text-[20px]" />
+                      </div>)}
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-black text-white p-1">
+                      <p>{property?.rera_number}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                  </div>
+                  <div className="space-y-1">
                     <div className="flex items-center gap-1 text-xs">
                       <span className="font-light">By</span>
                       <span className="font-light text-[#fc6600]">
@@ -147,9 +168,8 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
                     </div>
 
                     <p className="text-xs font-light text-[#222222]">
-                      {`${property?.city_name || ""} ${
-                        property?.landmark || ""
-                      } ${property?.locality || ""}`}
+                      {`${property?.city_name || ""} ${property?.landmark || ""} ${property?.locality || ""
+                        }`}
                     </p>
                   </div>
 
@@ -171,16 +191,15 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
                 </div>
               </div>
 
-              <div className="lg:flex flex-col items-end gap-4 w-[348px] hidden">
+              <div className="flex flex-col lg:items-end gap-4 w-full lg:w-[370px]">
                 <div className="text-right">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xl font-light">{`  ${formatPrice(
-                      Number(minCarpetPrice)
-                    )} Starting`}</span>
+                  <div className="lg:flex items-center gap-1 hidden">
+                    <span className="text-xl font-normal text-black">
+                      {`  ${formatPrice(Number(minCarpetPrice))} `}
+                      <span className="font-light">{unitPriceType} |</span>
+                    </span>
                     <span className="text-md font-light">
-                      {`  ${formatPrice(
-                        Number(property?.per_sqft_amount)
-                      )}/sq.ft`}
+                      {`  ${formatPrice(Number(property?.per_sqft_amount))}/sq ft`}
                     </span>
                   </div>
                 </div>
@@ -189,15 +208,41 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
               </div>
             </div>
 
-            <div className="flex flex-col  gap-4 w-full  lg:px-10 h-[60vh]">
+            <div className="flex flex-col gap-4 w-full ">
               <div className="lg:w-full h-full">
                 <BuilderImageGrid
                   images={images}
-                  configration={property.configuration}
-                  per_sqft_amount={Number(property.per_sqft_amount)}
-                  possession_date={property.possession_date}
+                  configration={property?.configuration}
+                  per_sqft_amount={Number(property?.per_sqft_amount)}
+                  possession_date={property?.possession_date}
+                  property_title={property?.property_title}
+                  propertyId={propertyId}
                 />
               </div>
+            </div>
+            <div className="lg:space-y-2 flex justify-between px-5 lg:hidden">
+              <div>
+                <h1 className="text-md text-[#222222cc] font-semibold mr-1">
+                  {property?.property_title || "Property Title"}
+                </h1>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1 text-xs">
+                    <span className="font-light">By</span>
+                    <span className="font-light text-[#fc6600]">
+                      {property?.company_name}
+                    </span>
+                  </div>
+
+                  <p className="text-xs font-light text-[#222222]">
+                    {`${property?.city_name || ""} ${property?.landmark || ""} ${property?.locality || ""
+                      }`}
+                  </p>
+                </div>
+              </div>
+              <button className="bg-primary text-white lg:px-6 lg:py-2 py-1 rounded-md text-xs px-2 h-fit">
+                {`  ${formatPrice(Number(minCarpetPrice))} Starting`}
+              </button>
             </div>
 
             <div className="text-sm text-gray-600 mt-4">
@@ -205,14 +250,12 @@ const PreviewModeComponent = ({ onNext }: PreviewModeProps) => {
             </div>
           </div>
         </div>
-        <div className="flex flex-row gap-4 justify-center items-center">
-          <button
-            onClick={() => mutate({ id: Number(userid), step_id: 5 })}
-            className="mt-8 w-full max-w-48 flex justify-center items-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
-          >
-            Save
-          </button>
-        </div>
+        <button
+          onClick={() => mutate({ id: Number(userid), step_id: 5 })}
+          className="mt-8 w-full max-w-48 flex self-center text-center text-white py-2 px-6 rounded-md bg-primary hover:bg-primary transition-colors"
+        >
+          Save and Next
+        </button>
       </div>
     </div>
   );

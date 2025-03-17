@@ -3,6 +3,7 @@ import {
   S3Client, 
   ListObjectsCommand, 
   GetObjectCommand,
+  PutObjectCommand,
   CreateMultipartUploadCommand,
   UploadPartCommand,
   CompleteMultipartUploadCommand,
@@ -14,17 +15,30 @@ import path from 'path'
 // });
 
 const fileFilterFunc = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-  const allowedExtensions = /\.(jpeg|jpg|png)$/i;
+
+  if(req.body.uploadId) {
+    cb(null, true);
+    return;
+  }
+
+  const allowedTypes = [
+    "image/jpeg", "image/jpg", "image/png", 
+    "application/pdf", "application/msword",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+    "application/vnd.ms-excel", 
+    "video/mp4", "video/webm", 
+    "audio/wav"
+  ];
+
+  const allowedExtensions = /\.(jpeg|jpg|png|pdf|doc|docx|xls|xlsx|mp4|webm|wav)$/i;
 
   const isMimeTypeValid = allowedTypes.includes(file.mimetype);
-  console.log(file)
   const isExtensionValid = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
 
   if (isMimeTypeValid && isExtensionValid) {
       cb(null, true);
   } else {
-      cb(new Error("Only images are allowed (jpeg, jpg, png)"));
+      cb(new Error("Only files allowed with extension (jpeg, jpg, png, pdf, mp4, xlsx, wav, doc)"));
   }
 };
 
@@ -42,24 +56,10 @@ const storage = multer.diskStorage({
 const upload = multer({ 
     storage : storage,
     limits: {
-        fileSize: 5 * 1024 * 1024, 
+        fileSize: 10 * 1024 * 1024, 
     },
     fileFilter :  fileFilterFunc
-    // (req, file, cb) => {
-    //     const allowedTypes = /jpeg|jpg|png/;
-    //     const mimeType = allowedTypes.test(file.mimetype);
-    //     const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-
-    //     if (mimeType && extName) {
-    //         return cb(null, true);
-    //     } else {
-    //         cb( new Error('Only images are allowed (jpeg, jpg, png)'));
-    //     }
-    // }
 })
-
-
-
 
 const s3 = new S3Client({
   credentials: {
@@ -86,8 +86,9 @@ const getAllS3Files = async () => {
 }
 
 const bucketName = process.env.AWS_S3_BUCKET_NAME;
+const regionName = process.env.AWS_REGION;
 
-const startAWSUpload = async (fileName) => {
+const startAWSUpload = async (fileName, mimetype) => {
   if(!fileName) {
     throw new Error('Filename is required.')
   }
@@ -95,7 +96,9 @@ const startAWSUpload = async (fileName) => {
     
     const params = { 
       Bucket : bucketName,
-      Key: fileName
+      Key: fileName,
+      ContentType: mimetype,
+      ACL: "public-read"
     }
     const command = new CreateMultipartUploadCommand(params)
     const response = await s3.send(command);
@@ -127,22 +130,55 @@ const uploadAWSChunk = async (fileName, fileStream, uploadId, partNumber) => {
   }
 }
 
+const uploadFullFileToAWS = async (fileName, mimetype, fileStream) => {
+  if(!fileName || !fileStream) {
+    throw new Error('Required field missing.')
+  }
+  try {
+    const params = {
+      Bucket: bucketName,
+      Key: fileName,
+      Body: fileStream,
+      ContentType: mimetype,
+      ACL: "public-read",
+    }
+    
+    const command = new PutObjectCommand(params);
+    const response = await s3.send(command);
+    const s3Url = `https://${bucketName}.s3.${regionName}.amazonaws.com/${fileName}`;
+    return {
+      Location: s3Url,
+      Key: fileName,
+      Bucket: bucketName,
+      ETag: response.ETag
+    };
+  }
+  catch(error) {
+    throw new Error(error);
+  }
+}
+
 const completeAWSUpload = async (fileName, uploadId, uploadedParts ) => {
   try {
+    const formattedParts = uploadedParts.map(part => ({
+      ETag: part.ETag.replace(/"/g, ""), // Ensure no extra quotes
+      PartNumber: Number(part.partNumber) // Ensure PartNumber is a number
+    }));
     const params = {
       Bucket : bucketName,
       Key : fileName,
-      UploadId : uploadId,
-      MultipartUpload : { Parts: uploadedParts }
+      UploadId : uploadId,      
+      MultipartUpload : { Parts: formattedParts }
     }
-    console.log(params, "params")
+    console.log(JSON.stringify(params), "uploadssss params")
     const command = new CompleteMultipartUploadCommand(params)
-    console.log(command, "params")
+    console.log(command, "command")
 
     const response = await s3.send(command);
     return response;
   }
   catch(error) {
+    console.log(error, "s3 error");
     throw new Error(error);
   }
 }
@@ -163,4 +199,4 @@ const abortAWSUpload = async ( fileName, uploadId ) => {
   }
 }
 
-export { upload, s3, getAllS3Files, startAWSUpload, uploadAWSChunk, completeAWSUpload, abortAWSUpload }
+export { upload, s3, getAllS3Files, startAWSUpload, uploadAWSChunk, completeAWSUpload, abortAWSUpload, uploadFullFileToAWS }

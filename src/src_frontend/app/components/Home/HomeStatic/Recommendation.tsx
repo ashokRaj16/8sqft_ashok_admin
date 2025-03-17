@@ -1,97 +1,4 @@
-// import React from "react";
-// import { ReusableCarousel } from "@/Compound-component/Reusable-Carousel";
-// import RecomandationCard from "@/StaticComponent/RecomandationCard";
-// import { CarouselNext, CarouselPrevious } from "@/ui/carousel";
-// export default function RecommendationComponent() {
-//   const properties = [
-//     {
-//       id: 1,
-//       image: "/assets/Home_page/luxury_banglow.JPG",
-//       alt: "Modern Luxury Villa with Pool",
-//       title: "Modern Luxury Villa with Pool",
-//       location: "Pune, India",
-//       area: "4500 sqft",
-//       deposit: "₹20,000",
-//       rent: "₹5,000/month",
-//     },
 
-//     {
-//       id: 2,
-//       image: "/assets/Home_page/luxury_banglow.JPG",
-//       alt: "Modern Luxury Villa with Pool",
-//       title: "Modern Luxury Villa with Pool",
-//       location: "Nagpur, India",
-//       area: "4500 sqft",
-//       deposit: "₹20,000",
-//       rent: "₹5,000/month",
-//     },
-//     {
-//       id: 3,
-//       image: "/assets/Home_page/living_room.jpg",
-//       alt: "Contemporary Urban Apartment",
-//       title: "Contemporary Urban Apartment",
-//       location: "Nashik, Pune",
-//       area: "1200 sqft",
-//       deposit: "₹5,000",
-//       rent: "₹2,500/month",
-//     },
-//     {
-//       id: 4,
-//       image: "/assets/Home_page/luxury_banglow.JPG",
-//       alt: "Modern Luxury Villa with Pool",
-//       title: "Modern Luxury Villa with Pool",
-//       location: "Pune, India",
-//       area: "4500 sqft",
-//       deposit: "₹20,000",
-//       rent: "₹5,000/month",
-//     },
-
-//     {
-//       id: 5,
-//       image: "/assets/Home_page/luxury_banglow.JPG",
-//       alt: "Modern Luxury Villa with Pool",
-//       title: "Modern Luxury Villa with Pool",
-//       location: "Nagpur, India",
-//       area: "4500 sqft",
-//       deposit: "₹20,000",
-//       rent: "₹5,000/month",
-//     },
-//     {
-//       id: 6,
-//       image: "/assets/Home_page/living_room.jpg",
-//       alt: "Contemporary Urban Apartment",
-//       title: "Contemporary Urban Apartment",
-//       location: "Nashik, Pune",
-//       area: "1200 sqft",
-//       deposit: "₹5,000",
-//       rent: "₹2,500/month",
-//     },
-//   ];
-
-//   return (
-//     <>
-//     <div className="container ">
-//       <p className="text-2xl font-bold my-5 text-start">Recomandation </p>
-//       <ReusableCarousel className="w-full ">
-//         {properties.map((property) => (
-//           <RecomandationCard
-//             key={property.id}
-//             title={property.title}
-//             location={property.location}
-//             area={property.area}
-//             deposit={property.deposit}
-//             rent={property.rent}
-//             imageUrl={property.image}
-//           /> 
-//         ))}
-//       </ReusableCarousel>
-//     </div>
-//     <div>
-      
-//     </div>
-//     </>
-//   );
-// }
 
 
 import React, { useState, useEffect } from "react";
@@ -156,8 +63,8 @@ export default function RecommendationComponent() {
   }, []);
 
   return (
-    <div className="container">
-      <p className="text-2xl font-bold my-5 text-start">Recommendation</p>
+    <div className="">
+      <p className="lg:text-2xl text-xl font-medium lg:font-semibold my-5 text-start">Recommendation</p>
       
       
       <ReusableCarousel className="w-full" enableAutoplay>
