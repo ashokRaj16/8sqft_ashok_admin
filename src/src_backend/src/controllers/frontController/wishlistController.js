@@ -20,7 +20,6 @@ export const addToWishlist = async (req, res) => {
           let existingPropertyIds = JSON.parse(interestResult[0].property_id || '[]');
 
           const propertyExists = existingPropertyIds.some(item => item.pid === propertyId);
-          console.log("tested contactsss : ", propertyExists, existingPropertyIds);
 
           if (!propertyExists) {
             existingPropertyIds.push({ pid: propertyId, date: currentDate });
@@ -35,10 +34,9 @@ export const addToWishlist = async (req, res) => {
         else {
             let propertyIds = { pid: propertyId, date: currentDate };
             const updatedPropertyIds = JSON.stringify( [ propertyIds ] );
-            console.log("intrested: ", propertyIds, updatedPropertyIds)
             const createInterestQuery = 'insert into tbl_property_shortlist (user_id, property_id) values (?, ?)';
             const result = await pool.query(createInterestQuery, [ userId, updatedPropertyIds]);
-            console.log('resultss:', result)
+         
         }
 
         // const query = `INSERT INTO tbl_property_shortlist (user_id, property_id) VALUES (?, ?)`;
@@ -61,8 +59,7 @@ export const removeShortlistPropertyByUser = async (req, res) => {
         FROM tbl_property_shortlist 
         WHERE user_id = ?`;
       const [result] = await pool.query(checkQuery, [user_id]);
-      
-      console.log(id, user_id, result)
+     
       if (result.length === 0) {
         return badRequestResponse(res, false, "No shortlisted properties found for this user.");
       }

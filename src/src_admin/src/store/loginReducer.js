@@ -25,8 +25,11 @@ export const loginUser = createAsyncThunk(
             let user;
             const result = await login(credentials);
             if(result) {
-                const token = result.data?.token;
+                const token = result.data?.sqftAccessToken;
+                const refreshToken = result.data?.sqftRefreshToken;
                 localStorage.setItem('eightsqfttoken', token);
+                localStorage.setItem('eightsqftrefreshtoken', refreshToken);
+
                 const userResult = await getUserProfile(token);
                 const userData = userResult.data;
                 localStorage.setItem('userInfo', JSON.stringify( userData));
@@ -75,7 +78,9 @@ const loginSlice = createSlice({
     reducers: {
 
         logoutUser : (state) => {
+            console.log('logount')
             localStorage.removeItem('eightsqfttoken');
+            localStorage.removeItem('eightsqftrefreshtoken');
             localStorage.removeItem('userInfo');
             state.users = null;
             state.token = null;

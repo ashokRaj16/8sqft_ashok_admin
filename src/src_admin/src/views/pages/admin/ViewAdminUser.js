@@ -37,11 +37,10 @@ import { cilTrash, cilInfo, cilBed } from '@coreui/icons';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 
 import Loader from '../../../utils/Loader';
-import { ToastMessage } from '../../../components/ToastMessage';
 import { sendPropertyMails } from '../../../models/propertyModel';
 import { getAdminUserById, updateAdminUser } from '../../../models/usersModel';
 import { userStatus } from './data';
-import { usePushToastHelper } from '../../../utils/toastHelper';
+import { usePushToastHelper } from '../../../hooks/usePushToastHelper';
 import { useCallback } from 'react';
 
 const ViewAdminUser = () => {
@@ -186,7 +185,7 @@ const ViewAdminUser = () => {
                               <CRow>
                                 <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
                                   <p className='fw-bold m-2' >Role: </p>
-                                  <p className="m-2">{userDetails.role_id || '-'}</p>
+                                  <p className="m-2">{userDetails.role_name || '-'}</p>
                                   {/* <small>3 days ago</small> */}
                                 </CCol>
                               </CRow>

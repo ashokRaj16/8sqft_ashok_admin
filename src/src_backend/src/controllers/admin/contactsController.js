@@ -27,8 +27,6 @@ export const listContactUs = async (req, res) => {
     if (whereClauses.length > 0) {
         baseQuery = ` WHERE ` + whereClauses.join(' AND ');
     }
-
-    console.log("Request body: ", whereClauses);
     
     
     const allowedColumns = ['id', 'full_name', 'email', 'phone'];
@@ -91,8 +89,6 @@ export const createContactUs = async (req, res) => {
     plan_discounted_amount,
     plan_gst_per,
   } = req.body;
-
-  console.log(req.body);
   try {
     const query = `
       INSERT INTO tbl_subscription_plans (
@@ -147,7 +143,6 @@ export const deleteContact = async (req, res) => {
     try {
 
     const result = await deleteContactUsAdmin(id);
-    console.log(result)
     if (result.affectedRows === 0) {
       return badRequestResponse(res, false, "Contact Us details not found.");
     }

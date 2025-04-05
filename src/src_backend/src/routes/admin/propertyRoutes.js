@@ -16,6 +16,7 @@ import {
     deletePropertyFandqAdmin,
     updatePropertyFandqAdmin,
     getCategories,    
+    getPropertyAllImagesById,
     getNearbyLocationsByCategory,
     createNearbyLocationAdmin,
     updatePropertyNearbyAdmin,
@@ -99,6 +100,7 @@ router.route('/:id/configuration/:sid')
 
 //use create 
 router.route('/:id/image/')
+    .get(getPropertyAllImagesById)
     .post( uploadPropertyImagesAdmin );
 router.route('/:id/configuration')
     .post( uploadPropertyConfigurationAdmin );

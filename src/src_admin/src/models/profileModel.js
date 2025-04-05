@@ -5,13 +5,16 @@ import { constant } from '../utils/constant';
 
 export const getUserProfile = async (token) => {
     try {
+        const authRefreshToken = localStorage.getItem('eightsqftrefreshtoken');
+        const authToken = localStorage.getItem('eightsqfttoken');
         const result = await axios.get(`${constant.SERVER_BASE_URL}/admin/profile`, {
             headers: {
                 'x-api-key': 'A8SQFT7767',
-                'Authorization' : `Bearer ${token}`
+                'x-refresh-key' : authRefreshToken,
+                "Authorization": `Bearer ${authToken}`,
             }
         });
-        // console.log(result);
+        console.log(result, "ressss");
         return result;
     }
     catch (error) {

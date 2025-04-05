@@ -37,6 +37,18 @@ export const createMarketingWAImageLead = async (data) => {
     }
 }
 
+export const createMarketingWAMarathiLead = async (data) => {
+    try {
+        const result = await axiosInstance.post('/admin/marketing/marketing_wa_marathi',
+            data
+        );
+        return result;
+    }
+    catch (error) {
+        throw new Error(errorHandler(error));
+    }
+}
+
 export const getMarketing = async (offset = 0, limit = 10, sortOrder = 'asc', sortColumn = '', searchFilter = '' ) => {
     try {
         const result = await axiosInstance.get(`/admin/marketing`, { 
@@ -97,5 +109,19 @@ export const deleteMarketingDetailsById = async (id, sid) => {
     }
     catch (error) {
         throw new errorHandler(error)
+    }
+}
+
+
+
+
+export const getLeadUsersbyPropertyId = async (id) => {
+    try {
+        const result = await axiosInstance.get(`/admin/marketing/property/${id}` );
+        console.log(result.data)
+        return result.data;
+    }
+    catch (error) {
+        throw new Error(errorHandler(error));
     }
 }

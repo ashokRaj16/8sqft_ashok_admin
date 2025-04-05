@@ -10,7 +10,7 @@ import PDFDocument from "pdfkit"
 
 export const getProfile = async (req, res) => {
     const user_id = req.userId; 
-    console.log("userId: ", req.userId);
+
     try {
         const selectQuery = `
         tu.id,
@@ -64,7 +64,7 @@ export const getProfile = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
     const id = req.userId;
-    console.log(req.body);
+
     const { 
         fname, 
         lname, mname, company_name, company_web_url,
@@ -91,10 +91,10 @@ export const updateProfile = async (req, res) => {
             whatsapp_notification: whatsapp_notification || null
         }
         
-        // console.log(userData, id)
+     
         
         const result = await updateMemberProfile(id , userData)
-        console.log(result,"update")
+
         if (result.affectedRows === 0) {
             return badRequestResponse(res, false, "Profile not found or no changes made.");
         }
@@ -118,8 +118,7 @@ export const getInterestedUsers = async (req, res) => {
       if (properties.length === 0) {
         return successResponse(res, true, 'No properties found for the user.', []);
       }
-  
-      console.log(properties)
+
   
       const propertyIds = properties.map(property => property.property_id);
       const propertyIdsJson = JSON.stringify(propertyIds);
@@ -233,7 +232,6 @@ try {
     const [propertyTotalCount] = await pool.query(propertyCountQuery, [userId]);
     data['property'] = propertyResult;
     data['totalCounts'] = propertyTotalCount[0].count;
-    console.log(propertyTotalCount)
 
     const totalPages = Math.ceil(propertyTotalCount[0].count / limitCount);
     const startIndex = offset + 1;
@@ -270,7 +268,7 @@ try {
     return successResponse(res, true, 'No shortlisted properties found.', []);
     }
     
-    console.log("result ",JSON.parse(wishlistResult[0].property_id))
+
     const propertyIds = JSON.parse(wishlistResult[0].property_id).map(row => row.pid);
 
     const ImageJoin = `
@@ -287,7 +285,7 @@ try {
     const propertyDetailsQuery = `SELECT tp.*, tpg.property_img_url, tpg.image_category, tpg.file_type
     FROM tbl_property tp 
     ${ImageJoin} WHERE tp.id IN (?) ORDER BY tp.id DESC ${ limitQuery }`;
-    console.log(propertyDetailsQuery, "query::")
+
     const [propertyDetailsResult] = await pool.query(propertyDetailsQuery, [propertyIds]);
     
     const propertyCountQuery = `SELECT count(*) as count
@@ -297,7 +295,6 @@ try {
     const [propertyTotalCount] = await pool.query(propertyCountQuery, [propertyIds]);
     data['property'] = propertyDetailsResult;
     data['totalCounts'] = propertyTotalCount[0].count;
-    console.log(propertyTotalCount)
 
     const totalPages = Math.ceil(propertyTotalCount[0].count / limitCount);
     const startIndex = offset + 1;
@@ -332,12 +329,10 @@ try {
     
     if (ContactedResult.length === 0) {
     return successResponse(res, true, 'No Contacted properties found.', []);
-    }
-    
-    console.log("result ",JSON.parse(ContactedResult[0].property_id))
+    } 
+
     const propertyIds = JSON.parse(ContactedResult[0].property_id).map(row => row.pid);
 
-    console.log(propertyIds)
     const ImageJoin = `
     LEFT JOIN (
         SELECT tpg.*
@@ -360,7 +355,6 @@ try {
     const [propertyTotalCount] = await pool.query(propertyCountQuery, [propertyIds]);
     data['property'] = propertyDetailsResult;
     data['totalCounts'] = propertyTotalCount[0].count;
-    console.log(propertyTotalCount)
 
     const totalPages = Math.ceil(propertyTotalCount[0].count / limitCount);
     const startIndex = offset + 1;
@@ -448,8 +442,6 @@ export const getShortlistUsersByProperty = async (req, res) => {
         data['totalPages'] = totalPages;
         data['startIndex'] = startIndex;
         data['endIndex'] = endIndex;
-
-      console.log("log", interestedUsersResult, id, limit, offset,  "count" );
   
       return successResponse(res, true, "Shortlist users retrieved successfully...", 
         data
@@ -512,8 +504,6 @@ export const getContactedUsersByProperty = async (req, res) => {
         parseInt(limitCount),
         parseInt(offset),
       ]);
-
-       // console.log(limitQuery)
             
        const leadUsersQuery = `SELECT 
             tmd.id,
@@ -552,8 +542,6 @@ export const getContactedUsersByProperty = async (req, res) => {
             }
         ))
         interestedUsersResult.push(...tranformedLeads);
-        console.log(leadUsersResult, interestedUsersResult, "details:::");
-    //   console.log("limit:::",limitQuery, countResult)
         data['users'] = interestedUsersResult;
         data['totalCounts'] = countResult[0].count;
 
@@ -607,7 +595,6 @@ try {
 
     data['payments'] = paymentLogsResult;
     data['totalCounts'] = totalCount[0].count;
-    // console.log(totalCount)
 
     const totalPages = Math.ceil(totalCount[0].count / limitCount);
     const startIndex = offset + 1;
@@ -657,7 +644,6 @@ export const getPaymentPlanTransaction = async (req, res) => {
     
         data['payments'] = paymentLogsResult;
         data['totalCounts'] = totalCount[0].count;
-        // console.log(totalCount)
     
         const totalPages = Math.ceil(totalCount[0].count / limitCount);
         const startIndex = offset + 1;

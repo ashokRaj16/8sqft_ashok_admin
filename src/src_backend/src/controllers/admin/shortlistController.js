@@ -49,9 +49,6 @@ export const getAllShortlistUsersByProperty = async (req, res) => {
     ]);
 
 
-
-    console.log("log", interestedUsersResult, id, limit, offset, totalCount, "count" );
-
     return successResponse(res, true, "Shortlist users retrieved successfully...", {
       totalCount,
       users: interestedUsersResult,

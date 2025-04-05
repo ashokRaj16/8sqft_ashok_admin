@@ -22,7 +22,8 @@ import {
   getPropertyFaqById,
   updatePropertySlug, 
   getPropertyCountById,
-  getPropertyCountByIds } from '../models/propertyModels.js';
+  getPropertyCountByIds,
+  getPropertyNearbyLocationsById } from '../models/propertyModels.js';
 
 import { renderEmailTemplate } from '../config/nodemailer.js';
 import { sendMailTemplate } from '../config/nodemailer.js';
@@ -33,7 +34,6 @@ import { sanitizedField, sanitizedNumber } from '../utils/commonHelper.js';
 export const postProperty = async (req, res) => {
     
     try {
-      // console.log(req.body.step_id)
       // ### If error then unlink all images.
       // ### upload images within steps only = step: 1 {property_videos, property_flooring_plans, property_description} step 2: { pan_card, addhar_card, verification_document}
       // ### check if proeprty_id
@@ -41,7 +41,6 @@ export const postProperty = async (req, res) => {
 
       const { step_id } = req.body;
       const errors = propertyValidators.propertyValidators(req.body);
-      // console.log("Body: ",req.body);
       if(errors.length > 0)
       {
         return badRequestResponse(res, false, 'Validation Message', errors)
@@ -185,7 +184,6 @@ export const postProperty = async (req, res) => {
           const title_slug = generateSlug(property_title, locality, city_name, id);
 
           const resultSlug = await updatePropertySlug(id, title_slug);
-          console.log("result", resultSlug);
 
             return successResponse(res, true, 'Property updated!', result);
         }
@@ -285,7 +283,6 @@ export const postProperty = async (req, res) => {
           // setImmediate(async () => { 
           //   try {
           //     await sendMailTemplate(mailOptions.to, mailOptions.subject, '', templateData);
-          //     console.log('Email sent successfully');
           //   } catch (error) {
           //     console.error('Error sending email:', error);
           //   }
@@ -306,7 +303,6 @@ export const postProperty = async (req, res) => {
 export const postPropertyBuilder = async (req, res) => {
     
   try {
-    // console.log(req.body.step_id)
     // ### If error then unlink all images.
     // ### upload images within steps only = step: 1 {property_videos, property_flooring_plans, property_description} step 2: { pan_card, addhar_card, verification_document}
     // ### check if proeprty_id
@@ -349,9 +345,6 @@ export const postPropertyBuilder = async (req, res) => {
       }
 
     } else if(Number.parseInt(step_id) === 2){
-      // Property description
-      // trim all values.
-      console.log(req.body);
       const { 
           step_id,
           landmark,
@@ -418,16 +411,13 @@ export const postPropertyBuilder = async (req, res) => {
           property_age: property_age && sanitizedField(property_age, true, 'CAPITALIZE') || null,
       };
 
-      console.log(data, data.project_area, "areassssss");
-
       const id = req.body.id;
       const result = await updatePropertyBuilder(id, data);
+
       if(result) {
-
          const title_slug = generateSlug(property_title, locality, city_name, id);
-
          await updatePropertySlug(id, title_slug);
-          return successResponse(res, true, 'Property updated!', result);
+         return successResponse(res, true, 'Property updated!', result);
       }
 
     } else if(Number.parseInt(step_id) === 3) {
@@ -489,7 +479,7 @@ export const postPropertyBuilder = async (req, res) => {
       }
 
     } else if(Number.parseInt(step_id) === 5){
-      // proeprtt preview and last step
+      // property preview and last step
       // Image uplaods
       // ### verify proeprty details
       const { 
@@ -521,7 +511,6 @@ export const postPropertyBuilder = async (req, res) => {
         // setImmediate(async () => { 
         //   try {
         //     await sendMailTemplate(mailOptions.to, mailOptions.subject, '', templateData);
-        //     console.log('Email sent successfully');
         //   } catch (error) {
         //     console.error('Error sending email:', error);
         //   }
@@ -584,23 +573,16 @@ export const getAllProperty = async (req, res) => {
   try {
     let data = {};
     const { page, limit } = req.query;
-    const pageCount         = parseInt(page) || 1;
-    const limitCount        = parseInt(limit) || 100;
-    const offset          = (pageCount - 1) * limitCount;
-
-    // ## add order by here //done
+    const pageCount = parseInt(page) || 1;
+    const limitCount = parseInt(limit) || 100;
+    const offset = (pageCount - 1) * limitCount;
 
     const filters = req.query;
     let whereClauses = [];
-    
-    // if (filters?.property_variety_type) {
-    //   whereClauses.push(`property_variety_type = '${ validator.escape(filters.property_variety_type)}'`);
-    // }
-    
+
     if (filters?.property_type) {
       whereClauses.push(`tp.property_type = '${validator.escape(filters.property_type) }'`);
     }
-
     if (filters?.property_variety) {
       whereClauses.push(`tp.property_variety = '${validator.escape(filters.property_variety) }'`);
     }
@@ -624,13 +606,11 @@ export const getAllProperty = async (req, res) => {
     if (filters?.city_name) {
       whereClauses.push(`tp.city_name = '${validator.escape(filters.city_name) }'`);
     }
-
     if (filters?.state_name) {
       whereClauses.push(`tp.state_name = '${validator.escape(filters.state_name) }'`);
     }
-
     if (filters?.landmark) {
-      whereClauses.push(`tp.landmark like '%${validator.escape(filters.landmark) }%'`);
+      whereClauses.push(`tp.landmark LIKE '%${validator.escape(filters.landmark)}%'`);
     }
     
     if (filters?.property_variety_type) {
@@ -676,27 +656,16 @@ export const getAllProperty = async (req, res) => {
     }
 
     if (filters?.pincode) {
-      whereClauses.push(`tp.pincode = '${validator.escape(filters.pincode) }'`);
+      whereClauses.push(`tp.pincode = '${validator.escape(filters.pincode)}'`);
     }
 
     if (filters?.is_rera_number !== undefined && filters?.is_rera_number !== null) {
-      console.log(filters.is_rera_number, "date")
       whereClauses.push(`tp.is_rera_number = '${filters.is_rera_number }'`);
     }
-    
     if (filters?.property_current_status) {
       whereClauses.push(`tp.property_current_status = '${validator.escape(filters.property_current_status) }'`);
     }
     
-    // if (filters?.amount_range) {
-    //   const [min, max] = filters.amount_range.split('-').map(Number);
-    //   if(!parseInt(min) || !parseInt(max)) {
-    //     return badRequestResponse(res, false, 'Amount range must be a number!');
-    //   }
-    //   // console.log(min, max);
-    //   whereClauses.push(`rent_amount BETWEEN  ${ sanitizedNumber(min,  { allowDecimal: 2})} AND ${ sanitizedNumber(max, {allowDecimal: 2 })}`);
-    // }
-
     if (filters?.amount_range) {
       const [min, max] = filters.amount_range.split('-').map(Number);
     
@@ -734,7 +703,7 @@ export const getAllProperty = async (req, res) => {
       `);
     }
 
-     
+    // Unit config filters
     if (filters?.price_range) {
       const [min, max] = filters.price_range.split('-').map(Number);
       if (isNaN(min) || isNaN(max) || min <= 0 || max <= 0) {
@@ -746,128 +715,228 @@ export const getAllProperty = async (req, res) => {
       `);
     }
 
-    whereClauses.push(`tp.status = '2'`);
-    let baseQuery = '';
-    if (whereClauses.length > 0) {
-      baseQuery = ` WHERE ` + whereClauses.join(' AND ');
+    if (filters?.property_config_type) {
+      const updatedUnitNameType = filters.property_config_type.split(',').map(item => (`${item.trim()}`));
+      const sanitizedUnitNameType = updatedUnitNameType.map(
+        unitName => `'${unitName.replace(/'/g, "''")}'`
+      ) .join(',');
+      whereClauses.push(`tpuc.unit_name IN (${sanitizedUnitNameType})`);
     }
 
-    console.log(whereClauses, "caluss", baseQuery)
-    
-      const allowedColumns = ['id', 'rent_amount', 'availability_date', '	created_at'];
-      const allowedOrders = ['ASC', 'DESC'];
+    whereClauses.push(`tp.status = '2'`);
+    whereClauses.push(`tp.is_deleted = '0'`);
 
-      const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'tp.id';
-      const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase()) ? filters.sortOrder?.toUpperCase() : 'DESC';
+    let baseQuery = whereClauses.length > 0 ? ` WHERE ` + whereClauses.join(' AND ') : '';
 
-      const propertyResult = await getAllPropertyList(baseQuery, pageCount, limitCount, sortColumn, sortOrder);
-      const propertyTotalCount = await getAllPropertyCount(baseQuery);
-      let ids = propertyResult.map((i)=> `${i.id}`)
-      
-      let resultCountProperty = await getPropertyCountByIds(ids);
+    const allowedColumns = ['id', 'rent_amount', 'availability_date', 'created_at'];
+    const allowedOrders = ['ASC', 'DESC'];
+    const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'tp.id';
+    const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase()) ? filters.sortOrder?.toUpperCase() : 'DESC';
 
-      let newUpdatedProperty = propertyResult.map((item) => {
-        let findProperty = resultCountProperty.find((i) => i.property_id === item.id);
-        if (findProperty) {
-          return {
-            ...item,
-            unique_view_count:
-              (item.unique_view_count || 0) +
-              (findProperty?.views || 0)
-          };
+    const propertyResult = await getAllPropertyList(baseQuery, pageCount, limitCount, sortColumn, sortOrder);
+    const propertyTotalCount = await getAllPropertyCount(baseQuery);
+    let ids = propertyResult.map((i) => `${i.id}`);
+
+    let resultCountProperty = await getPropertyCountByIds(ids);
+
+    let jsonLdArray = [];
+
+    let newUpdatedProperty = propertyResult.map((item) => {
+      let findProperty = resultCountProperty.find((i) => i.property_id === item.id);
+      if (findProperty) {
+        item.unique_view_count = (item.unique_view_count || 0) + (findProperty?.views || 0);
+      }
+
+      // Convert images to ImageObject format
+      let imageArray = {
+        "@context": "https://schema.org",
+        "@type": "ImageObject",
+        "contentUrl": item.property_img_url || "",
+        "name": item.property_title || "Property Image",
+        "description": item.meta_description,
+        "author": {
+          "@type": "Organization",
+          "name": "8sqft.com"
+        },
+        "datePublished": new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
+        "license": "",
+        "height": "1080",
+        "width":  "1920"
+      };
+
+      // JSON-LD Schema stored separately
+      jsonLdArray.push({
+        "@context": "https://schema.org",
+        "@type": "ApartmentComplex",
+        "name": item.property_title || "Property Details",
+        "description": item.meta_description,
+        "image": imageArray, // Using ImageObject format
+        "url": `https://8sqft.com/Property/${item.title_slug}`,
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": item.address || "",
+          "addressLocality": item.city_name || "",
+          "addressRegion": item.state_name || "",
+          "postalCode": item.zip_code || "",
+          "addressCountry": item.country || "India"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": item.price || "Contact for price",
+          "priceCurrency": "INR",
+          "availability": "https://schema.org/InStock"
         }
-        return item;
       });
 
-      data['property'] = newUpdatedProperty;
-      data['totalCounts'] = propertyTotalCount;
-  
-      const totalPages = Math.ceil(propertyTotalCount / limitCount);
-      const startIndex = offset + 1;
-      const endIndex   = Math.min(offset + limitCount, propertyTotalCount);
-      data['totalPages'] = totalPages;
-      data['startIndex'] = startIndex;
-      data['endIndex'] = endIndex;
-  
-      return successWithDataResponse(res, true, "Property list", data);
-    }
-    catch (error) 
-    {
-      console.error(error);
-      return badRequestResponse(res, false, 'Error fetching property!', error);
-    }
+      return item;
+    });
+
+    data['meta_title'] = "Find the Best Properties for Rent and Sale in Maharashtra | www.8sqft.com";
+    data['meta_description'] = "Explore a wide range of properties for rent and sale in Maharashtra. Find your dream home with verified listings, affordable prices, and top amenities.";
+    data['property'] = newUpdatedProperty;
+    data['jsonLdSchema'] = jsonLdArray;  // JSON-LD stored in a separate array
+    data['totalCounts'] = propertyTotalCount;
+    data['totalPages'] = Math.ceil(propertyTotalCount / limitCount);
+    data['startIndex'] = offset + 1;
+    data['endIndex'] = Math.min(offset + limitCount, propertyTotalCount);
+
+    return successWithDataResponse(res, true, "Property list", data);
+  } catch (error) {
+    console.error(error);
+    return badRequestResponse(res, false, 'Error fetching property!', error);
+  }
 };
 
 export const getPropertyById = async (req, res) => {
   try {    
     let data = {};
     const searchId = req.params.id || null;
-    console.log(req.params, searchId)
   
-      if (!searchId) {
-        return badRequestResponse(res, false, 'Property id requred with request!');
-      }
-  
-      let [resultProperty] = await getPropertyListById(searchId);
-      let [resultCountProperty] = await getPropertyCountById(searchId);
-      
-      if (resultCountProperty) {
-        resultProperty = {
-          ...resultProperty,
-          unique_view_count:
-            (resultProperty.unique_view_count || 0) +
-            (resultCountProperty?.views || 0),
-          intrestedCount:
-            (resultProperty.intrestedCount || 0) +
-            (resultCountProperty?.contact || 0),
-          shortlistedCount:
-            (resultProperty.shortlistedCount || 0) +
-            (resultCountProperty?.shortlist || 0),
-        };
-      }
-
-      data = resultProperty;
-
-      if (resultProperty) {
-        const excludedCategories = [
-          'Light Bill',
-          'Property Tax',
-          'Water Bill',
-          'Property Agreement',
-          'Power of Attorney',
-          '7/12 or 8A',
-          'Plan'
-        ];
-
-        const resultImages = await getPropertyImagesById(searchId);
-        const filteredImages = 
-        resultImages.filter(img => {
-          return !excludedCategories.includes(img.image_category)
-        });
-
-        data['images'] = filteredImages;
-
-        const configurationImages = await getPropertyConfigurationById(searchId);
-        data['configuration'] = configurationImages;
-
-        const propertyFaq = await getPropertyFaqById(searchId);
-        data['faq'] = propertyFaq;
-  
-        // const incrementViewCountQuery = `UPDATE tbl_property SET unique_view_count = unique_view_count + 1 WHERE id = ? `;
-        // await pool.execute(incrementViewCountQuery, [searchId]);
-      }
-
-      if(data) {
-        return successWithDataResponse(res, true, "Property Details.", data);
-      }
-      return badRequestResponse(res, false, 'No Property found!');
-    } 
-    catch (error) 
-    {
-      console.error(error);
-      return badRequestResponse(res, false, 'Error fetching property!', error);
+    if (!searchId) {
+      return badRequestResponse(res, false, 'Property id required with request!');
     }
+
+    let [resultProperty] = await getPropertyListById(searchId);
+    let [resultCountProperty] = await getPropertyCountById(searchId);
+
+    if (resultCountProperty) {
+      resultProperty = {
+        ...resultProperty,
+        unique_view_count:
+          (resultProperty.unique_view_count || 0) + (resultCountProperty?.views || 0),
+        intrestedCount:
+          (resultProperty.intrestedCount || 0) + (resultCountProperty?.contact || 0),
+        shortlistedCount:
+          (resultProperty.shortlistedCount || 0) + (resultCountProperty?.shortlist || 0),
+      };
+    }
+
+    if (!resultProperty) {
+      return badRequestResponse(res, false, 'No Property found!');
+    }
+
+    data = resultProperty;
+
+    // Handle images
+    const excludedCategories = [
+      'Light Bill',
+      'Property Tax',
+      'Water Bill',
+      'Property Agreement',
+      'Power of Attorney',
+      '7/12 or 8A',
+      'Plan'
+    ];
+
+    const resultImages = await getPropertyImagesById(searchId);
+    const filteredImages = resultImages.filter(img => !excludedCategories.includes(img.image_category));
+    data['images'] = filteredImages;
+
+    const configurationImages = await getPropertyConfigurationById(searchId);
+    data['configuration'] = configurationImages;
+
+    const propertyFaq = await getPropertyFaqById(searchId);
+    data['faq'] = propertyFaq;
+
+    const nearbyLocations = await getPropertyNearbyLocationsById(searchId);
+    data['nearbyLocations'] = nearbyLocations || [];
+
+    // SEO Handling
+    if (!data.meta_title) {
+      data.meta_title = data.property_title || `Property ${searchId}`;
+    }
+
+    if (!data.meta_description) {
+      data.meta_description = data.description 
+        ? data.description.substring(0, 160).replace(/\s+/g, ' ')+ "..." 
+        : "Property details available.";
+    }
+
+    let canon_url;
+    if (data.user_type === 'BUILDER') {
+      canon_url = `https://8sqft.com/Builder/${data.title_slug.replace(/\s+/g, '-')}`;
+    } else {
+      canon_url = `https://8sqft.com/PropertyDetailsPage/${data.title_slug.replace(/\s+/g, '-')}`;
+    }
+
+    // JSON-LD Schema with ImageObject
+    data.jsonLdSchema = {
+      "@context": "https://schema.org",
+      "@type": data.property_type || "Property",
+      "name": data.property_title || "Property Details",
+      "description": (data.meta_description || data.short_description || "Property details available.").replace(/\s+/g, ' ').trim(),
+      "image": data.images.length > 0 
+        ? data.images.map(img => ({
+            "@type": "ImageObject",
+            "contentUrl": img.property_img_url,
+            "name": img.image_category || "Property Image",
+            "description": data.property_title || "Property Image",
+            "height": img.image_height || "1080",
+            "width": img.image_width || "1920"
+          }))
+        : [],
+      "url": canon_url || "https://8sqft.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": data.full_address || "",
+        "addressLocality": data.locality || "",
+        "addressRegion": data.state_name || "",
+        "postalCode": data.pincode || "",
+        "addressCountry": data.country || "India"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": data.latitude || "",
+        "longitude": data.longitude || ""
+      },
+      "numberOfRooms": data.total_units || 0,
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": data.builtup_area || "",
+        "unitCode": "SQM"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": data.rent_amount || data.per_sqft_amount || "Contact for price",
+        "priceCurrency": "INR",
+        "availability": "https://schema.org/InStock"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "8sqft",
+        "url": "https://8sqft.com",
+        "logo": "https://8sqft.com/assets/logo/ForWebSiteWhite.svg"
+      }
+    };
+
+    return successWithDataResponse(res, true, "Property Details.", data);
+  } 
+  catch (error) {
+    console.error(error);
+    return badRequestResponse(res, false, 'Error fetching property!', error);
+  }
 };
+
 
 export const updatePropertyViewCount = async (req, res) => {
   try {
@@ -894,10 +963,7 @@ export const getAuthorizedPropertyById = async (req, res) => {
   try {    
     let data = {};
     const searchId = req.params.id || null;
-    // const searchId  = req.query.id || null; 
-    console.log(req.userId);
-    console.log(req.userId, searchId)
-  
+    // const searchId  = req.query.id || null;  
       if (!searchId) {
         return badRequestResponse(res, false, 'Property id requred with request!');
       }
@@ -924,5 +990,86 @@ export const getAuthorizedPropertyById = async (req, res) => {
     }
 };
 
+export const getReviewsByPropertyId = async (req, res) => {
+  const { id } = req.params;
+  let data = {};
+  if (!id) {
+    return badRequestResponse(res, false, 'Property ID is required' );
+  }
+  try {
+      const [reviews] = await pool.execute(
+          `SELECT r.*, u.fname, u.lname, u.profile_picture_url 
+           FROM tbl_property_review r 
+           JOIN tbl_users u ON r.user_id = u.id 
+           WHERE r.property_id = ? AND r.status = '1'`,
+          [id]
+      );
+      
+      const [[{ total_reviews }]] = await pool.execute(
+          `SELECT COUNT(*) AS total_reviews FROM tbl_property_review WHERE property_id = ? AND status = '1'`,
+          [id]
+      );
+      
+      let ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      let totalRating = 0;
 
+      reviews.forEach(({ rating }) => {
+        const floatRating = parseFloat(rating);
 
+        const roundedRating = Math.round(floatRating);
+    
+        ratingDistribution[roundedRating] = (ratingDistribution[roundedRating] || 0) + 1;
+        totalRating += floatRating;
+    });
+    
+    const averageRating = total_reviews > 0 ? parseFloat((totalRating / total_reviews).toFixed(1)) : 0;
+      data['reviews'] = reviews;
+      data['rating_distribution'] = ratingDistribution;
+      data['average_rating'] = averageRating;
+      data['total_count'] = total_reviews;
+
+      return successWithDataResponse(res, true, 'review list:', data)
+
+  } catch (error) {
+    return badRequestResponse(res, false, 'Error fetching reviews' );
+  }
+};
+
+export const submitReview = async (req, res) => {
+  const { property_id, rating, review } = req.body;
+  const user_id = req.userId;
+
+  if (!property_id || !rating || rating < 1 || rating > 5 || !review) {
+    return badRequestResponse(res, false, 'Missing required fields')
+  }
+
+  try {
+      const [existingReview] = await pool.execute(
+          'SELECT id FROM tbl_property_review WHERE user_id = ? AND property_id = ?',
+          [user_id, property_id]
+      );
+
+      if (existingReview.length > 0) {
+          const [result] = await pool.execute(
+              'UPDATE tbl_property_review SET rating = ?, review = ? WHERE user_id = ? AND property_id = ?',
+              [rating, review, user_id, property_id]
+          );
+          if(result.affectedRows > 0) {
+            return successWithDataResponse(res, true, 'Review updated successfully')
+          }
+          return badRequestResponse(res, false, 'User or property id have issue, Unable to update review.')
+      } else {
+          const [result] = await pool.execute(
+              'INSERT INTO tbl_property_review (user_id, property_id, rating, review) VALUES (?, ?, ?, ?)',
+              [user_id, property_id, rating, review]
+          );
+          if(result.affectedRows > 0) {
+            return successWithDataResponse(res, true, 'Review submitted successfully')
+          }
+          return badRequestResponse(res, false, 'User or property id have issue, Unable to create review.')
+      }
+
+  } catch (error) {
+      return badRequestResponse(res, false, 'Error submitting review')
+  }
+};

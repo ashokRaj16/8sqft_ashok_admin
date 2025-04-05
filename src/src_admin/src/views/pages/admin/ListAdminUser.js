@@ -58,7 +58,6 @@ const getStatusBadge = (status) => {
   }
 }
 
-
 const ListAdminUser = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -385,6 +384,9 @@ const ListAdminUser = () => {
               <CTableHeaderCell >
                 Role
               </CTableHeaderCell>
+              <CTableHeaderCell >
+                Status
+              </CTableHeaderCell>
               <CTableHeaderCell>
                 Created Date 
               </CTableHeaderCell>
@@ -408,7 +410,7 @@ const ListAdminUser = () => {
                 <CTableDataCell>{user.email}</CTableDataCell>
                 <CTableDataCell>{user.mobile}</CTableDataCell>
                 <CTableDataCell>{user.address || "-"}</CTableDataCell>
-                <CTableDataCell>{user.role_id || "-"}</CTableDataCell>
+                <CTableDataCell>{user.role_name || "-"}</CTableDataCell>
                 <CTableDataCell>
                   { user.status === '0' ? (
                     <CBadge color={getStatusBadge('inactive')}>Inactive</CBadge>

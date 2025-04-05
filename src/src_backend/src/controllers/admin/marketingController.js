@@ -3,42 +3,89 @@ import axios from 'axios';
 import AWS from '@aws-sdk/client-s3';
 
 import { badRequestResponse, successResponse, successWithDataResponse } from '../../utils/response.js';
-import { createMarketingAdmin, deleteMarketingByIdAdmin, deleteMarketingDetailsRowByIdAdmin, getAllMarketingCountAdmin, getAllMarketingListAdmin, getMarketingByIdAdmin, getMarketingLogByIdAdmin } from '../../models/marketingModels.js';
+import { createMarketingAdmin, deleteMarketingByIdAdmin, deleteMarketingDetailsRowByIdAdmin, getAllMarketingCountAdmin, getAllMarketingListAdmin, getLeadsByPropertyId, getLeadsCountsByPropertyId, getMarketingByIdAdmin, getMarketingLogByIdAdmin } from '../../models/marketingModels.js';
 import { formattedDate, sanitizedNumber } from '../../utils/commonHelper.js';
 import validator from 'validator';
-
+import fs from 'fs';
+import { downloadAndProcessExcel } from '../../utils/imageUploadHelper.js';
+import { whatsappImageTemplateValidator, whatsappMarathiTemplateValidator } from '../validators/marketingValidator.js';
 
 /**
- * Need test
+ * Whasapp Property Promotion to customer (Property Details & Image)
  * @param {*} req 
  * @param {*} res 
  * @returns 
  */
 export const sendWAPromotionWithImageMessage = async (req, res) => {
-    const { full_name, mobile, email, property_id, banner_image } = req.body;
-    if( !full_name || !mobile || !property_id ) {
-      return badRequestResponse(res, false, "Missing required parameter.")
+
+    const { full_name, mobile, email, property_id, banner_image, contacts_file } = req.body;
+    const errors = whatsappImageTemplateValidator(req.body)
+    
+    if( errors.length > 0 ) {
+      return badRequestResponse(res, false, "Missing required parameter.", errors)
     }
 
     try {
+
       const userJoin = `LEFT JOIN tbl_users tu ON tu.id = tp.user_id`;
       const galleryJoin = `LEFT JOIN tbl_property_gallery tpg ON tpg.property_id = tp.id`;
 
-      const propertyQuery = `SELECT tp.id, tp.property_title, tp.title_slug, tp.locality, tp.city_name,
-          tu.fname, tu.lname, tu.mobile,
-          tp.property_title, tp.rent_amount, tp.city_name, tp.property_type,
-          tp.status ,
-          MIN(tpg.property_img_url) as property_img_url
-          FROM tbl_property as tp
-          ${userJoin}
-          ${galleryJoin}
-          WHERE tp.id = ?
-        `;
+      const propertyQuery = `
+        SELECT tp.id, tp.property_title, tp.title_slug, tp.locality, tp.city_name,
+              tu.fname, tu.lname, tu.mobile,
+              tp.property_title, tp.rent_amount, tp.city_name, tp.property_type,
+              tp.status,
+              MIN(tpg.property_img_url) as property_img_url
+        FROM tbl_property as tp
+        ${userJoin}
+        ${galleryJoin}
+        WHERE tp.id = ?
+        AND (tpg.file_type NOT IN ('application/pdf', 'video/mp4', 'video/mkv', 'video/avi', 'video/mov'))`;
 
       const [properties] = await pool.query(propertyQuery, [property_id]);
 
+      if(properties.length <= 0) {
+        return badRequestResponse(res, false, "No Property found.")
+      }
       let bannerImgUrl = banner_image || properties[0].property_img_url;
-      //#region working
+      
+      let mobileNumbersArray = [];
+      if(contacts_file) {
+
+        const contactList = contacts_file;
+        
+        mobileNumbersArray = await downloadAndProcessExcel(contactList);
+        
+        if(mobileNumbersArray && mobileNumbersArray.length > 0) {
+          const response = await sendMarketingMessages(mobileNumbersArray, properties[0], bannerImgUrl )
+          if(response) {
+              const data = {
+                full_name: full_name || null,
+                mobile: mobile || null,
+                email: email || null,
+                status: "1",
+                status_text : "Success",
+                property_id: property_id || null,
+                banner_image : bannerImgUrl || null,
+                contacts_file : contacts_file || null,
+                total_contact : mobileNumbersArray.length || null,
+                msg_send_contact : mobileNumbersArray.length || null,
+                promotion_name : `Promotion-${ formattedDate( new Date())}`,
+                marketing_type : 'Whatsapp',
+                promotion_type : 'Property Promote',
+                publish_date : new Date(),
+                userId : req.userId,
+              }
+              const result = await createMarketingAdmin(data)
+              return successResponse(res, true, 'Marketing messages sent successfully', result);
+
+          }
+          else {
+            return badRequestResponse(res, false, 'Unable to sent some messages.');
+          }
+        }
+      }
+
       const marketingPayload = new URLSearchParams({ 
         channel: 'whatsapp',
         'src.name': `${process.env.GUPSHUP_APP_NAME}`,
@@ -73,6 +120,7 @@ export const sendWAPromotionWithImageMessage = async (req, res) => {
           }
       );
 
+
       if (gupshupResponse.data.status === 'submitted') {
         const data = {
           full_name: full_name || null,
@@ -82,13 +130,16 @@ export const sendWAPromotionWithImageMessage = async (req, res) => {
           status_text : "Success",
           property_id: property_id || null,
           banner_image : bannerImgUrl || null,
+          contacts_file : contacts_file || null,
+          total_contact : 1 || null,
+          msg_send_contact : 1 || null,
           promotion_name : `Promotion-${ formattedDate( new Date())}`,
           marketing_type : 'Whatsapp',
           promotion_type : 'Property Promote',
           publish_date : new Date(),
           userId : req.userId,
         }
-        const result = await createMarketingAdmin(data)              
+        const result = await createMarketingAdmin(data)
         return successResponse(res, true, 'Marketing messages sent successfully', result);
       } else {
           console.error(`Failed to send message to ${mobile}:`, gupshupResponse.data);
@@ -98,7 +149,233 @@ export const sendWAPromotionWithImageMessage = async (req, res) => {
       console.error('Error in send Message:', error);
       return badRequestResponse(res, false, 'Failed to send marketing messages', error);
   }
+};
+
+/**
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
+export const sendWAPromotionWithMarathiMessage = async (req, res) => {
+
+  const { template_type, full_name, mobile, email, property_id, banner_image, contacts_file, txt_marathi, msg_mobile } = req.body;
+
+  let errors = whatsappMarathiTemplateValidator(req.body);
+  if(errors.length > 0) {
+    return badRequestResponse(res, false, "Missing required parameter.", errors)
+  }
+
+  try {
+   
+    let mobileNumbersArray = [];
+    if(contacts_file) {
+      const contactList = contacts_file;      
+      mobileNumbersArray = await downloadAndProcessExcel(contactList);
+      
+      if(mobileNumbersArray && mobileNumbersArray.length > 0) {
+        const response = await sendMarketingMarathiMessages(mobileNumbersArray, txt_marathi, msg_mobile )
+        if(response) {
+            const data = {
+              full_name: full_name || null,
+              mobile: mobile || null,
+              email: email || null,
+              status: "1",
+              status_text : "Success",
+              contacts_file : contacts_file || null,
+              txt_marathi : txt_marathi || null,
+              msg_mobile : msg_mobile || null,
+              total_contact : mobileNumbersArray.length || null,
+              msg_send_contact : mobileNumbersArray.length || null,
+              promotion_name : `Promotion-${ formattedDate( new Date() )}`,
+              marketing_type : 'Whatsapp',
+              promotion_type : 'Property Promote Marathi',
+              publish_date : new Date(),
+              userId : req.userId,
+            }
+            const result = await createMarketingAdmin(data)
+            return successResponse(res, true, 'Marketing messages sent successfully', result);
+
+        }
+        else {
+          return badRequestResponse(res, false, 'Unable to sent some messages.');
+        }
+      }
+    }
+
+    const marketingPayload = new URLSearchParams({ 
+      channel: 'whatsapp',
+      'src.name': `${process.env.GUPSHUP_APP_NAME}`,
+      source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
+      destination: `91${sanitizedNumber(mobile)}`,
+      type: "template",
+      template: JSON.stringify({
+          id: '47af9f73-2f5e-4df7-9368-59638c15998a',
+          params : [
+            `${txt_marathi}`, 
+            `${msg_mobile}`
+          ]
+      })
+    });
+
+    const gupshupResponse = await axios.post(
+        'https://api.gupshup.io/wa/api/v1/template/msg',
+        marketingPayload,
+        {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Cache-Control': 'no-cache',
+                apikey: process.env.GUPSHUP_API_KEY,
+            },
+        }
+    );
+
+    if (gupshupResponse.data.status === 'submitted') {
+      const data = {
+        full_name: full_name || null,
+        mobile: mobile || null,
+        email: email || null,
+        status: "1",
+        status_text : "Success",
+        property_id: null,
+        banner_image : null,
+        contacts_file : contacts_file || null,
+        txt_marathi : txt_marathi || null,
+        msg_mobile : msg_mobile || null,
+        total_contact : 1 || null,
+        msg_send_contact : 1 || null,
+        promotion_name : `Promotion-${ formattedDate( new Date())}`,
+        marketing_type : 'Whatsapp',
+        promotion_type : 'Property Promote Marathi',
+        publish_date : new Date(),
+        userId : req.userId,
+      }
+      const result = await createMarketingAdmin(data)
+      return successResponse(res, true, 'Marketing messages sent successfully', result);
+    } else {
+        console.error(`Failed to send message to ${mobile}:`, gupshupResponse.data);
+        return successResponse(res, true, 'Failed to sent messages.');
+    }
+} catch (error) {
+    console.error('Error in send Message:', error);
+    return badRequestResponse(res, false, 'Failed to send marketing messages', error);
 }
+};
+
+const sendMarketingMessages = async (numbersArray, properties, bannerImgUrl, batchSize = 20) => {
+  try {
+
+      const sendBatch = async (batch) => {
+        const requests = batch.map(async (number) => {
+            try {
+                const marketingPayload = new URLSearchParams();
+                marketingPayload.append("channel", "whatsapp");
+                marketingPayload.append("src.name", process.env.GUPSHUP_APP_NAME);
+                marketingPayload.append("source", process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO);
+                marketingPayload.append("destination", `91${sanitizedNumber(number)}`);
+                marketingPayload.append("type", "template");
+                marketingPayload.append("template", JSON.stringify({
+                    id: "f29f93ce-4fae-4019-8367-03aec1b98c86",
+                    params: [
+                        properties.property_title,
+                        `${properties.locality}, ${properties.city_name}`,
+                        `/Builder/${properties.title_slug}`
+                    ]
+                }));
+                marketingPayload.append("message", JSON.stringify({
+                    type: "image",
+                    image: {
+                        link: bannerImgUrl
+                    }
+                }));
+
+                const response = await axios.post(
+                    "https://api.gupshup.io/wa/api/v1/template/msg",
+                    marketingPayload,
+                    {
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "Cache-Control": "no-cache",
+                            apikey: process.env.GUPSHUP_API_KEY,
+                        },
+                    }
+                );
+                return { status: "fulfilled", value: response.data };
+
+            } catch (error) {
+                console.error(`Error sending to ${number}:`, error.response?.data || error.message);
+                return { status: "rejected", reason: error.response?.data || error.message };
+            }
+        });
+
+        // Send all requests in parallel
+        const responses = await Promise.allSettled(requests);
+
+      };
+
+      for (let i = 0; i < numbersArray.length; i += batchSize) {
+        const batch = numbersArray.slice(i, i + batchSize);
+        await sendBatch(batch);
+      }
+
+  } catch (error) {
+      console.error("Error sending messages:", error.response?.data || error.message);
+  }
+};
+
+
+const sendMarketingMarathiMessages = async (numbersArray, txt_marathi, msg_mobile, batchSize = 20) => {
+  try {
+
+      const sendBatch = async (batch) => {
+        const requests = batch.map(async (number) => {
+            try {
+                const marketingPayload = new URLSearchParams();
+                marketingPayload.append("channel", "whatsapp");
+                marketingPayload.append("src.name", process.env.GUPSHUP_APP_NAME);
+                marketingPayload.append("source", process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO);
+                marketingPayload.append("destination", `91${sanitizedNumber(number)}`);
+                marketingPayload.append("type", "template");
+                marketingPayload.append("template", JSON.stringify({
+                    id: "47af9f73-2f5e-4df7-9368-59638c15998a",
+                    params: [
+                        txt_marathi,
+                        `${msg_mobile}`,
+                    ]
+                }));               
+
+                const response = await axios.post(
+                    "https://api.gupshup.io/wa/api/v1/template/msg",
+                    marketingPayload,
+                    {
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "Cache-Control": "no-cache",
+                            apikey: process.env.GUPSHUP_API_KEY,
+                        },
+                    }
+                );
+                return { status: "fulfilled", value: response.data };
+
+            } catch (error) {
+                console.error(`Error sending to ${number}:`, error.response?.data || error.message);
+                return { status: "rejected", reason: error.response?.data || error.message };
+            }
+        });
+
+        // Send all requests in parallel
+        const responses = await Promise.allSettled(requests);
+
+      };
+
+      for (let i = 0; i < numbersArray.length; i += batchSize) {
+        const batch = numbersArray.slice(i, i + batchSize);
+        await sendBatch(batch);
+      }
+
+  } catch (error) {
+      console.error("Error sending messages:", error.response?.data || error.message);
+  }
+};
 
 /**
  * Working
@@ -106,57 +383,71 @@ export const sendWAPromotionWithImageMessage = async (req, res) => {
  * @param {*} res 
  * @returns 
  */
+
 export const sendWAPromotionPropertyMessage = async (req, res) => {
 
-    const {full_name, mobile, email, property_id } = req.body;
+    const {full_name, mobile, email, property_id, contacts_file } = req.body;
     if(!full_name || !mobile || !property_id) {
       return badRequestResponse(res, false, "Missing required parameter.")
     }
 
-    try {
-      const userJoin = `LEFT JOIN tbl_users tu ON tu.id = tp.user_id`
-      const propertyQuery = `SELECT tp.id,
-        tu.fname, tu.lname, tu.mobile,
-        tp.property_title, tp.description, tp.rent_amount, tp.city_name, tp.property_type,
-        tp.status 
-        FROM tbl_property as tp
-        ${userJoin}
-        WHERE tp.id = ?`;
+  try {
+      // Fetch property owner details, including WhatsApp status
+      const propertyQuery = `
+          SELECT tp.id, tu.fname, tu.lname, tu.mobile, tu.is_wa_number,
+                 tp.property_title, tp.description, tp.rent_amount, 
+                 tp.city_name, tp.property_type, tp.status 
+          FROM tbl_property AS tp
+          LEFT JOIN tbl_users AS tu ON tu.id = tp.user_id
+          WHERE tp.id = ?`;
 
       const [properties] = await pool.query(propertyQuery, [property_id]);
-
-      const gupshupApiKey = process.env.GUPSHUP_API_KEY;
   
       if(!properties[0].mobile) {
         return badRequestResponse(res, false, "No mobile number for selected property.")
       }
-        const messagePayload = new URLSearchParams({
+      if (!properties.length) {
+          return badRequestResponse(res, false, "Property not found.");
+      }
+
+      const owner = properties[0];
+
+      // Check if the owner's number is WhatsApp-enabled
+      if (owner.is_wa_number !== "1") {
+          return successResponse(res, true, "Skipping message as the number is not WhatsApp-enabled.");
+      }
+
+      // Send WhatsApp message
+      const gupshupApiKey = process.env.GUPSHUP_API_KEY;
+      const messagePayload = new URLSearchParams({
           channel: 'whatsapp',
+
           'src.name': `${process.env.GUPSHUP_APP_NAME}`,
           source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
           destination: `91${properties[0].mobile}`,
           template: JSON.stringify({
-            id: '840ffd0d-aca8-4cb2-8ae8-36a863f27ecb',
-            params: [
-              `${properties[0].fname} ${properties[0].lname}`, 
-              properties[0].property_title,
-              full_name,
-              mobile
-            ],
+              id: '62820aa7-2f74-4566-bf9f-4107269f1992',
+              params: [
+                  `${owner.fname} ${owner.lname}`,
+                  owner.property_title,
+                  full_name,
+                  mobile
+              ],
           }),
-        });
+      });
 
-        const gupshupResponse = await axios.post(
+      const gupshupResponse = await axios.post(
           'https://api.gupshup.io/wa/api/v1/template/msg',
           messagePayload,
           {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'Cache-Control': 'no-cache',
-              apikey: gupshupApiKey, 
-            },
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Cache-Control': 'no-cache',
+                  apikey: gupshupApiKey,
+              },
           }
         );
+        
         if (gupshupResponse.data.status === 'submitted') {
           const data = {
             full_name: full_name || null,
@@ -166,6 +457,9 @@ export const sendWAPromotionPropertyMessage = async (req, res) => {
             status_text : "Success",
             property_id: property_id || null,
             banner_image : null,
+            contacts_file : contacts_file || null,
+            total_contact : 1 || null,
+            msg_send_contact : 1 || null,
             promotion_name : `Promotion-${ formattedDate( new Date())}`,
             marketing_type : 'Whatsapp',
             promotion_type : 'Property',
@@ -178,20 +472,21 @@ export const sendWAPromotionPropertyMessage = async (req, res) => {
             console.error(`Failed to send message to ${mobile}:`, gupshupResponse.data);
             return successResponse(res, true, 'Failed to sent messages.');
         }
-      
+
   } catch (error) {
-      console.error('Error in sendMessage:', error);
-      return badRequestResponse(res, false, 'Failed to send marketing messages', error);
+      console.error('Error in sendWAPromotionPropertyMessage:', error);
+      return badRequestResponse(res, false, 'Failed to send marketing message', error);
   }
 };
 
-// ### Need to access excel sheet.
+// ### Need to access excel sheet. //done above
 /**
  * send promotion using excel | upload excel Sheet to aws | send bulk whatsapp message 
  * @param {*} req 
  * @param {*} res 
  * @returns 
  */
+
 export const sendPromotionMessageUsingExcel = async (req, res) => {
   try {
       const { property_id } = req.body;
@@ -201,10 +496,19 @@ export const sendPromotionMessageUsingExcel = async (req, res) => {
       }
 
       // Fetch property details
-      const imageJoin = `LEFT JOIN tbl_property_gallery tpg ON tp.id = tpg.property_id`
-      const propertyQuery = `SELECT tp.id, tp.property_title, tp.city_name , tpg.property_img_url
-        FROM tbl_property tp  ${imageJoin}
-        WHERE tp.id = ?`;
+      // const imageJoin = `LEFT JOIN tbl_property_gallery tpg ON tp.id = tpg.property_id`
+      // const propertyQuery = `SELECT tp.id, tp.property_title, tp.city_name , tpg.property_img_url
+      //   FROM tbl_property tp  ${imageJoin}
+      //   WHERE tp.id = ?`;
+
+      const imageJoin = `LEFT JOIN tbl_property_gallery tpg ON tp.id = tpg.property_id`;
+      const propertyQuery = `
+        SELECT tp.id, tp.property_title, tp.city_name, tpg.property_img_url
+        FROM tbl_property tp
+        ${imageJoin}
+        WHERE tp.id = ?
+        AND (tpg.file_type NOT IN ('application/pdf', 'video/mp4', 'video/mkv', 'video/avi', 'video/mov'))`;
+
       const [propertyResult] = await pool.query(propertyQuery, [property_id]);
 
       if (propertyResult.length === 0) {
@@ -212,8 +516,6 @@ export const sendPromotionMessageUsingExcel = async (req, res) => {
       }
 
       const property = propertyResult[0];
-
-      console.log("property", property)
       
       // Fetch user IDs from tbl_property_intrest
       const interestQuery = `SELECT user_id 
@@ -279,44 +581,10 @@ export const sendPromotionMessageUsingExcel = async (req, res) => {
                         "New Property",
                         "Pune"
                     ],
-                    // {
-                    //   "type": "media",
-                    //   "url": "https://8sqft-images.s3.eu-north-1.amazonaws.com/feb-2025/137/main-image-1739424532922-873800268.png",
-                    // },
-                    // "id": "c9ddbb6a-f9a2-4a0a-b7c7-a77e0612ef84",
-                    // "params": [
-                    //   {
-                    //     "type": "media",
-                    //     "url": property.property_img_url,
-                    //   },
-                    //   {
-                    //     "type": "text",
-                    //     "text": "Property Title"
-                    //   },
-                    //   {
-                    //     "type": "text",
-                    //     "text": "City Name"
-                    //   }
-                    // ]
                   
-                // id: '3bb3fa08-6958-427e-82ea-91026982980c',  // Gupshup template ID (Authentication OTP template)
-                // params: [456123, 123456],  // OTP as the parameter to replace {{1}} in the template
-            //     buttons: JSON.stringify([ 
-            //       { 
-            //           type: "visit_website", 
-            //           text: "Visit Website", 
-            //           url: "https://www.8sqft.com/" 
-            //       }, 
-            //       {   type: "call_phone_number", 
-            //           text: "Contact Us", 
-            //           phone_number: "+917030000031" 
-            //       } 
-            //   ])
               }),
           });
 
-
-        console.log("result::: ", marketingPayload )
 
           try {
               const gupshupResponse = await axios.post(
@@ -331,9 +599,7 @@ export const sendPromotionMessageUsingExcel = async (req, res) => {
                   }
               );
 
-              console.log("response:::", gupshupResponse.data)
               if (gupshupResponse.data.status === 'submitted') {
-                  console.log(`Message sent to ${user.mobile}`);
               } else {
                   console.error(`Failed to send message to ${user.mobile}:`, gupshupResponse.data);
               }
@@ -357,7 +623,6 @@ export const sendPromotionMessageUsingExcel = async (req, res) => {
       return badRequestResponse(res, false, 'Failed to send marketing messages', error);
   }
 };
-
 
 export const listPromotionData = async (req, res) => {
     try {
@@ -407,8 +672,7 @@ export const listPromotionData = async (req, res) => {
       const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase())
         ? filters.sortOrder?.toUpperCase()
         : "DESC";
-  
-      console.log(filters, sortColumn, sortOrder);
+
       const propertyResult = await getAllMarketingListAdmin(
         baseQuery,
         sortColumn,
@@ -418,7 +682,6 @@ export const listPromotionData = async (req, res) => {
       );
       
       const propertyTotalCount = await getAllMarketingCountAdmin(baseQuery);
-      console.log(propertyResult,"result")
       data["marketing"] = propertyResult;
       data["totalCounts"] = propertyTotalCount;
   
@@ -435,7 +698,6 @@ export const listPromotionData = async (req, res) => {
       return badRequestResponse(res, false, "Error fetching Marketing data!", error);
     }
 };
-
 
 export const getMarketingLogById = async (req, res) => {
   const { id } = req.params;
@@ -478,5 +740,42 @@ export const deleteMarketingDetailsById = async (req, res) => {
 
   } catch (error) {
     return badRequestResponse(res, false, "Error deleting Marketing.", error);
+  }
+};
+
+
+export const getMarketingLeadByPropertyId = async (req, res) => {
+ 
+  try {
+    const { id } = req.params;
+    let data = {};
+    let whereClause = [];
+    const { limit = 10, offset = 1 } = req.query;
+
+    whereClause.push(` tpm.promotion_type = 'Property'`)
+
+    let baseQuery;
+    if(whereClause.length > 0) {
+      baseQuery = `WHERE ` + whereClause.join(' AND ');
+    }
+
+    const resultDetails = await getLeadsByPropertyId(id, baseQuery, limit, offset);
+    const totalCounts = await getLeadsCountsByPropertyId(id, baseQuery, limit, offset);
+    // data = result[0];
+
+    data['marketingLead'] = resultDetails;
+    data['totalCount'] = totalCounts[0].counts;
+    const totalPages = Math.ceil(totalCounts[0].counts / limit);
+    const startIndex = offset + 1;
+    const endIndex = Math.min(offset + limit, totalCounts[0].counts);
+    data["totalPages"] = totalPages;
+    data["startIndex"] = startIndex;
+    data["endIndex"] = endIndex;
+
+
+    return successResponse(res, true, "Leads users retrieved successfully.", data);
+  } catch (error) {
+    console.error("Error in fetching Leads:", error);
+    return badRequestResponse(res, false, "Failed to retrieve leads users.", error);
   }
 };

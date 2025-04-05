@@ -59,8 +59,7 @@ import { getIntrestedPropertyByUsers } from '@model/intrestedModel.js'
 import { formattedDate } from '../../../utils/date'
 import { userStatus, mailTypes } from './data'
 import { updateMemberUser } from '../../../models/usersModel'
-import { usePushToastHelper } from '../../../utils/toastHelper'
-
+import { usePushToastHelper } from '../../../hooks/usePushToastHelper'
 
 const ViewMemberUser = () => {
   const { id } = useParams()

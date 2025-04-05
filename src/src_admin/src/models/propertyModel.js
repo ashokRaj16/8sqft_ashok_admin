@@ -34,6 +34,16 @@ export const getPropertyById = async (id = null) => {
     }
 }
 
+export const getPropertyImagesByPropertyId = async (id = null) => {
+    try {
+        const result = await axiosInstance.get(`/admin/property/${id}/image`);
+        return result.data;
+    }
+    catch (error) {
+        throw new Error(error)
+    }
+}
+
 export const deleteProperty = async (id) => {
     try {
         const result = await axiosInstance.delete(`/admin/property/${id}`);

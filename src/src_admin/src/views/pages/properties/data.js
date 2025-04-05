@@ -225,6 +225,7 @@ export let initialPropertyDetailsValues = {
   user : '',
   images: '',  
   user_type: '',
+  contact_no : '',
   property_title: '',
   company_name: '',
   description: '',

@@ -54,38 +54,15 @@ export const getRecommendationData = async (amount = null, area = null, city = n
         const joinCity = `LEFT JOIN tbl_city tc ON tc.id = tp.city_id`;
         const orderBy = `ORDER BY tp.id DESC`;
 
-        // const joinGallery = `RIGHT JOIN tbl_property_gallery tpg ON tpg.property_id = tp.id`;
         const query = `SELECT tp.*, ${gallery} 
                      FROM tbl_property tp 
                      ${joinCity} 
                      ${where} ${orderBy}
                      ${queryLimit}`;
 
-        //  ${joinGallery} 
-        console.log('Generated Query:', query);
 
         const [rows] = await pool.execute(query);
 
-        // console.log("length:", rows, rows.length,)
-        // Group images under each property
-        // const propertyMap = {};
-        // rows.forEach(row => {
-        //     const propertyId = row.id; // Use the primary key of the property
-        //     if (!propertyMap[propertyId]) {
-        //         // Initialize property with its first row of data
-        //         propertyMap[propertyId] = {
-        //             ...row,
-        //             images: [] // Initialize images array
-        //         };
-        //     }
-        //     // Add image URL to the images array if it exists
-        //     if (row.property_img_url) {
-        //         propertyMap[propertyId].images.push(row.property_img_url);
-        //     }
-        // });
-
-        // Convert the map back to an array
-        // const result = Object.values(propertyMap);
 
         return rows;
     } catch (error) {
@@ -166,7 +143,6 @@ export const getSpotlightData = async (limit = 10, categories = null) => {
                        ${where} ${orderBy} 
                        ${queryLimit}`;
 
-        console.log('Generated Query:', query);
 
         const [rows] = await pool.execute(query);
 

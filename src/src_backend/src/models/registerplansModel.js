@@ -10,8 +10,6 @@ export const getAllRegisterPlansListAdmin = async (whereClause = null, sortColum
                   ${userJoin} ${planJoin}
                   ${whereClause} ${orderQuery}
                   LIMIT ${limit} OFFSET ${offset}`;
-  
-                  console.log(searchQuery)
       const [rows] = await pool.execute(searchQuery);
       return rows;
     } catch (error) {
@@ -31,7 +29,6 @@ export const getAllRegisterPlansCountAdmin = async ( whereClause = null ) => {
               ${whereClause}`;
     
       const [rows] = await pool.query(totalCountQuery);
-      console.log(rows);
       return rows[0].count;
   }
   catch(error) {
@@ -43,7 +40,6 @@ export const getAllRegisterPlansCountAdmin = async ( whereClause = null ) => {
 export const getRegisterPlansById = async (id) => {
   
   try {
-    console.log("models::",id)
     const userJoin = ` LEFT JOIN tbl_users tu ON tpt.user_id = tu.id`;
     const planJoin = ` LEFT JOIN tbl_subscription_plans tsp ON tpt.plan_id = tsp.id`;
     const searchQuery = `SELECT 
@@ -56,7 +52,6 @@ export const getRegisterPlansById = async (id) => {
         WHERE tpt.id = ?`;
 
     const [rows] = await pool.execute(searchQuery, [id]);
-    console.log(rows)
     return rows;
 
   } catch (error) {

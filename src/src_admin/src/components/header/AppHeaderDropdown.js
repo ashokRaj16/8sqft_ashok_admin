@@ -17,7 +17,10 @@ const AppHeaderDropdown = () => {
     try {
 
       dispatch(logoutUser());
-      navigate('/login', { replace: true })
+      setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 1000); 
+      // navigate('/login', { replace: true })
 
     } catch (error) {
       console.error('Logout failed:', error.message)
@@ -39,7 +42,7 @@ const AppHeaderDropdown = () => {
           <CIcon icon={cilUser} className="me-2" />
           Profile
         </CDropdownItem>
-        <CDropdownItem divider />
+        <CDropdownItem divider="true" />
         <CDropdownItem 
           href=""
           onClick={(e) => handleLogout(e)}>

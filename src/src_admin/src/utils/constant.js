@@ -2,10 +2,10 @@ export const constant = {
   // access key
   X_API_KEY: 'A8SQFT7767',
 
-  // base url  
+  // base url
   // SERVER_BASE_URL: "https://testapi.8sqft.com/api/v1",
-  SERVER_BASE_URL: "https://api.8sqft.com/api/v1",
-  // SERVER_BASE_URL: 'http://localhost:5000/api/v1',
+  // SERVER_BASE_URL: "https://api.8sqft.com/api/v1",
+  SERVER_BASE_URL: 'http://localhost:5000/api/v1',
 
   FRONT_BASE_URL: 'https://8sqft.com',
   CURRENCY_SYMBOL : '₹',
@@ -20,6 +20,7 @@ export const constant = {
     RENT_OUT: 'RENT OUT',
     SOLD_OUT: 'SOLD OUT',
   },
+  
   USER_ROLES: {
     SUPER_ADMIN: 'SUPER_ADMIN',
     ADMIN: 'ADMIN',
@@ -27,6 +28,7 @@ export const constant = {
     AREA_HEAD_SITE: 'AREA_HEAD_SITE',
     SITE_PERSON: 'SITE_PERSON',
   },
+
   USER_STATUS: {
     BLOCK: 'BLOCK',
     ENABLE: 'ENABLE',
@@ -80,8 +82,9 @@ export const constant = {
 
   FILE_TYPE: {
     // Images
-    IMAGE_PNG: 'image/jpeg',
-    IMAGE_JPG: 'image/png',
+    IMAGE_JPEG: 'image/jpeg',
+    IMAGE_JPG: 'image/jpg',
+    IMAGE_PNG: 'image/png',
     IMAGE_GIF: 'image/gif',
     IMAGE_BMP: 'image/bmp',
     IMAGE_WEBP: 'image/webp',
@@ -119,6 +122,8 @@ export const constant = {
     VIDEO_MOV: 'video/quicktime',
     VIDEO_FLV: 'video/x-flv',
     VIDEO_WMV: 'video/x-ms-wmv',
+    VIDEO_MKV_EXT: 'video/mkv',
+    VIDEO_AVI_EXT: 'video/avi',
 
     // Archives
     ZIP: 'application/zip',
@@ -178,6 +183,25 @@ export const constant = {
     PA: { key: 'PA', value: 'Pascal' },
     BAR: { key: 'BAR', value: 'Bar' },
     PSI: { key: 'PSI', value: 'Pounds per Square Inch' },
+  },
+
+  PLAN_TYPE : {
+    'REGULAR' : 'REGULAR',
+    'ADDON' : 'ADDON'
+  },
+
+  PLAN_CATEGORY : {
+    'GENERAL' : 'GENERAL',
+    'CUSTOMIZE' : 'CUSTOMIZE',
+    "OTHER" : 'OTHER'
+  },
+
+  SPONSARED_CATEGORY : {
+    SPOTLIGHT : 'SPOTLIGHT',
+    HOME_BANNER : "HOME BANNER",
+    PROPERTY_LIST_BANNER : "PROPERTY LIST BANNER",
+    PROPERTY_DETAILS_BANNER : "PROPERTY DETAILS BANNER",
+    DEDICATED_PAGE : "DEDICATED PAGE",
+    BUILDER_SPOTLIGHT : "BUILDER SPOTLIGHT"
   }
-  
 }

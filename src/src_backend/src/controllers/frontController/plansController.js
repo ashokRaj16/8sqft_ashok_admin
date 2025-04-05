@@ -5,7 +5,7 @@ export const getAllPlans = async (req, res) => {
   try {
     
     const [result] = await pool.query('SELECT * FROM tbl_subscription_plans');
-    console.log("result: ", result);
+  
     return successResponse(res, true, 'All Plan Fatched Succesfully.',result);
   } catch (error) {
    return badRequestResponse(res, false, "Failed to fetch subscription plans", error);

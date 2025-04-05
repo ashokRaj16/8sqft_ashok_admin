@@ -41,8 +41,8 @@ const ListBlogs = React.lazy(() => import('@page/blog/ListBlogs'))
 const ViewBlogs = React.lazy(() => import('@page/blog/ViewBlogs'))
 
 const BlogCategory = React.lazy(() => import('@page/category/BlogCategory'))
-const ListPromotion = React.lazy(() => import('@page/promotion/ListPromotion'))
-const AddPromtion = React.lazy(() => import('@page/promotion/AddPromtion'))
+const ListSponsared = React.lazy(() => import('@page/sponsared/ListSponsared'))
+const AddSponsared = React.lazy(() => import('@page/sponsared/AddSponsared'))
  
 const ListMarketing = React.lazy(() => import('@page/marketing/ListMarketing'))
 const AddMarketing = React.lazy(() => import('@page/marketing/AddMarketing'))
@@ -101,11 +101,9 @@ const routes = [
   { path: '/marketing/view/:id', name: 'View marketing', element: ViewMarketing, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
   { path: '/marketing/addmark', name: 'Add marketing', element: AddMarketingTemp, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
 
-  { path: '/promotion', name: 'Promotion', element: ListPromotion, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
-  { path: '/promotion/add', name: 'Add Promotion', element: AddPromtion, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
-
-  // { path: '/promotion/edit', name: 'Edit Promotion', element: AddPromtion, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
-
+  { path: '/sponsared', name: 'Sponsared', element: ListSponsared, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  { path: '/sponsared/add', name: 'Add Sponsared', element: AddSponsared, allowedRole: ['SUPER ADMIN', 'SUB ADMIN'] },
+  
   { path: '/trash', name: 'Trash', element: PageNotAuthorize, allowedRole: ['SUPER ADMIN'] },
 
   { path: '/401', name: '401', element: PageNotAuthorize, allowedRole: ['SUPER ADMIN', 'SUB ADMIN', "EXECUTIVE", "AREA HEAD LIST", "AREA HEAD SITE"] },

@@ -53,27 +53,16 @@ import {
   FaAngleDoubleRight,
   FaAngleRight
 } from 'react-icons/fa'
-import { ToastMessage } from '../../../components/ToastMessage'
-import { useDebounce } from '../../../hooks/useDebounce'
-import Loader from '../../../utils/Loader'
 import { formattedDate } from '../../../utils/date'
-import { updateMultipleSequenceInPromotion, deletePromotionPropertyById, getPromotionProperty } from '../../../models/promotionModel'
+import Loader from '../../../utils/Loader'
+import { useDebounce } from '../../../hooks/useDebounce'
 import { categoriesOption } from './data'
-import SortableRows from './SortableRows'
 import { updatePromotionProperty } from '../../../models/promotionModel';
+import { updateMultipleSequenceInPromotion, deletePromotionPropertyById, getPromotionProperty } from '../../../models/promotionModel'
+import SortableRows from './SortableRows'
+import { ToastMessage } from '../../../components/ToastMessage'
 
-const getStatusBadge = (status) => {
-  switch (status) {
-    case 'active':
-      return 'success'
-    case 'inactive':
-      return 'secondary'
-    default:
-      return 'primary'
-  }
-}
-
-const ListPromotion = () => {
+const ListSponsared = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
@@ -98,8 +87,7 @@ const ListPromotion = () => {
 
   const handleItemsPerPageChange = async (event) => {
     setItemsPerPage(() => parseInt(event.target.value))
-    setCurrentPage(1) // Reset to first page on items per page change
-    // await loadSubscription()
+    setCurrentPage(1)
   }
 
   const paginate = (pageNumber) => {
@@ -245,7 +233,7 @@ const ListPromotion = () => {
     }
   }
 
-  const handleEditAction = (id) => {
+  const handleViewAction = (id) => {
     console.log(id)
     navigate(`/promotion/view/${id}`)
   }
@@ -314,38 +302,6 @@ const ListPromotion = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   )
-
-  // const handleDragEnd = async (event) => {
-  //   const { active, over} = event;
-  //   console.log(active, over,  "index:::")
-
-  //   if( !over || (active.id === over.id) ) {
-  //   console.log(active, over,  "checking:::")
-
-  //       setLoading(false)
-  //       return;
-  //   }
-  //   setCurrentPromotion((prevItem) => {
-  //       // ### push item and update other index by one.
-  //       let updatedItems = [ ...prevItem];
-        
-  //       const activeIndex = currentPromotion.findIndex(i => i.sequence_no === active.id);
-  //       const draggedItem = updatedItems[activeIndex];
-
-  //       updatedItems.splice(activeIndex, 1);
-  //       const newIndex = updatedItems.findIndex((i) => i.sequence_no === over.id)
-
-  //       updatedItems.splice(newIndex, 0, draggedItem)
-  //       console.log("Update Props:::", updatedItems)
-  //       updatedItems = updatedItems.map((item, index) => {
-  //           return   {
-  //           ...item,
-  //           sequence_no: index + 1
-  //       }})
-          
-  //       return updatedItems;
-  //   })
-  // }
       
   const handleDragEnd = async (event) => {
     const { active, over } = event;
@@ -399,7 +355,6 @@ const ListPromotion = () => {
     });
 };
 
-
 const changeStatusHandler = async (id, status = '0') => {
   const confirmStatus = confirm('Are want to change status?')
   if(confirmStatus) 
@@ -411,7 +366,6 @@ const changeStatusHandler = async (id, status = '0') => {
       const result = await updatePromotionProperty(id, data)
       loadPromotionData();
       if (result.affectedRow > 0) {
-        // addToast(<ToastMessage type="success" message={result.message} onClick="close" />);
         const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
         addToast(toastContent)
       }
@@ -419,14 +373,12 @@ const changeStatusHandler = async (id, status = '0') => {
     }
     catch(error) {
       console.log(error, "resultssss error");
-      // addToast(<ToastMessage type="error" message={error.message} onClick="close" />);
       const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
       addToast(toastContent)
     }
   }
 }
 
-  // console.log('result', currentPromotion);
   return (
     <>
       {loading && <Loader />}
@@ -440,7 +392,7 @@ const changeStatusHandler = async (id, status = '0') => {
 
           {/* Buttons - Full width on small screens, right-aligned on large screens */}
           <CCol className="d-flex justify-content-end">            
-            <CButton onClick={() => navigate('/promotion/add')} color="primary">
+            <CButton onClick={() => navigate('/sponsared/add')} color="primary">
               Add New
             </CButton>
           </CCol>
@@ -485,7 +437,7 @@ const changeStatusHandler = async (id, status = '0') => {
               <option value={'-1'}>Select</option>
               {categoriesOption &&
                 categoriesOption.map((item, i) => (
-                  <option key={i} value={item.value}>
+                  <option key={i} value={item.title}>
                     {item.title}
                   </option>
                 ))}
@@ -501,7 +453,7 @@ const changeStatusHandler = async (id, status = '0') => {
                 color="primary"
                 // size="sm"
                 className="me-2"
-                onClick={() => loadSubscription()}
+                onClick={() => loadPromotionData()}
               >
                 Refresh
               </CButton>
@@ -543,7 +495,7 @@ const changeStatusHandler = async (id, status = '0') => {
                     </CTableHeaderCell>
                     <CTableHeaderCell>Published Date</CTableHeaderCell>
                     <CTableHeaderCell>Status</CTableHeaderCell>
-                    {/* <CTableHeaderCell>Action</CTableHeaderCell> */}
+                    <CTableHeaderCell>Action</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
@@ -552,6 +504,8 @@ const changeStatusHandler = async (id, status = '0') => {
                           <SortableRows 
                             key={index} 
                             item={item} 
+                            deleteHandler={handleDelete}
+                            viewHandlder={handleViewAction}
                             changeStatusHandler={changeStatusHandler}
                             index={ index } />
                       ))
@@ -617,4 +571,4 @@ const changeStatusHandler = async (id, status = '0') => {
   )
 }
 
-export default ListPromotion
+export default ListSponsared;

@@ -22,7 +22,6 @@ export const getAllEnquiryListAdmin = async (whereClause = null, sortColumn = "i
                     ${whereClause} ${orderQuery}
                     LIMIT ${limit} OFFSET ${offset}`;
 
-                    console.log(searchQuery)
         const [rows] = await pool.execute(searchQuery);
         return rows;
     } catch (error) {
@@ -43,7 +42,7 @@ export const getAllEnquiryCountAdmin = async ( whereClause = null ) => {
                 ${whereClause} `;
         
         const [rows] = await pool.query(totalCountQuery);
-        console.log(rows);
+     
         return rows[0].count;
     }
     catch(error) {
@@ -54,7 +53,6 @@ export const getAllEnquiryCountAdmin = async ( whereClause = null ) => {
 export const updateEnquiryAdmin = async (id, blogData) => {
 
 try {
-    console.log("models", blogData);
     
     let queryField = [];
     let queryParams = [];

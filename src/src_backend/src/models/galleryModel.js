@@ -8,7 +8,6 @@ export const getAllGalleryImagesAdmin = async (whereClause = null, sortColumn = 
                 ${whereClause} ${orderQuery}
                 LIMIT ${limit} OFFSET ${offset}`;
 
-                console.log(searchQuery)
     const [rows] = await pool.execute(searchQuery);
     return rows;
   } catch (error) {
@@ -27,7 +26,7 @@ export const getAllGalleryImageCountAdmin = async ( whereClause = null ) => {
               ${whereClause}`;
     
       const [rows] = await pool.query(totalCountQuery);
-      console.log(rows);
+  
       return rows[0].count;
   }
   catch(error) {
@@ -39,7 +38,7 @@ export const getGalleryImageDetailsById = async (id) => {
   
   try {
     const [rows] = await pool.execute('SELECT * FROM tbl_property_gallery where id = ?', [id]);
-    console.log(rows)
+
     return rows;
 
   } catch (error) {
@@ -48,6 +47,7 @@ export const getGalleryImageDetailsById = async (id) => {
   }
 };
 
+// Insert into tbl_proeprty_gallery Images
 export const addGalleryImages = async (data) => {
   
   const { property_id, property_img_url, img_title, 
@@ -68,7 +68,7 @@ export const addGalleryImages = async (data) => {
         (?, ?, ?,  ?, ?, ?, ?)`,
       queryParams
     );
-    console.log(result)
+
     return { id: result.insertId, result };
   } catch (error) {
     console.error('Error creating user:', error);
@@ -78,7 +78,6 @@ export const addGalleryImages = async (data) => {
 
 export const updateGalleryImages = async (id, userData) => {
   try {
-    console.log("models",userData);
     
     let queryField = [];
     let queryParams = [];

@@ -6,7 +6,7 @@ import { PutObjectCommand, ListObjectsCommand, DeleteObjectCommand, ListObjectsV
 
 import { propertyValidators, propertyUpdateFeaturesValidators, amenetiesValidators, featureValidators, propertyFandQValidator, propertyNearbyValidator } from '../validators/propertyValidators.js';
 import { successResponse, badRequestResponse, internalServerResponse, successWithDataResponse } from '../../utils/response.js';
-import { upload, s3 } from '../../utils/imageUploadHelper.js';
+import { uploadTempFile as upload, s3 } from '../../utils/imageUploadHelper.js';
 import { 
   createAmenties, 
   createFeatures, 
@@ -43,6 +43,7 @@ import {
 import { getUsersById } from '../../models/userModel.js';
 import { propertyConfigurationValidator } from '../validators/propertyValidators.js';
 import { sanitizedField, sanitizedNumber } from '../../utils/commonHelper.js';
+import fs from 'fs';
 
 export const getProperty = async (req, res) => {
     try {
@@ -89,7 +90,6 @@ export const getAllProperty = async (req, res) => {
   try { 
     let data = {};
     const { page, limit } = req.query;
-    console.log("pggg", req.query)
     const pageCount         = parseInt(page) || 1;
     const limitCount        = parseInt(limit) || 100;
     const offset          = (page - 1) * limit;
@@ -98,36 +98,34 @@ export const getAllProperty = async (req, res) => {
     let whereClauses = [];
     
     if (filters?.searchFilter && filters?.searchFilter.trim()) {
-      const newSearchfilter = `tp.property_title like '%${ validator.escape(filters.searchFilter.trim())}%' OR
+      const newSearchfilter = `( tp.property_title like '%${ validator.escape(filters.searchFilter.trim())}%' OR
                       tp.city_name like '%${ validator.escape(filters.searchFilter.trim())}%' OR 
                       tp.locality like '%${ validator.escape(filters.searchFilter.trim())}%' OR 
                       tu.email like '%${ validator.escape(filters.searchFilter.trim())}%' OR
-                      tu.mobile like '%${ validator.escape(filters.searchFilter.trim())}%' `
+                      tu.mobile like '%${ validator.escape(filters.searchFilter.trim())}%' )`
       whereClauses.push(newSearchfilter);
     }
 
     if (filters?.stepTerm) {
       whereClauses.push(` tp.form_step_id = '${filters.stepTerm}' `);
     }
-
-    whereClauses.push(` tp.is_deleted = '0' `);
-
+    
     if(filters?.activeStep) {
       whereClauses.push(` tp.status >= '2' `);
     }
-
+    
+    whereClauses.push(` tp.is_deleted = '0' `);
     let baseQuery = '';
     if (whereClauses.length > 0) {
      baseQuery = ` WHERE ` + whereClauses.join(' AND ');
     }
-    
+
     const allowedColumns = ['id', 'city_name', 'locality', 'email', 'mobile'];
     const allowedOrders = ['ASC', 'DESC'];
     
     const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'id';
     const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase()) ? filters.sortOrder?.toUpperCase() : 'DESC';
     
-    console.log("filters::", filters, sortColumn, sortOrder);
     const propertyResult = await getAllPropertyListAdmin(baseQuery, sortColumn, sortOrder, pageCount, limitCount);
     const propertyTotalCount = await getAllPropertyCountAdmin(baseQuery);
 
@@ -153,7 +151,6 @@ export const getAllProperty = async (req, res) => {
 export const postProperty = async (req, res) => {
     
     try {
-      // console.log(req.body.step_id)
       // ### If error then unlink all images.
       // ### upload images within steps only = step: 1 {property_videos, property_flooring_plans, property_description} step 2: { pan_card, addhar_card, verification_document}
       // ### check if proeprty_id
@@ -161,7 +158,6 @@ export const postProperty = async (req, res) => {
 
       const { step_id } = req.body;
       const errors = propertyValidators(req.body);
-      console.log(step_id);
       if(errors.length > 0)
       {
         return badRequestResponse(res, false, 'Validation Message.', errors)
@@ -186,7 +182,6 @@ export const postProperty = async (req, res) => {
             // data['features'] = [];
             // data['faq'] = [];
 
-            //   console.log("files", req.files);
               Object.keys(req.files).forEach((fieldName) => {
                 req.files[fieldName].forEach((file) => {
                   data['gallery'].push({ img_title: file.fieldname, img_type: 'image/jpeg', property_img_url:  file.path});
@@ -273,10 +268,6 @@ export const postProperty = async (req, res) => {
         }
 
         data['amenties'] =JSON.parse(req.body.amenties );
-        console.log(id)
-        // data['nearby_location'] = [];
-        // data['features'] = [];
-        // data['faq'] = [];
           
           const result = await updatePropertyAmeneties( id, data);
           if(result) {
@@ -309,7 +300,6 @@ export const postProperty = async (req, res) => {
         
             let data = [];
             data['gallery'] = [];
-            // console.log("files", req.files);
 
             Object.keys(req.files).forEach((fieldName) => {
                 req.files[fieldName].forEach((file) => {
@@ -335,7 +325,6 @@ export const deletePropertyById = async (req, res) => {
 
   try {
       const { id } = req.params;
-      console.log(id);
 
       const result = await delPropertyById(id);
       if(result) {
@@ -350,9 +339,7 @@ export const deletePropertyById = async (req, res) => {
 export const getPropertyById = async (req, res) => {
   try {    
     let data = {};
-    // const searchId  = req.query.id || null; 
     const searchId = req.params.id || null;
-    console.log(req.params, searchId)
   
       if (!searchId) {
         return badRequestResponse(res, false, 'Property id requred with request!');
@@ -360,7 +347,6 @@ export const getPropertyById = async (req, res) => {
 
       const [resultProperty] = await getPropertyListAdminById(searchId);
       data = resultProperty;
-      console.log(resultProperty);
       if(resultProperty) {
         const resultImages = await getPropertyImagesById(searchId);
         data['images'] = resultImages;
@@ -387,8 +373,33 @@ export const getPropertyById = async (req, res) => {
     } 
     catch (error) 
     {
-      console.error(error);
+      console.error(error, "errorssss");
       return badRequestResponse(res, false, 'Error fetching property!', error);
+    }
+};
+
+export const getPropertyAllImagesById = async (req, res) => {
+  try {    
+    let data = {};
+
+    const searchId = req.params.id || null;
+  
+      if (!searchId) {
+        return badRequestResponse(res, false, 'Property id requred with request!');
+      }
+
+      const resultImages = await getPropertyImagesById(searchId);
+      data['images'] = resultImages;
+
+      if(data) {
+        return successWithDataResponse(res, true, "Images Details.", data);
+      }
+      return badRequestResponse(res, false, 'Error fetching images!');
+    } 
+    catch (error) 
+    {
+      console.error(error);
+      return badRequestResponse(res, false, 'Error fetching images!', error);
     }
 };
 
@@ -412,6 +423,7 @@ export const updatePropertyFeaturesAdmin = async (req, res) => {
         property_type,
         property_rent_buy,
         company_name,
+        contact_no,
         
         // Owner
         landmark,
@@ -473,13 +485,15 @@ export const updatePropertyFeaturesAdmin = async (req, res) => {
         per_sqft_amount,
 
       } = req.body;
-
+      
+      // ### Sanitize all field, Except description.
       let data = { 
         // basic
         user_id : user_id || null,
         property_type : property_type || null,
         property_rent_buy : property_rent_buy || null,
         company_name : company_name || null,
+        contact_no : contact_no || null,
 
         // owner
         landmark: landmark || null,
@@ -556,11 +570,9 @@ export const updatePropertyFeaturesAdmin = async (req, res) => {
 export const updatePropertyAmenetiesAdmin = async (req, res) => {
     
   try {
-    // ### check if proeprty_id
-    // ***check res header already send error.
+
     const { id } = req.params;
 
-    console.log(id, req.body)
 
     if(!id) {
         return badRequestResponse(res, false, 'Validation Message', { fields: 'id', message: "Id must required."})
@@ -687,7 +699,7 @@ export const updatePropertyConfiguration = async (req, res) => {
 
 export const createPropertyFandqAdmin = async (req, res) => {
   try {
-    console.log(req.body);
+
     const {id} = req.params;
     const errors = propertyFandQValidator(req.body);
 
@@ -747,7 +759,7 @@ export const updatePropertyFandqAdmin = async (req, res) => {
       faq_answer : faq_answer || null,
       status: status || null
     }
-    console.log(data);
+
     const result = await updatePropertyFandqAdminDb(sid, data);
     if(result) {
         return successResponse(res, true, 'Property f&q updated!', result);
@@ -878,7 +890,6 @@ export const uploadPropertyImagesAdmin = async (req, res) => {
 
 export const deletePropertyImageAdmin = async (req, res) => {
   const { id, sid } = req.params;
-  console.log("Image url:::", id, sid);
 
   if (!id || !sid) {
       return badRequestResponse(res, false, "Missing required field: image_id");
@@ -901,7 +912,6 @@ export const deletePropertyImageAdmin = async (req, res) => {
       const bucketName = process.env.AWS_S3_BUCKET_NAME;
       const s3Key = imageUrl.replace(`https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/`, "");
       
-      console.log("Image url3333", imageUrl);
 
       const pathParts = s3Key.split("/");
       // if (pathParts.length < 3) {
@@ -1000,10 +1010,8 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
       const propertyFolder = `${monthFolder}${property_id}/`;
 
       async function ensureFolderExists(folderKey) {
-        console.log("objects: ", folderKey);
         const listParams = { Bucket: bucketName, Prefix: folderKey, MaxKeys: 1 };
         const listObjects = await s3.send(new ListObjectsCommand(listParams));
-
 
         if (!listObjects.Contents || listObjects.Contents.length === 0) {
           await s3.send(
@@ -1026,6 +1034,11 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
+        if (file.buffer.length === 0) {
+          console.error(`⚠️ File buffer is empty for: ${file.originalname}`);
+          return badRequestResponse(res, false, "Failed to add configuration.");
+        }
+
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
         const extension = path.extname(file.originalname).toLowerCase();
         const fileName = `${unit_name ? unit_name.toLowerCase().replace(/ /g, "-") : "configuration"}-${uniqueSuffix}${extension}`;
@@ -1041,7 +1054,6 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
           })
         );
 
-        console.log('aws', awsresult);
         const imageUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
 
         const insertQuery = `INSERT INTO tbl_property_unit_configuration 
@@ -1061,8 +1073,6 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
             file.mimetype || null, 
             file.size || null 
           ];
-        
-        console.log("config::", insertValues);
 
         const [dbResponse] = await connection.query(insertQuery, insertValues);
 
@@ -1090,7 +1100,6 @@ export const uploadPropertyConfigurationAdmin = async (req, res) => {
 
 export const deletePropertyConfigurationAdmin = async (req, res) => {
   const { id, sid } = req.params;
-  console.log(id, sid);
   if (!id && !sid) {
       return badRequestResponse(res, false, "Missing required field: image_id");
   }
@@ -1116,7 +1125,6 @@ export const deletePropertyConfigurationAdmin = async (req, res) => {
       const s3Key = imageUrl.replace(`https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/`, "");
 
       const pathParts = s3Key.split("/");
-      // console.log("paths: ", pathParts)
       if (pathParts.length < 3) {
           
           await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: s3Key }));
@@ -1150,8 +1158,6 @@ export const deletePropertyConfigurationAdmin = async (req, res) => {
           Bucket: bucketName,
           Prefix: monthFolder,
       }));
-
-      console.log("list objects: ", listMonthObjects);
 
       if (!listMonthObjects.Contents || listMonthObjects.Contents.length === 0) {
           await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: `${monthFolder}placeholder.txt` }));
@@ -1191,13 +1197,13 @@ export const changePropertyStatus = async (req, res) => {
       publish_date : publish_date ? publish_date : status === '2' ? new Date() : null
     };
 
-    console.log(data)
+
     if (!status || status < 1 || status > 5) {
       return badRequestResponse(res, false, "Invalid status value. Must be between 1 and 5.");
     }
 
     const result = await updatePropertyStatusById(id, data);
-    console.log(result);
+
     if (result && result.affectedRows > 0) {
       return successResponse(res, true, "Property status updated.");
     } else {
@@ -1268,8 +1274,6 @@ export const postAmenties = async (req, res) => {
         return badRequestResponse(res, false , 'No file uploaded!');
     }
 
-    console.log(req.file);
-
     if(errors.length > 0)
     {
         return badRequestResponse(res, false, 'Validation Message', errors)
@@ -1278,7 +1282,7 @@ export const postAmenties = async (req, res) => {
     try {
         const { amenity_name, status, description } = req.body;
         const data = { amenity_name, icon_url : process.env.SERVER_UPLOAD_URL + req.file.filename, status, description };
-        console.log(data);
+   
         const result = await createAmenties(data);
         if(result) {
             return successResponse(res, true, 'Amenties created!', result);
@@ -1393,7 +1397,7 @@ export const getNearbyLocationsByCategory = async (req, res) => {
 export const createNearbyLocationAdmin = async (req, res) => {
 
   try {
-    console.log(req.body);
+
     const {id} = req.params;
     const errors = propertyNearbyValidator(req.body);
 
@@ -1422,7 +1426,6 @@ export const createNearbyLocationAdmin = async (req, res) => {
       longitude : longitude || null
     }
 
-    console.log(data);
     const result = await createPropertyNearbyAdminDb(data);
     if(result) {
         return successResponse(res, true, 'Property nearby created!', result);
@@ -1454,7 +1457,6 @@ export const updatePropertyNearbyAdmin = async (req, res) => {
       longitude : longitude || null
     }
 
-    // console.log(data);
     const result = await updatePropertyNearbyAdminDb(sid, data);
     if(result.affectedRows <= 0)
     {
@@ -1495,8 +1497,6 @@ export const deletePropertyNearbyAdmin = async (req, res) => {
 
 export const generatePropertyNearbyAdmin = async (req, res) => {
   try {
-
-    console.log(req.query)
     return successResponse(res, true, 'Property nearby generated!');
 
   } catch (error) {

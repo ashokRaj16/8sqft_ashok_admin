@@ -51,8 +51,12 @@ router.route('/configuration')
 router.route('/configuration/:id')
     .delete( deletePropertyConfiguration );
 
+    // Submit a new review
+router.post('/review', propertyController.submitReview);
+
 // ### edit user properties.
 // ### delete user properties.
 // ### get individual properties and give edit and delete option.
+
 
 export default router;

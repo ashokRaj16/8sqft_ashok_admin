@@ -3,7 +3,47 @@ import axiosInstance from '../config/axiosInstance';
 import { errorHandler } from '../utils/errorHandler';
 import { constant } from '../utils/constant';
 
+export const listAllImage = async (filters = '', prefix = '', limit = 10, sortColumn = "LastModified", sortOrder = "DESC") => {
+      try {
 
+        const params = new URLSearchParams({
+            limit: limit || 10,
+            filters,
+            prefix,
+            sortColumn,
+            sortOrder
+        })
+        console.log(params)
+        const result = await axiosInstance.get(`/admin/gallery`, {
+            params
+        });
+        return result.data;
+    }
+    catch (error) {
+       throw new errorHandler(error);
+    }
+}
+
+export const deleteImageFromGallery = async (file) => {
+    try {
+        
+        const result = await axiosInstance.post(`admin/gallery/delete`, {
+            file
+        });
+        console.log(result)
+        return result;
+    }
+    catch (error) {
+        throw new Error( errorHandler(error));
+    }
+}
+
+/**
+ * Upload files uin 3 steps (Start | Chunk | Complete)
+ * @param {*} fileName 
+ * @param {*} mimetype 
+ * @returns 
+ */
 export const postImageStart = async (fileName = '', mimetype = '') => {
     try {
         console.log(fileName, "name")

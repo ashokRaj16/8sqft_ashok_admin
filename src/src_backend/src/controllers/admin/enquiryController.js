@@ -61,7 +61,6 @@ export const listEnquiry = async (req, res) => {
       ? filters.sortOrder?.toUpperCase()
       : "DESC";
 
-    console.log(filters, sortColumn, sortOrder);
     const propertyResult = await getAllEnquiryListAdmin(
       baseQuery,
       sortColumn,
@@ -94,7 +93,6 @@ export const deleteEnquiry = async (req, res) => {
 
   try {
     const [result] = await deleteEnquiryAdmin(id);
-    console.log(id, result)
     if (result.affectedRows === 0) {
       return badRequestResponse(res, false, "Enquiry not found or not deleted.");
     }

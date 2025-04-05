@@ -18,7 +18,6 @@ export const getAllMarketingListAdmin = async (whereClause = null, sortColumn = 
                     ${whereClause} ${orderQuery}
                     LIMIT ${limit} OFFSET ${offset}`;
 
-                    console.log(searchQuery)
         const [rows] = await pool.execute(searchQuery);
         return rows;
     } catch (error) {
@@ -37,7 +36,7 @@ export const getAllMarketingCountAdmin = async ( whereClause = null ) => {
                 ${whereClause}`;
         
         const [rows] = await pool.query(totalCountQuery);
-        console.log(rows);
+     
         return rows[0].count;
     }
     catch(error) {
@@ -71,7 +70,6 @@ export const getMarketingLogByIdAdmin = async (id) => {
             where tmd.pm_id = ?`
         const [rows] = await pool.execute(searchQuery, [id]);
 
-        console.log(rows)
         return rows;
 
     } catch (error) {
@@ -80,6 +78,60 @@ export const getMarketingLogByIdAdmin = async (id) => {
     }
 };
 
+
+export const getLeadsByPropertyId = async (id, whereClause, limit = 10, page = 1, sortColumn = 'id', sortOrder = 'asc') => {
+    try {
+        const offset = (page - 1) * limit;
+        if(whereClause || whereClause !== undefined) {
+            whereClause += ` AND tpm.property_id = ${id}`
+        }
+        else {
+            whereClause = ` WHERE tpm.property_id = ${id}`
+        }
+  
+
+        const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
+        const marketingJoin = ` LEFT JOIN tbl_property_marketing tpm ON tpm.id = tmd.pm_id `;
+        const searchQuery = `SELECT tmd.* FROM tbl_marketing_details tmd
+                    ${marketingJoin}
+                    ${whereClause} ${orderQuery}
+                    LIMIT ${limit} OFFSET ${offset}
+                    `;
+
+               
+        const [rows] = await pool.execute(searchQuery);
+        return rows;
+    } catch (error) {
+        console.error('Error fetching all users:', error);
+        throw new Error('Unable to fetch users.');
+    }
+};
+
+export const getLeadsCountsByPropertyId = async (id, whereClause, limit = 10, page = 1) => {
+    try {
+        const offset = (page - 1) * limit;
+
+        if(whereClause || whereClause !== undefined) {
+            whereClause += ` AND tpm.property_id = ${id}`
+        }
+        else {
+            whereClause = ` WHERE tpm.property_id = ${id}`
+        }
+        const marketingJoin = ` LEFT JOIN tbl_property_marketing tpm ON tpm.id = tmd.pm_id `;
+        const searchQuery = `SELECT count(*) as counts FROM tbl_marketing_details tmd
+                    ${marketingJoin}
+                    ${whereClause}
+                    LIMIT ${limit} OFFSET ${offset}
+                    `;
+
+        const [rows] = await pool.execute(searchQuery);
+
+        return rows;
+    } catch (error) {
+        console.error('Error fetching all users:', error);
+        throw new Error('Unable to fetch users.');
+    }
+};
 
 export const deleteMarketingByIdAdmin = async (id) => {
     const connection = await pool.getConnection();
@@ -127,6 +179,11 @@ export const createMarketingAdmin = async (data) => {
             status_text,
             property_id,
             banner_image,
+            contacts_file,
+            txt_marathi,
+            msg_mobile,
+            total_contact, 
+            msg_send_contact,
             promotion_name,
             marketing_type,
             promotion_type,
@@ -136,25 +193,33 @@ export const createMarketingAdmin = async (data) => {
         
         await connection.beginTransaction();
         const marketingMasterData = [
-            property_id, banner_image, promotion_name, marketing_type, promotion_type, publish_date, userId, 
+            property_id, banner_image, contacts_file, 
+            txt_marathi || null, msg_mobile || null, promotion_name, 
+            marketing_type, promotion_type, publish_date, userId,
         ]
+
         const query = `INSERT INTO tbl_property_marketing (
             property_id,
             banner_image,
+            contacts_file,
+            txt_marathi, 
+            msg_mobile,
             promotion_name,
             marketing_type,
             promotion_type,
             publish_date,
             added_by
-        ) VALUES (?, ?, ?, ?, ? ,?, ?)`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
         const [result] = await connection.execute(query, marketingMasterData);
-        console.log(result);
-        const marketingDetailData = [ result.insertId, full_name, mobile, email, banner_image, status, status_text ]
-        console.log(marketingDetailData, "details:::")
+   
+        const marketingDetailData = [ result.insertId, full_name, mobile, email, banner_image, contacts_file, total_contact, msg_send_contact, status, status_text ]
         const query2 = `INSERT INTO tbl_marketing_details 
-            ( pm_id, full_name, mobile, email, banner_image, status, status_text ) 
+            ( pm_id, full_name, mobile, email, banner_image, contacts_file,
+              total_contact, msg_send_contact,
+              status, status_text ) 
             VALUES 
-            ( ?, ?, ?, ?, ?, ?, ? )
+            ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
          `
         const [rows] = await connection.execute(query2, marketingDetailData);
         await connection.commit()

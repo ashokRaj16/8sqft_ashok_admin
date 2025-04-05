@@ -24,7 +24,7 @@ import { createMemberUser, updateMemberUser, getMemberUserById } from '../../../
 import { initialMemberValues } from './data';
 import { getAllCities, getAllStates } from '../../../models/locationModel';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usePushToastHelper } from '../../../utils/toastHelper';
+import { usePushToastHelper } from '../../../hooks/usePushToastHelper';
 
 const AddMemberUser = () => {
   

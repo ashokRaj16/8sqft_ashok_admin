@@ -12,4 +12,7 @@ router.route('/view_count/:id')
 router.route('/:id')
     .get(propertyController.getPropertyById);
     
+// List reviews for a specific property
+router.get('/reviews/:id', propertyController.getReviewsByPropertyId);
+
 export default router;

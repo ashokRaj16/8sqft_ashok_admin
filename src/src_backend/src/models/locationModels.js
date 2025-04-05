@@ -12,16 +12,9 @@ export const getAllStates = async () => {
 
 export const getAllCitiesByState = async () => {
     try{
-        // let searchQuery = "WHERE ";
-        // if(state_id) {
-        //     searchQuery += ` state_id = ${state_id} AND status = '1'`;
-        // }
-        // else {
-        //     searchQuery += " status = '1'"
-        // }
 
         const query = `SELECT * FROM tbl_city WHERE status = '1'`;
-        // console.log(state_id);
+       
         const [rows] = await pool.execute(query);
         return rows;
     }

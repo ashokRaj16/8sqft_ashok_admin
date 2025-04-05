@@ -35,9 +35,8 @@ import {
   CTooltip,
   CTableFoot,
 } from '@coreui/react'
-import _, { values } from 'lodash'
-import CIcon from '@coreui/icons-react'
-import { cilTrash, cilInfo, cilBed } from '@coreui/icons'
+import _ from 'lodash'
+
 import {
   FaCheck,
   FaCheckCircle,
@@ -69,6 +68,7 @@ import {
 import { getAllCities } from '@model/locationModel'
 import { getShortlistUsersByProperty } from '@model/shortlistModel'
 import { getIntrestedUsersByProperty } from '@model/intrestedModel'
+import { getLeadUsersbyPropertyId } from '@model/marketingModel'
 import {
   deletePropertyFandQ,
   getPropertyById,
@@ -127,10 +127,15 @@ import {
 import SearchSelectMaster from '../Component/SearchSelectMaster'
 import { getMemberUser } from '../../../models/usersModel'
 
+import ReactQuill from 'react-quill'
+import 'react-quill/dist/quill.snow.css'
+
 const ViewPropertyDetails = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const quillRef = useRef(null)
+
   const [searchParams] = useSearchParams()
   const isEditParam = searchParams.get('isEdit') === 'true'
   const activeTabId = searchParams.get('activeTab')
@@ -139,6 +144,7 @@ const ViewPropertyDetails = () => {
   const [propertyDetails, setPropertyDetails] = useState(initialPropertyDetailsValues)
   const [intrestDetails, setIntrestDetails] = useState(null)
   const [shorlistDetails, setShorlistDetails] = useState(null)
+  const [leadDetails, setLeadDetails] = useState(null)
 
   const [activeTab, setActiveTab] = useState(activeTabId || 1)
   const [isEdit, setIsEdit] = useState(isEditParam)
@@ -154,11 +160,29 @@ const ViewPropertyDetails = () => {
   const [mailOption, setMailOptions] = useState(null)
   const [statusOption, setStatusOption] = useState({ statusText: '', status: '' })
 
+  const [isExpandale, setIsExpandable] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [userMemberList, setUserMemberList] = useState([])
 
   const toaster = useRef()
   const [toast, setToasts] = useState(0)
+
+  const EditorOptions = {
+    toolbar: {
+      container: [
+        [{ header: [1, 2, 3, 4, 5, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['table'],
+        // ["link", "image"]
+      ],
+      // handlers : {
+      //   image: () => handleImageInsert(),
+      // },
+    },
+  }
 
   const addToast = (type, message) => {
     const newToast = {
@@ -166,10 +190,6 @@ const ViewPropertyDetails = () => {
       component: <ToastMessage key={Date.now()} type={type} message={message} />,
     }
     setToasts((prevToasts) => newToast.component)
-
-    // if (toaster.current) {
-    //   toaster.current.push(newToast.component);
-    // }
   }
 
   const changeEditSectionHandler = (editable = true, tabId = activeTab || 1) => {
@@ -184,8 +204,9 @@ const ViewPropertyDetails = () => {
 
   const handlePropertyDetailSubmit = async (values, resetForm, setSubmitting) => {
     try {
-      console.log('values: ', values)
+      // console.log('values: ', values)
       const updatedPropertyData = {
+        contact_no: values.contact_no,
         state_id: values.state_id,
         state_name: values.state_name,
         city_id: values.city_id,
@@ -665,15 +686,16 @@ const ViewPropertyDetails = () => {
     try {
       setLoading(true)
 
-      const [shorlistResult, intrestResult] = await Promise.all([
+      const [shorlistResult, intrestResult, leadResult] = await Promise.all([
         getShortlistUsersByProperty(id),
-        getIntrestedUsersByProperty(id)
+        getIntrestedUsersByProperty(id),
+        getLeadUsersbyPropertyId(id),
       ])
       // const shorlistResult = await getShortlistUsersByProperty(id)
       // const intrestResult = await getIntrestedUsersByProperty(id)
       setShorlistDetails(() => shorlistResult.data)
       setIntrestDetails(() => intrestResult.data)
-
+      setLeadDetails(() => leadResult.data)
 
       setLoading(false)
     } catch (error) {
@@ -720,23 +742,28 @@ const ViewPropertyDetails = () => {
     return () => {}
   }, [propertyDetails.id])
 
-  const [ propertySelectedUser, setPropertySelectedUser ] = useState('');
-  const [ searchTerm, setSearchTerm ] = useState('');
-  const [ isPropertyUserAssign, setIsPropertyUserAssign ] = useState(false);
+  const [propertySelectedUser, setPropertySelectedUser] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isPropertyUserAssign, setIsPropertyUserAssign] = useState(false)
 
-  console.log(propertySelectedUser, "selected usersss");
+  console.log(propertySelectedUser, 'selected usersss')
 
   useEffect(() => {
-    (async () => {
+    ;(async () => {
       const result = await getMemberUser(undefined, 5, undefined, undefined, searchTerm)
-      console.log(result, "userlist...")
+      console.log(result, 'userlist...')
       let updatedUsersList = result.data?.users.map((item) => ({
-        value : item.id,
-        label : [ `${item.fname || ''} ${item.mname || ''} ${item.lname || ''}`, item.mobile, item.city_name ].filter(Boolean).join(' | ')
+        value: item.id,
+        label: [
+          `${item.fname || ''} ${item.mname || ''} ${item.lname || ''}`,
+          item.mobile,
+          item.city_name,
+        ]
+          .filter(Boolean)
+          .join(' | '),
       }))
       setUserMemberList(updatedUsersList || [])
-    }
-    )();
+    })()
 
     return () => {}
   }, [searchTerm])
@@ -771,21 +798,21 @@ const ViewPropertyDetails = () => {
   const handlePropertyUserHandler = async (e) => {
     e.preventDefault()
     try {
-      if(!propertySelectedUser) {
-        addToast('error', "User not selected. Please select user.");
+      if (!propertySelectedUser) {
+        addToast('error', 'User not selected. Please select user.')
         setSearchTerm('')
-        return;
+        return
       }
       setLoading(true)
       const updatedUser = {
-        user_id : propertySelectedUser 
+        user_id: propertySelectedUser,
       }
       const result = await updatePropertyDetails(id, updatedUser)
       if (result) {
         addToast('success', 'User successfully assign to property.')
-        setSearchTerm('');
+        setSearchTerm('')
         setPropertySelectedUser('')
-        loadPropertyData();
+        loadPropertyData()
       }
       setLoading(false)
     } catch (error) {
@@ -896,19 +923,22 @@ const ViewPropertyDetails = () => {
                         <CAccordionItem itemKey={1}>
                           <CAccordionHeader>Property Basic Details</CAccordionHeader>
                           <CAccordionBody>
-                          <CRow className="d-flex justify-content-between align-items-center">
-                              
+                            <CRow className="d-flex justify-content-between align-items-center">
                               <CCol className="d-flex flex-column flex-md-row justify-content-start">
                                 <p className="fw-bold m-2">Owner Name:</p>
                                 <p className="m-2">
                                   <Link to={`/member/view/${propertyDetails.user?.id}`}>
-                                    {`${propertyDetails.user?.fname || ''} ${propertyDetails.user?.mname || ''} ${propertyDetails.user?.lname || ''}`.trim() || '-'}
+                                    {`${propertyDetails.user?.fname || ''} ${propertyDetails.user?.mname || ''} ${propertyDetails.user?.lname || ''}`.trim() ||
+                                      '-'}
                                   </Link>
                                 </p>
                               </CCol>
 
                               <CCol className="d-flex flex-column flex-md-row justify-content-end align-items-center">
-                                <CTooltip content="Assign Property to different user" placement="top">
+                                <CTooltip
+                                  content="Assign Property to different user"
+                                  placement="top"
+                                >
                                   <CButton
                                     onClick={() => setIsPropertyUserAssign((prev) => !prev)}
                                     size="sm"
@@ -940,9 +970,9 @@ const ViewPropertyDetails = () => {
                                     </CButton>
                                     <CButton
                                       onClick={() => {
-                                        setIsPropertyUserAssign(false);
-                                        setSearchTerm('');
-                                        setPropertySelectedUser('');
+                                        setIsPropertyUserAssign(false)
+                                        setSearchTerm('')
+                                        setPropertySelectedUser('')
                                       }}
                                       size="sm"
                                       color="danger"
@@ -954,9 +984,6 @@ const ViewPropertyDetails = () => {
                                 )}
                               </CCol>
                             </CRow>
-
-
-
 
                             <CRow>
                               <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left">
@@ -975,10 +1002,7 @@ const ViewPropertyDetails = () => {
                               <div className="pr-3 d-flex w-100 flex-column align-items-end">
                                 <p className="m-2">
                                   {(!isEdit || activeTab !== 1) && (
-                                    <CTooltip
-                                      content="Assign property to different user"
-                                      placement="top"
-                                    >
+                                    <CTooltip content="Edit Property" placement="top">
                                       <CButton
                                         onClick={() => changeEditSectionHandler(true, 1)}
                                         size="sm"
@@ -1120,6 +1144,35 @@ const ViewPropertyDetails = () => {
                                     </CCol>
                                   </CRow>
 
+                                  <CRow className="align-items-center">
+                                    <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                      <CCol md={3}>
+                                        <p className="fw-bold m-2">Contact No:</p>
+                                      </CCol>
+                                      <CCol md={9}>
+                                        {isEdit && activeTab == 1 ? (
+                                          <>
+                                            <Field
+                                              name="contact_no"
+                                              type="text"
+                                              className="form-control"
+                                              placeholder="Contact Number"
+                                              onChange={handleChange}
+                                              onBlur={handleBlur}
+                                            />
+                                            <ErrorMessage
+                                              name="contact_no"
+                                              component={CFormText}
+                                              className="text-danger"
+                                            />
+                                          </>
+                                        ) : (
+                                          <p className="m-2">{values?.contact_no || '-'}</p>
+                                        )}
+                                      </CCol>
+                                    </CCol>
+                                  </CRow>
+
                                   <CRow className="d-flex align-items-center">
                                     <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
                                       <CCol md={3}>
@@ -1128,7 +1181,18 @@ const ViewPropertyDetails = () => {
                                       <CCol md={9}>
                                         {isEdit && activeTab == 1 ? (
                                           <>
-                                            <Field
+                                            <ReactQuill
+                                              ref={quillRef}
+                                              name="description"
+                                              theme="snow"
+                                              value={values.description}
+                                              modules={EditorOptions}
+                                              onChange={(content) =>
+                                                setFieldValue('description', content)
+                                              }
+                                              placeholder="Write the content..."
+                                            />
+                                            {/* <Field
                                               type="textarea"
                                               name="description"
                                               as={CFormTextarea}
@@ -1138,7 +1202,7 @@ const ViewPropertyDetails = () => {
                                               placeholder="Description"
                                               onChange={handleChange}
                                               onBlur={handleBlur}
-                                            />
+                                            /> */}
                                             <ErrorMessage
                                               name="description"
                                               component={CFormText}
@@ -1146,7 +1210,34 @@ const ViewPropertyDetails = () => {
                                             />
                                           </>
                                         ) : (
-                                          <p className="m-2">{values?.description || '-'}</p>
+                                          <>
+                                            <div
+                                              dangerouslySetInnerHTML={{
+                                                __html: isExpandale
+                                                  ? values?.description
+                                                  : values?.description.slice(0, 400),
+                                              }}
+                                            />
+                                            {isExpandale ? (
+                                              <span
+                                                style={{ color: 'red', cursor: 'pointer' }}
+                                                onClick={() => {
+                                                  setIsExpandable(false)
+                                                }}
+                                              >
+                                                Show Less
+                                              </span>
+                                            ) : (
+                                              <span
+                                                style={{ color: 'red', cursor: 'pointer' }}
+                                                onClick={() => {
+                                                  setIsExpandable(true)
+                                                }}
+                                              >
+                                                Show More
+                                              </span>
+                                            )}
+                                          </>
                                         )}
                                       </CCol>
                                     </CCol>
@@ -1566,6 +1657,45 @@ const ViewPropertyDetails = () => {
                                             ) : (
                                               <p className="m-2">
                                                 {`${values?.project_area} ${values?.project_area_unit} `}
+                                              </p>
+                                            )}
+                                          </CCol>
+                                        </CCol>
+                                      </CRow>
+                                    )}
+
+                                  {(values?.per_sqft_amount || isEdit) &&
+                                    propertyDetails.user_type ===
+                                      constant.PROPERTY_USER_TYPE.BUILDER && (
+                                      <CRow className="d-flex align-items-center">
+                                        <CCol className="pr-3 d-flex w-100 flex-column flex-md-row justify-content-left mb-2">
+                                          <CCol md={3}>
+                                            <p className="fw-bold m-2">Per SQFT Amount: </p>
+                                          </CCol>
+                                          <CCol md={9}>
+                                            {isEdit && activeTab == 1 ? (
+                                              <>
+                                                <CCol className="d-flex w-100 flex-row">
+                                                  <Field
+                                                    name="per_sqft_amount"
+                                                    type="text"
+                                                    className="form-control me-2"
+                                                    placeholder="Per SQFT Amt"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                  />
+                                                </CCol>
+                                                <CCol className="d-flex w-100 flex-row">
+                                                  <ErrorMessage
+                                                    name="per_sqft_amount"
+                                                    component={CFormText}
+                                                    className="text-danger"
+                                                  />
+                                                </CCol>
+                                              </>
+                                            ) : (
+                                              <p className="m-2">
+                                                {`${constant.CURRENCY_SYMBOL} ${values?.per_sqft_amount} `}
                                               </p>
                                             )}
                                           </CCol>
@@ -3453,6 +3583,7 @@ const ViewPropertyDetails = () => {
                                         <CCard className="mb-2">
                                           {/* Image Section */}
                                           {item.file_type === constant.FILE_TYPE.IMAGE_JPG ||
+                                          item.file_type === constant.FILE_TYPE.IMAGE_JPEG ||
                                           item.file_type === constant.FILE_TYPE.IMAGE_PNG ? (
                                             <CCardImage
                                               style={{
@@ -4554,10 +4685,11 @@ const ViewPropertyDetails = () => {
                           </CAccordionItem>
                         )}
                       </CAccordion>
+
                       <CAccordion activeItemKey={1}>
                         {/* Intrested Users */}
                         {intrestDetails && intrestDetails.users.length > 0 && (
-                          <CAccordionItem itemKey={1}>
+                          <CAccordionItem id="intrestUsers" itemKey={1}>
                             <CAccordionHeader>Contacted User</CAccordionHeader>
                             <CAccordionBody>
                               <CTable align="middle" className="mb-0 border" hover responsive>
@@ -4568,6 +4700,7 @@ const ViewPropertyDetails = () => {
                                     <CTableHeaderCell>Last Name</CTableHeaderCell>
                                     <CTableHeaderCell>Email</CTableHeaderCell>
                                     <CTableHeaderCell>Mobile</CTableHeaderCell>
+                                    <CTableHeaderCell>Action</CTableHeaderCell>
                                   </CTableRow>
                                 </CTableHead>
                                 {intrestDetails.users.length <= 0 && (
@@ -4579,13 +4712,23 @@ const ViewPropertyDetails = () => {
                                       <CTableRow key={index}>
                                         <CTableDataCell>{index + 1}</CTableDataCell>
                                         <CTableDataCell>
-                                          <Link to={`/member/view/${intrestUser.id}`}>
-                                            {intrestUser.fname || '-'}
-                                          </Link>
+                                          {' '}
+                                          {intrestUser.fname || '-'}{' '}
                                         </CTableDataCell>
                                         <CTableDataCell>{intrestUser.lname || '-'}</CTableDataCell>
                                         <CTableDataCell>{intrestUser.email || '-'}</CTableDataCell>
                                         <CTableDataCell>{intrestUser.mobile || '-'}</CTableDataCell>
+                                        <CTableDataCell>
+                                          <CButton
+                                            size="sm"
+                                            color="primary"
+                                            onClick={() =>
+                                              navigate(`/member/view/${intrestUser.id}`)
+                                            }
+                                          >
+                                            <FaEye />
+                                          </CButton>
+                                        </CTableDataCell>
                                       </CTableRow>
                                     ))}
                                 </CTableBody>
@@ -4602,7 +4745,7 @@ const ViewPropertyDetails = () => {
                         )}
 
                         {shorlistDetails && shorlistDetails.users.length > 0 && (
-                          <CAccordionItem itemKey={2} className="mb-2">
+                          <CAccordionItem id="shorlistUsers" itemKey={2} className="mb-2">
                             <CAccordionHeader>Shortlist User</CAccordionHeader>
                             <CAccordionBody>
                               <CTable align="middle" className="mb-0 border" hover responsive>
@@ -4613,6 +4756,7 @@ const ViewPropertyDetails = () => {
                                     <CTableHeaderCell>Last Name</CTableHeaderCell>
                                     <CTableHeaderCell>Email</CTableHeaderCell>
                                     <CTableHeaderCell>Mobile</CTableHeaderCell>
+                                    <CTableHeaderCell>Action</CTableHeaderCell>
                                   </CTableRow>
                                 </CTableHead>
                                 {shorlistDetails.users.length <= 0 && (
@@ -4624,9 +4768,7 @@ const ViewPropertyDetails = () => {
                                       <CTableRow key={index}>
                                         <CTableDataCell>{index + 1}</CTableDataCell>
                                         <CTableDataCell>
-                                          <Link to={`/member/view/${shortlistUser.id}`}>
-                                            {shortlistUser.fname || '-'}
-                                          </Link>
+                                          {shortlistUser.fname || '-'}
                                         </CTableDataCell>
                                         <CTableDataCell>
                                           {shortlistUser.lname || '-'}
@@ -4636,6 +4778,17 @@ const ViewPropertyDetails = () => {
                                         </CTableDataCell>
                                         <CTableDataCell>
                                           {shortlistUser.mobile || '-'}
+                                        </CTableDataCell>
+                                        <CTableDataCell>
+                                          <CButton
+                                            size="sm"
+                                            color="primary"
+                                            onClick={() =>
+                                              navigate(`/member/view/${shortlistUser.id}`)
+                                            }
+                                          >
+                                            <FaEye />
+                                          </CButton>
                                         </CTableDataCell>
                                       </CTableRow>
                                     ))}
@@ -4651,13 +4804,66 @@ const ViewPropertyDetails = () => {
                             </CAccordionBody>
                           </CAccordionItem>
                         )}
+
+                        {leadDetails && leadDetails.marketingLead.length > 0 && (
+                          <CAccordionItem id="leadUsers" itemKey={3} className="mb-2">
+                            <CAccordionHeader>Lead User</CAccordionHeader>
+                            <CAccordionBody>
+                              <CTable align="middle" className="mb-0 border" hover responsive>
+                                <CTableHead color="light">
+                                  <CTableRow>
+                                    <CTableHeaderCell>Id</CTableHeaderCell>
+                                    <CTableHeaderCell>Fulll Name</CTableHeaderCell>
+                                    <CTableHeaderCell>Email</CTableHeaderCell>
+                                    <CTableHeaderCell>Mobile</CTableHeaderCell>
+                                    <CTableHeaderCell>Action</CTableHeaderCell>
+                                  </CTableRow>
+                                </CTableHead>
+                                {leadDetails.marketingLead.length <= 0 && (
+                                  <CFormLabel>No leads users found.</CFormLabel>
+                                )}
+                                <CTableBody>
+                                  {leadDetails.marketingLead.length > 0 &&
+                                    leadDetails.marketingLead.map((shortlistUser, index) => (
+                                      <CTableRow key={index}>
+                                        <CTableDataCell>{index + 1}</CTableDataCell>
+                                        <CTableDataCell>
+                                          {shortlistUser.full_name || '-'}
+                                        </CTableDataCell>
+                                        <CTableDataCell>
+                                          {shortlistUser.email || '-'}
+                                        </CTableDataCell>
+                                        <CTableDataCell>
+                                          {shortlistUser.mobile || '-'}
+                                        </CTableDataCell>
+                                        <CTableDataCell>
+                                          <CButton
+                                            size="sm"
+                                            color="primary"
+                                            onClick={() =>
+                                              navigate(`/member/view/${shortlistUser.id}`)
+                                            }
+                                          >
+                                            <FaEye />
+                                          </CButton>
+                                        </CTableDataCell>
+                                      </CTableRow>
+                                    ))}
+                                </CTableBody>
+                              </CTable>
+                              {leadDetails.length > 5 && (
+                                <div className="d-flex justify-content-end m-2">
+                                  <CLink>
+                                    <p>View More</p>
+                                  </CLink>
+                                </div>
+                              )}
+                            </CAccordionBody>
+                          </CAccordionItem>
+                        )}
                       </CAccordion>
                     </CCol>
                   )}
-
-                  {/* {( intrestDetails.length > 0 && shorlistDetails.length > 0) && ( */}
-
-                  {/* )} */}
 
                   {/* Right Column */}
                   <CCol sm="12" xs="12" md="4">
@@ -4722,26 +4928,46 @@ const ViewPropertyDetails = () => {
                       <CCardBody>
                         <CRow>
                           <strong>Highlights</strong>
-                          {/* {intrestDetails?.length > 0 && ( */}
+
+                          {/* contacted user count */}
                           <CCol lg="5" md="5" className="text-center border rounded p-3 m-1">
-                            <CHeader className="fw-bold d-flex justify-content-center align-items-center">
-                              {(intrestDetails && intrestDetails.totalCount) || '0'}
-                            </CHeader>
+                            <a
+                              style={{textDecoration: 'none'}} 
+                              href="#intrestUsers">
+                              <CHeader className="fw-bold d-flex justify-content-center align-items-center">
+                                {(intrestDetails && intrestDetails.totalCount) || '0'}
+                              </CHeader>
+                            </a>
                             <small className="text-secondary">Total Contacted</small>
                           </CCol>
-                          {/* )} */}
 
-                          {/* {shorlistDetails?.length > 0 && ( */}
+                          {/* Shorlist user count */}
                           <CCol lg="5" md="5" className="text-center border rounded p-3 m-1">
-                            <CHeader className="fw-bold d-flex justify-content-center align-items-center">
-                              {(shorlistDetails && shorlistDetails?.totalCount) || '0'}
-                            </CHeader>
+                            <a 
+                              style={{textDecoration: 'none'}} 
+                              href="#shorlistUsers">
+                              <CHeader className="fw-bold d-flex justify-content-center align-items-center">
+                                {(shorlistDetails && shorlistDetails?.totalCount) || '0'}
+                              </CHeader>
+                            </a>
                             <small className="text-secondary">Total Shortlisted</small>
                           </CCol>
-                          {/* )}  */}
+
+                          {/* Total Lead */}
+                          <CCol lg="5" md="5" className="text-center border rounded p-3 m-1">
+                            <a
+                              style={{textDecoration: 'none'}}  
+                              href="#leadUsers">
+                              <CHeader className="fw-bold d-flex justify-content-center align-items-center">
+                                {(leadDetails && leadDetails?.totalCount) || '0'}
+                              </CHeader>
+                            </a>
+                            <small className="text-secondary">Total Lead</small>
+                          </CCol>
                         </CRow>
                       </CCardBody>
                     </CCard>
+
                     {/* <CCard>
                         <CCardBody>
                           <h4>Activity</h4>

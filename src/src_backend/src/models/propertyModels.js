@@ -11,7 +11,6 @@ export const createAmenties = async (data) => {
         return { id: result.insertId, data };
     }
     catch(error) {
-        // console.log(error)
         throw new Error('Unable to create entry', error);
     } 
 };
@@ -21,23 +20,8 @@ export const getAllAmenties = async () => {
     return rows;
 };
 
-// export const updateAmenties = async (id, userData) => {
-//     const { fname, lname, email, mobile, phone } = userData;
-//     await pool.execute(
-//         'UPDATE tbl_users SET fname = ?, lname = ?, email = ?, mobile = ?, phone = ? WHERE id = ?',
-//         [fname, lname, email, mobile, phone, id]
-//     );
-//     return { id, ...userData };
-// };
-
-// export const deleteUser = async (id) => {
-//     await pool.execute('DELETE FROM tbl_users WHERE id = ?', [id]);
-// };
-
-// instead of delete upadte it chagne status to 0.
 export const deleteAmenties = async (id) => {
     try{
-        // await pool.execute('DELETE FROM tbl_master_amenties WHERE id = ?', [id]);
         await pool.execute('UPDATE TABLE tbl_master_amenties SET status = 0 WHERE id = ?', [id]);
     }
     catch(error) {
@@ -56,7 +40,6 @@ export const createFeatures = async (data) => {
         return { id: result.insertId, data };
     }
     catch(error) {
-        // console.log(error)
         throw new Error('Unable to create entry', error.message);
     } 
 };
@@ -67,7 +50,6 @@ export const getAllFeatures = async () => {
     return rows;
 }
 catch(error) {
-    // console.log(error)
     throw new Error('Unable to fetch entry', error.message);
 } 
 };
@@ -96,7 +78,6 @@ export const createProperty = async (data) => {
             data.user_agent,
             data.host_name
         ]
-            console.log("data::::",data);
 
         const [resultProperty] = await connection.query(
             `INSERT INTO tbl_property 
@@ -106,8 +87,6 @@ export const createProperty = async (data) => {
              VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )`,
             propertyData
         );
-
-        console.log(resultProperty);
 
         await connection.commit();
         return { id: resultProperty.insertId, data };
@@ -177,7 +156,6 @@ export const updateProperty = async (id, data) => {
             data.availability_duration,
             id
         ]
-        // console.log("Data: ",id ,propertyData);
         
 
         const result = await pool.execute(
@@ -254,7 +232,7 @@ export const updatePropertyBuilder = async (id, data) => {
             data.property_age,            
             id
         ]
-        console.log("length: ", data.length, propertyData.length)
+
         const result = await pool.execute(
             `UPDATE tbl_property 
             SET 
@@ -293,7 +271,6 @@ export const updatePropertyBuilder = async (id, data) => {
 export const updatePropertyAmeneties = async (id, data) => {
     
     try{
-        // console.log(data)
 
         const result = await pool.execute(
             `UPDATE tbl_property SET 
@@ -400,7 +377,6 @@ export const delPropertyById = async (id) => {
         const response = await pool.execute(`
             UPDATE tbl_property SET is_deleted = '1' WHERE id = ?`, [id]);
 
-        console.log(response);
         return { id: id, afftectedRows: response.affectedRows };
     } catch(error) {
         throw new Error('Unable to update entry', error);
@@ -414,290 +390,157 @@ export const delPropertyById = async (id) => {
  */
 export const getAllPropertyList = async (whereClause = null, page = 1, limit = 10, sortColumn = 'id',  sortOrder = 'asc' ) => {
     try {
-
-        console.log('where: ', whereClause);
         const offset = (page - 1) * limit;
 
-        // ### update sql query for where clause.
-        // ### get ameneties and send to user. and attach to this rows.
-        //#region 
-        // const gallary = `(SELECT tpg.property_img_url
-        //         FROM tbl_property_gallery tpg 
-        //         WHERE tpg.property_id = tp.id 
-        //         AND tpg.file_type <> 'application/pdf'
-        //         AND tpg.status = '1'
-        //         ORDER BY tpg.id ASC
-        //         LIMIT 1) AS property_img_url `;
-
-        // const userDetails = `(SELECT tu.email
-        //         FROM tbl_users tu
-        //         WHERE tu.id = tp.user_id 
-        //         LIMIT 1) AS user_email `;
-
-        // const configDim = `(SELECT
-        //         CASE
-        //         WHEN (SELECT COUNT(DISTINCT tpuc.length) FROM tbl_property_unit_configuration tpuc WHERE tp.id = tpuc.property_id) = 1
-        //         AND (SELECT COUNT(DISTINCT tpuc.width) FROM tbl_property_unit_configuration tpuc WHERE tp.id = tpuc.property_id) = 1
-        //         AND (SELECT COUNT(DISTINCT tpuc.width_unit) FROM tbl_property_unit_configuration tpuc WHERE tp.id = tpuc.property_id) = 1
-        //         THEN (SELECT CONCAT(MIN(tpuc.length), " x ", MIN(tpuc.width), " ", MIN(tpuc.width_unit))
-        //         FROM tbl_property_unit_configuration tpuc WHERE tp.id = tpuc.property_id)
-        //         ELSE (SELECT CONCAT(tpuc.length, " x ", tpuc.width, " ", tpuc.width_unit)
-        //         FROM tbl_property_unit_configuration tpuc
-        //         WHERE tp.id = tpuc.property_id
-        //         ORDER BY tpuc.carpet_price ASC
-        //         LIMIT 1)
-        //         END) AS config_dimenssion`;
-            
-                
-        // const configCarpetPrice = `(SELECT tpuc.carpet_price
-        //         FROM tbl_property_unit_configuration tpuc
-        //         WHERE tp.id = tpuc.property_id 
-        //         ORDER BY tpuc.carpet_price ASC
-        //         LIMIT 1) AS config_carpet_price `;
-
-        //          // Min-Max Carpet Area
-        // const carpetAreaRange = `(SELECT 
-        //          CASE 
-        //              WHEN MIN(tpuc.carpet_area) = MAX(tpuc.carpet_area) 
-        //              THEN MIN(tpuc.carpet_area)
-        //              ELSE CONCAT(MIN(tpuc.carpet_area), ' - ', MAX(tpuc.carpet_area)) 
-        //          END
-        //       FROM tbl_property_unit_configuration tpuc 
-        //       WHERE tp.id = tpuc.property_id) AS carpet_area_range`;
-             
-
-        // // Fetching only BHK types (1-5 BHK)
-        // const bhkTypes = `(SELECT 
-        //             CASE 
-        //                 WHEN COUNT(DISTINCT CASE WHEN tpuc.unit_name REGEXP '^[1-5] BHK$' THEN tpuc.unit_name END) > 3 
-        //                 THEN CONCAT(MIN(CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED)), '-', 
-        //                             MAX(CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED)), ' BHK')
-        //                 ELSE CONCAT(GROUP_CONCAT(DISTINCT CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED) 
-        //                                         ORDER BY CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED) ASC SEPARATOR ','), ' BHK')
-        //             END 
-        //             FROM tbl_property_unit_configuration tpuc
-        //             WHERE tp.id = tpuc.property_id AND tpuc.unit_name REGEXP '^[1-5] BHK$') AS bhk_types`;
-
-        // // Fetching only Studio, 1RK, and Other types
-        // const otherUnitTypes = `(SELECT GROUP_CONCAT(DISTINCT tpuc.unit_name ORDER BY tpuc.unit_name ASC SEPARATOR ', ') 
-        //     FROM tbl_property_unit_configuration tpuc
-        //     WHERE tp.id = tpuc.property_id AND tpuc.unit_name IN ('Studio', '1 RK', 'Other')) AS other_unit_types`;
-
-
-        // const limitQuery = ` LIMIT ${limit} OFFSET ${offset}`;
-        // const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
-        // // const query = `SELECT tp.*, ${gallery}, ${configDim}, ${configCarpetPrice}, ${carpetAreaRange}, ${bhkTypes}, ${otherUnitTypes}, tps.id as tps_id 
-
-        // const searchQuery = `SELECT tp.*, ${gallary}, ${userDetails}, 
-        // ${configCarpetPrice}, 
-        // ${configDim}, 
-        // ${carpetAreaRange}, 
-        // ${bhkTypes}, 
-        // ${otherUnitTypes}
-        //     FROM tbl_property tp 
-        //     ${whereClause} 
-        //     ${orderQuery} ${limitQuery} `;
-            
-        //#endregion
-
-        // const searchQuery = `SELECT 
-        //     tp.*, 
-        //     tpg.property_img_url as property_img_url, 
-        //     tu.email AS user_email,
-        //     MIN(tpuc.carpet_price) AS config_carpet_price,
-        //     CASE
-        //         WHEN COUNT(DISTINCT tpuc.length) = 1 
-        //         AND COUNT(DISTINCT tpuc.width) = 1 
-        //         AND COUNT(DISTINCT tpuc.width_unit) = 1 
-        //         THEN CONCAT(MIN(tpuc.length), ' x ', MIN(tpuc.width), ' ', MIN(tpuc.width_unit))
-        //         ELSE CONCAT(tpuc.length, ' x ', tpuc.width, ' ', tpuc.width_unit)
-        //     END AS config_dimenssion,
-        //     CASE 
-        //         WHEN MIN(tpuc.carpet_area) = MAX(tpuc.carpet_area) 
-        //         THEN MIN(tpuc.carpet_area)
-        //         ELSE CONCAT(MIN(tpuc.carpet_area), ' - ', MAX(tpuc.carpet_area)) 
-        //     END AS carpet_area_range,
-        //     CASE 
-        //         WHEN COUNT(DISTINCT CASE WHEN tpuc.unit_name REGEXP '^[1-5] BHK$' THEN tpuc.unit_name END) > 3 
-        //         THEN CONCAT(MIN(CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED)), '-', 
-        //                     MAX(CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED)), ' BHK')
-        //         ELSE GROUP_CONCAT(DISTINCT CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED) 
-        //                         ORDER BY CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED) ASC SEPARATOR ',')
-        //     END AS bhk_types,
-        //     GROUP_CONCAT(DISTINCT CASE 
-        //         WHEN tpuc.unit_name IN ('Studio', '1 RK', 'Other') THEN tpuc.unit_name 
-        //         ELSE NULL 
-        //     END ORDER BY tpuc.unit_name ASC SEPARATOR ', ') AS other_unit_types
-        // FROM 
-        //     tbl_property tp
-        // LEFT JOIN 
-        //     tbl_property_gallery tpg ON tpg.property_id = tp.id 
-        //     AND tpg.file_type <> 'application/pdf'
-        //     AND tpg.status = '1'
-        // LEFT JOIN 
-        //     tbl_users tu ON tu.id = tp.user_id
-        // LEFT JOIN 
-        //     tbl_property_unit_configuration tpuc ON tpuc.property_id = tp.id
-        //     ${whereClause}
-        // GROUP BY 
-        //     tp.id
-        // ORDER BY 
-        //     ${sortColumn} ${sortOrder}
-        // LIMIT 
-        //     ${limit} OFFSET ${offset};
-        // `
-
         const searchQuery = `SELECT 
-    tp.id,
-    tp.user_id,
-    tp.form_step_id,
-    tp.form_status,
-    tp.user_type,
-    tp.contact_no,
-    tp.property_title,
-    tp.title_slug,
-    tp.company_name,
-    tp.description,
-    tp.short_description,
-    tp.full_address,
-    tp.building_name,
-    tp.landmark,
-    tp.locality,
-    tp.city_id,
-    tp.state_id,
-    tp.city_name,
-    tp.state_name,
-    tp.pincode,
-    tp.latitude,
-    tp.longitude,
-    tp.land_area,
-    tp.land_area_unit,
-    tp.property_availibility_type,
-    tp.is_maintenance,
-    tp.property_variety_type,
-    tp.builtup_area,
-    tp.builtup_area_unit,
-    tp.rent_amount,
-    tp.deposite_amount,
-    tp.property_type,
-    tp.bed_rooms,
-    tp.washrooms,
-    tp.floor_number,
-    tp.total_floors,
-    tp.property_floors,
-    tp.balcony,
-    tp.is_wings,
-    tp.unit_number,
-    tp.total_wing,
-    tp.wing_name,
-    tp.property_variety,
-    tp.property_rent_buy,
-    tp.rent_is_nogotiable,
-    tp.deposite_is_negotiable,
-    tp.availability_date,
-    tp.availability_duration,
-    tp.property_age,
-    tp.furnishing_status,
-    tp.parking,
-    tp.water_supply,
-    tp.washroom_type,
-    tp.granted_security,
-    tp.other_amenities,
-    tp.door_facing,
-    tp.preferred_tenent,
-    tp.pet_allowed,
-    tp.non_veg_allowed,
-    tp.expected_amount,
-    tp.drink_allowed,
-    tp.smoke_allowed,
-    tp.pg_rules,
-    tp.exected_amount_sqft,
-    tp.per_sqft_amount,
-    tp.monthly_maintenance,
-    tp.ownership_type,
-    tp.dimension_length,
-    tp.dimension_width,
-    tp.width_facing_road,
-    tp.sewage_connection,
-    tp.electricity_connection,
-    tp.rera_number,
-    tp.is_rera_number,
-    tp.property_current_status,
-    tp.possession_status,
-    tp.possession_date,
-    tp.total_towers,
-    tp.total_units,
-    tp.project_area,
-    tp.project_area_unit,
-    tp.unique_view_count,
-    tp.ip_address,
-    tp.user_agent,
-    tp.host_name,
-    tp.status,
-    tp.status_text,
-    tp.is_deleted,
-    tp.added_by,
-    tp.updated_by,
-    tp.publish_date,
-    tp.created_at,
-    tp.updated_at,
-    MIN(tpg.property_img_url) AS property_img_url, 
-    tu.email AS user_email,
-    MIN(tpuc.carpet_price) AS config_carpet_price,
-    
-    
-    CASE 
-        WHEN COUNT(DISTINCT tpuc.length) = 1 
-        AND COUNT(DISTINCT tpuc.width) = 1 
-        AND COUNT(DISTINCT tpuc.width_unit) = 1 
-        THEN CONCAT(MIN(tpuc.length), ' x ', MIN(tpuc.width), ' ', MIN(tpuc.width_unit))
-        ELSE GROUP_CONCAT(DISTINCT CONCAT(tpuc.length, ' x ', tpuc.width, ' ', tpuc.width_unit) SEPARATOR ', ')
-    END AS config_dimension,
+            tp.id,
+            tp.user_id,
+            tp.form_step_id,
+            tp.form_status,
+            tp.user_type,
+            tp.contact_no,
+            tp.property_title,
+            tp.title_slug,
+            tp.company_name,
+            tp.description,
+            tp.short_description,
+            tp.full_address,
+            tp.building_name,
+            tp.landmark,
+            tp.locality,
+            tp.city_id,
+            tp.state_id,
+            tp.city_name,
+            tp.state_name,
+            tp.pincode,
+            tp.latitude,
+            tp.longitude,
+            tp.land_area,
+            tp.land_area_unit,
+            tp.property_availibility_type,
+            tp.is_maintenance,
+            tp.property_variety_type,
+            tp.builtup_area,
+            tp.builtup_area_unit,
+            tp.rent_amount,
+            tp.deposite_amount,
+            tp.property_type,
+            tp.bed_rooms,
+            tp.washrooms,
+            tp.floor_number,
+            tp.total_floors,
+            tp.property_floors,
+            tp.balcony,
+            tp.is_wings,
+            tp.unit_number,
+            tp.total_wing,
+            tp.wing_name,
+            tp.property_variety,
+            tp.property_rent_buy,
+            tp.rent_is_nogotiable,
+            tp.deposite_is_negotiable,
+            tp.availability_date,
+            tp.availability_duration,
+            tp.property_age,
+            tp.furnishing_status,
+            tp.parking,
+            tp.water_supply,
+            tp.washroom_type,
+            tp.granted_security,
+            tp.other_amenities,
+            tp.door_facing,
+            tp.preferred_tenent,
+            tp.pet_allowed,
+            tp.non_veg_allowed,
+            tp.expected_amount,
+            tp.drink_allowed,
+            tp.smoke_allowed,
+            tp.pg_rules,
+            tp.exected_amount_sqft,
+            tp.per_sqft_amount,
+            tp.monthly_maintenance,
+            tp.ownership_type,
+            tp.dimension_length,
+            tp.dimension_width,
+            tp.width_facing_road,
+            tp.sewage_connection,
+            tp.electricity_connection,
+            tp.rera_number,
+            tp.is_rera_number,
+            tp.property_current_status,
+            tp.possession_status,
+            tp.possession_date,
+            tp.total_towers,
+            tp.total_units,
+            tp.project_area,
+            tp.project_area_unit,
+            tp.unique_view_count,
+            tp.ip_address,
+            tp.user_agent,
+            tp.host_name,
+            tp.status,
+            tp.status_text,
+            tp.is_deleted,
+            tp.added_by,
+            tp.updated_by,
+            tp.publish_date,
+            tp.created_at,
+            tp.updated_at,
+            MIN(tpg.property_img_url) AS property_img_url, 
+            tu.email AS user_email,
+            MIN(tpuc.carpet_price) AS config_carpet_price,
+            
+            
+            CASE 
+                WHEN COUNT(DISTINCT tpuc.length) = 1 
+                AND COUNT(DISTINCT tpuc.width) = 1 
+                AND COUNT(DISTINCT tpuc.width_unit) = 1 
+                THEN CONCAT(MIN(tpuc.length), ' x ', MIN(tpuc.width), ' ', MIN(tpuc.width_unit))
+                ELSE GROUP_CONCAT(DISTINCT CONCAT(tpuc.length, ' x ', tpuc.width, ' ', tpuc.width_unit) SEPARATOR ', ')
+            END AS config_dimension,
 
-    
-    CASE 
-        WHEN MIN(tpuc.carpet_area) = MAX(tpuc.carpet_area) 
-        THEN MIN(tpuc.carpet_area)
-        ELSE CONCAT(MIN(tpuc.carpet_area), ' - ', MAX(tpuc.carpet_area)) 
-    END AS carpet_area_range,
+            
+            CASE 
+                WHEN MIN(tpuc.carpet_area) = MAX(tpuc.carpet_area) 
+                THEN MIN(tpuc.carpet_area)
+                ELSE CONCAT(MIN(tpuc.carpet_area), ' - ', MAX(tpuc.carpet_area)) 
+            END AS carpet_area_range,
 
-    CASE 
-        WHEN COUNT(DISTINCT CASE WHEN tpuc.unit_name REGEXP '^[1-5] BHK$' THEN tpuc.unit_name END) > 3 
-        THEN CONCAT(MIN(CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED)), '-', 
-                    MAX(CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED)), ' BHK')
-        ELSE GROUP_CONCAT(DISTINCT CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED) 
-                        ORDER BY CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED) ASC SEPARATOR ',')
-    END AS bhk_types,
+            CASE 
+                WHEN COUNT(DISTINCT CASE WHEN tpuc.unit_name REGEXP '^[1-5] BHK$' THEN tpuc.unit_name END) > 3 
+                THEN CONCAT(MIN(CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED)), '-', 
+                            MAX(CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED)), ' BHK')
+                ELSE GROUP_CONCAT(DISTINCT CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED) 
+                                ORDER BY CAST(SUBSTRING_INDEX(tpuc.unit_name, ' BHK', 1) AS UNSIGNED) ASC SEPARATOR ',')
+            END AS bhk_types,
 
-    GROUP_CONCAT(DISTINCT CASE 
-        WHEN tpuc.unit_name IN ('Studio', '1 RK', 'Other') THEN tpuc.unit_name 
-        ELSE NULL 
-    END ORDER BY tpuc.unit_name ASC SEPARATOR ', ') AS other_unit_types
+            GROUP_CONCAT(DISTINCT CASE 
+                WHEN tpuc.unit_name IN ('Studio', '1 RK', 'Other') THEN tpuc.unit_name 
+                ELSE NULL 
+            END ORDER BY tpuc.unit_name ASC SEPARATOR ', ') AS other_unit_types
 
-FROM 
-    tbl_property tp
-LEFT JOIN 
-    tbl_property_gallery tpg ON tpg.property_id = tp.id 
-    AND tpg.file_type <> 'application/pdf'
-    AND tpg.status = '1'
-LEFT JOIN 
-    tbl_users tu ON tu.id = tp.user_id
-LEFT JOIN 
-    tbl_property_unit_configuration tpuc ON tpuc.property_id = tp.id
-${whereClause}
-GROUP BY 
-    tp.id, tu.email
-ORDER BY 
-    ${sortColumn} ${sortOrder}
-LIMIT 
-    ${limit} OFFSET ${offset}`;
+        FROM 
+            tbl_property tp
+        LEFT JOIN 
+            tbl_property_gallery tpg ON tpg.property_id = tp.id 
+            AND tpg.file_type NOT IN ('application/pdf', 'video/mp4', 'video/mkv', 'video/avi')
+            AND tpg.status = '1'
+        LEFT JOIN 
+            tbl_users tu ON tu.id = tp.user_id
+        LEFT JOIN 
+            tbl_property_unit_configuration tpuc ON tpuc.property_id = tp.id
+        ${whereClause}
+        GROUP BY 
+            tp.id, tu.email
+        ORDER BY 
+            ${sortColumn} ${sortOrder}
+        LIMIT 
+            ${limit} OFFSET ${offset}`;
 
         const [rows] = await pool.execute(searchQuery);  
-        // console.log(rows);
         return rows;
     }
     catch(error) {
-        console.log(error);
         throw new Error('Unable to fetch entry.', error);
     }
 };
@@ -721,8 +564,6 @@ export const getAllPropertyCount = async ( whereClause = null, ) => {
 
 export const getPropertyListById = async (id) => {
     try {
-    // console.log('Property ID:', id);
-    // lead count
 
     // Optimized query 
     const query = `SELECT 
@@ -731,6 +572,10 @@ export const getPropertyListById = async (id) => {
             tu.lname,
             tu.email,
             tu.mobile,
+            tu.company_web_url,
+            tu.instagram_url,
+            tu.facebook_url,
+            tu.youtube_url,
             (COUNT(DISTINCT tps_intrest.id)  +
             COUNT(DISTINCT tmd.id)) AS intrestedCount,
             COUNT(DISTINCT tps_shortlist.id) AS shortlistedCount
@@ -751,45 +596,6 @@ export const getPropertyListById = async (id) => {
 
         const [rows] = await pool.execute(query, [id])
 
-        // const [rows] = await pool.execute(
-    //     `SELECT 
-    //       tp.*,           
-    //       tu.fname, 
-    //       tu.lname,
-    //       tu.email,
-    //       tu.mobile,
-    //        (
-    //             SELECT COUNT(*)
-    //             FROM tbl_property_intrest tps
-    //             WHERE JSON_CONTAINS(
-    //                 tps.property_id,
-    //                 JSON_OBJECT('pid', tp.id)
-    //             )
-    //         ) AS intrestedCount,
-    //         (
-    //          SELECT COUNT(*)
-    //             FROM tbl_marketing_details tmd
-    //             LEFT JOIN tbl_property_marketing tpm
-    //             ON tpm.id = tmd.pm_id
-    //             WHERE 
-    //                 tpm.property_id = tp.id
-    //         ) AS leadCount,
-    //         (
-    //             SELECT COUNT(*)
-    //             FROM tbl_property_shortlist tps
-    //             WHERE JSON_CONTAINS(
-    //                 tps.property_id,
-    //                 JSON_OBJECT('pid', tp.id)
-    //             )
-    //         ) AS shortlistedCount
-    //     FROM tbl_property AS tp
-    //     JOIN tbl_users AS tu 
-    //       ON tu.id = tp.user_id
-    //     WHERE tp.id = ? 
-    //       AND tp.status = '2'
-    //     `,
-    //     [id]
-    //   );
 
       return rows;
     } catch (error) {
@@ -845,7 +651,6 @@ export const getPropertyCountByIds = async (ids) => {
  */
 export const getPropertyDetailsByIdAndUser = async (id, userId) => {
     try {
-        console.log('Property ID:', id, 'User ID:', userId);
 
         const [rows] = await pool.execute(
             `SELECT  tp.*, tu.fname, tu.lname 
@@ -864,16 +669,22 @@ export const getPropertyDetailsByIdAndUser = async (id, userId) => {
 
 
 export const getPropertyImagesById = async (id) => {
-    try{
-        // console.log(id);
+    try {
         const [rows] = await pool.execute(
-            `SELECT * FROM tbl_property_gallery
-            WHERE property_id = ?`, [ id ]);
-            
-            // console.log(rows);
+            `SELECT *
+            FROM tbl_property_gallery
+            WHERE property_id = ?
+            ORDER BY 
+            (LOWER(img_title) = 'main image') DESC,
+            (LOWER(img_title) = 'Default') ASC, 
+            img_title
+             `, 
+            [id]
+        );
+
         return rows;
-    }
-    catch(error) {
+    } catch (error) {
+        console.log(error)
         throw new Error('Unable to fetch entry.', error);
     }
 };
@@ -888,7 +699,6 @@ export const getPropertyConfigurationById = async (id) => {
          [id]
         );
           
-    //   console.log(rows);
       return rows;
     } catch (error) {
       console.error('Error fetching property configuration:', error);
@@ -945,7 +755,6 @@ export const getPropertyAmenetiesById = async (id) => {
 // List Property admin:
 export const getAllPropertyListAdmin = async (whereClause = null, sortColumn = "id", sortOrder = "ASC", page = 1, limit = 10 ) => {
     try {
-        console.log('where: ',whereClause);
         const offset = (page - 1) * limit;
         
         const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
@@ -976,8 +785,8 @@ export const getAllPropertyListAdmin = async (whereClause = null, sortColumn = "
                 LIMIT ${limit} OFFSET ${offset}`;
 
         const [rows] = await pool.execute(searchQuery);
-        console.log(rows);
-        return rows;        
+
+        return rows;
     }
     catch(error) {
         throw new Error('Unable to fetch entry.', error);
@@ -998,9 +807,7 @@ export const getAllPropertyCountAdmin = async ( whereClause = null ) => {
                     tp.user_id = tu.id
                 ${whereClause}`;
 
-        // const totalCountQuery = `SELECT COUNT(*) AS count FROM tbl_property ${whereClause}`;
         const [rows] = await pool.query(totalCountQuery);
-        console.log(rows);
         return rows[0].count;
     }
     catch(error) {
@@ -1015,12 +822,9 @@ export const getAllPropertyCountAdmin = async ( whereClause = null ) => {
  */
 export const getPropertyListAdminById = async (id) => {
     try{
-        console.log(id);
         const [rows] = await pool.execute(
             `SELECT * FROM tbl_property
             WHERE id = ? AND is_deleted = '0'`, [ id ]);
-
-        console.log(rows,"rowsss");
 
         return rows;
     }    
@@ -1032,7 +836,6 @@ export const getPropertyListAdminById = async (id) => {
 // List Property admin:
 export const getAllPropertyListAdminByMemberId = async (whereClause = null, sortColumn = "id", sortOrder = "ASC", page = 1, limit = 10 ) => {
     try {
-        console.log('where: ',whereClause);
         const offset = (page - 1) * limit;
         
         const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
@@ -1056,7 +859,6 @@ export const getAllPropertyListAdminByMemberId = async (whereClause = null, sort
                 LIMIT ${limit} OFFSET ${offset}`;
 
         const [rows] = await pool.execute(searchQuery);  
-        console.log(rows)
         return rows;        
     }
     catch(error) {
@@ -1076,7 +878,6 @@ export const getAllPropertyCountAdminByMemberId = async ( whereClause = null ) =
 
         // const totalCountQuery = `SELECT COUNT(*) AS count FROM tbl_property ${whereClause}`;
         const [rows] = await pool.query(totalCountQuery);
-        console.log(rows);
         return rows[0].count;
     }
     catch(error) {
@@ -1236,7 +1037,6 @@ export const createPropertyFandQAdminDb = async (data) => {
             data.faq_question,
             data.faq_answer
         ]
-        console.log("data::::",data);
 
         const [result] = await pool.query(
             `INSERT INTO tbl_property_faq 
@@ -1245,12 +1045,10 @@ export const createPropertyFandQAdminDb = async (data) => {
             propertyData
         );
 
-        console.log(result);
 
         return { id: result.insertId, ...data };
     }
     catch(error) {
-        console.log(error)
         throw new Error('Unable to create entry', error);
     } 
 };
@@ -1260,7 +1058,6 @@ export const delPropertyFandqByIdAdminDb = async (id) => {
         
         const response = await pool.execute(`delete from tbl_property_faq WHERE id = ?`, [id]);
 
-        console.log(response);
         return { id: id, afftectedRows: response.affectedRows };
     } catch(error) {
         throw new Error('Unable to update entry', error);
@@ -1323,7 +1120,6 @@ export const createPropertyNearbyAdminDb = async (data) => {
             data.longitude, 
             data.latitude
         ]
-        console.log("data::::",data);
 
         const [result] = await pool.query(
             `INSERT INTO tbl_property_nearby_locations 
@@ -1334,7 +1130,6 @@ export const createPropertyNearbyAdminDb = async (data) => {
             propertyData
         );
 
-        // console.log(result);
 
         return { id: result.insertId, ...data };
     }
@@ -1349,7 +1144,6 @@ export const delPropertyNearbyByIdAdminDb = async (id) => {
         
         const [response] = await pool.execute(`delete from tbl_property_nearby_locations WHERE id = ?`, [id]);
 
-        console.log(response);
         return { id: id, afftectedRows: response.affectedRows };
     } catch(error) {
         throw new Error('Unable to update entry', error);
@@ -1400,7 +1194,6 @@ export const updatePropertyNearbyAdminDb = async (id, data) => {
  */
 export const getAllPropertyNearbyCategoryAdmin = async (id) => {
     try{
-        console.log(id);
         const [rows] = await pool.execute(
             `SELECT * FROM tbl_master_nearby_locations
             WHERE status = '1'`);
@@ -1422,7 +1215,6 @@ export const getAllPropertyNearbyCategoryAdmin = async (id) => {
 export const updatePropertyDescription = async (id, data) => {
     
     try{
-        // console.log("Property: ", data.property)
         const { 
             property_description
         } = data.property;
@@ -1486,13 +1278,10 @@ export const updatePropertyGallery = async (id, data) => {
  */
 export const updatePropertyStatusById = async (id, data) => {
     try {
-        console.log("status:::", id, data)
       const [response] = await pool.execute(
         `UPDATE tbl_property SET status = ?, status_text = ?, publish_date = ? WHERE id = ?`, 
         [data.status, data.statusText, data.publish_date, id]
       );
-  
-      console.log(response);
       return { id: id, affectedRows: response.affectedRows };
     } catch (error) {
       throw new Error('Unable to update entry', error);
@@ -1502,7 +1291,6 @@ export const updatePropertyStatusById = async (id, data) => {
 
 export const updatePropertySlug = async (id, title_slug) => {
     try {
-        console.log(title_slug, id)
         const updateQuery = `UPDATE tbl_property SET title_slug = ? WHERE id = ?`;
         await pool.execute(updateQuery, [title_slug, id])      
 
@@ -1510,3 +1298,56 @@ export const updatePropertySlug = async (id, title_slug) => {
         throw new Error('Unable to update entry', error);
     }
 };
+
+
+export const getPropertyNearbyLocationsById = async (propertyId) => {
+    try {
+        const [rows] = await pool.execute(
+            `SELECT
+            m.location_categories,
+            m.locations_name,
+            m.icon_url,
+            CONCAT('[', GROUP_CONCAT(
+                JSON_OBJECT(
+                    'id', p.id,
+                    'location_title', p.location_title,
+                    'distance', p.distance,
+                    'time_to_reach', p.time,
+                    'latitude', CAST(p.latitude AS CHAR),
+                    'longitude', CAST(p.longitude AS CHAR)
+                ) ORDER BY p.id SEPARATOR ','), ']') AS locations
+            FROM tbl_property_nearby_locations p
+            JOIN tbl_master_nearby_locations m ON p.nearby_id = m.id
+            WHERE p.property_id = ?
+            GROUP BY m.location_categories, m.locations_name, m.icon_url`,
+            [propertyId]
+        );
+        
+        // Transform the data into the required structure
+        const groupedData = {};
+        
+        rows.forEach(row => {
+        const { location_categories, locations_name, icon_url, locations } = row;
+        const parsedLocations = JSON.parse(locations);
+        
+        if (!groupedData[location_categories]) {
+            groupedData[location_categories] = { location_categories };
+        }
+        
+        if (!groupedData[location_categories][locations_name]) {
+            groupedData[location_categories][locations_name] = { icon_url, locations: [] };
+        }
+        
+        groupedData[location_categories][locations_name].locations = parsedLocations;
+        });
+        
+        return Object.values(groupedData).map(category => {
+            const { location_categories, ...locations } = category;
+            return { location_categories, ...locations };
+        });
+        
+        } catch (error) {
+            console.error('Error fetching nearby locations:', error);
+            throw new Error('Error fetching nearby locations', error);
+        }
+    };

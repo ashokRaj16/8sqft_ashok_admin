@@ -1,35 +1,27 @@
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
 import axios from 'axios';
-
 import pool from '../config/db.js';
 
 import dotenv from 'dotenv';
-
 dotenv.config();
 
+import { handleOTP } from '../models/commonModel.js';
 import { badRequestResponse, internalServerResponse, successResponse, successWithDataResponse } from '../utils/response.js';
 import { registerUserValidator } from './validators/authValidator.js';
 import { sendMailTemplate, renderEmailTemplate } from '../config/nodemailer.js';
+import { formatPhoneNumber } from '../utils/commonHelper.js';
 
 const OTP_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes
 const otpStore = {};
-const nonWhatsAppNumbers = new Set();
 
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000);
-
-const formatPhoneNumber = (mobile) => {
-  if (typeof mobile !== 'string') {
-    mobile = String(mobile);
-  }
-  return mobile.replace(/\D/g, '');
-};
 
 export const sendOtpToMobile = async (req, res) => {
   const { mobile } = req.body;
  
   if (!mobile) {
-  return badRequestResponse(res, "Mobile number is required.")
+  return badRequestResponse(res, "Please enter your mobile number.")
   }
  
   try {
@@ -37,7 +29,13 @@ export const sendOtpToMobile = async (req, res) => {
   const formattedMobile = formatPhoneNumber(mobile);
  
   const otp = generateOtp();
-  otpStore[formattedMobile] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+  const expiryDate = Date.now() + OTP_EXPIRY_TIME;
+  otpStore[formattedMobile] = { contact: formattedMobile, otp, expiry: expiryDate };
+  const storeResult = await handleOTP(formattedMobile, otp, expiryDate, "store");
+
+  if (!storeResult.success) {
+      return internalServerResponse(res, false, "Unable to save the OTP at the moment.", storeResult.message);
+  }
  
   const payload = new URLSearchParams({
   channel: 'whatsapp',
@@ -52,117 +50,36 @@ export const sendOtpToMobile = async (req, res) => {
   });
  
   const gupshupResponse = await axios.post(
-  'https://api.gupshup.io/wa/api/v1/template/msg',
-  payload,
-  {
-  headers: {
-  'Content-Type': 'application/x-www-form-urlencoded',
-  'Cache-Control': 'no-cache',
-  apikey: process.env.GUPSHUP_API_KEY,
-  },
-  }
+     'https://api.gupshup.io/wa/api/v1/template/msg',
+      payload,
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cache-Control': 'no-cache',
+        apikey: process.env.GUPSHUP_API_KEY,
+      },
+    }
   );
  
-  console.log('Gupshup API Response:', gupshupResponse);
- 
   if (gupshupResponse.data.status === 'submitted') {
- 
-  return successWithDataResponse(res, true, 'OTP sent to WhatsApp.', gupshupResponse.data)
+    otpStore[formattedMobile] = {
+        ...otpStore[formattedMobile],
+        messageId: gupshupResponse.data.messageId,
+        flag: "W"
+    };
+    return successWithDataResponse(res, true, `We've sent an OTP to your WhatsApp number.`, gupshupResponse.data)
  
   } else {
+
   console.error('Error from Gupshup API:', gupshupResponse.data);
-  throw new Error(gupshupResponse.data.message || 'Failed to send OTP');
+  throw new Error(gupshupResponse.data.message || 'Something went wrong while sending your OTP.');
   }
   } catch (error) {
-  console.error('Error while sending OTP:', error);
-  return internalServerResponse(res, false, 'Failed to send OTP due to an internal error..', error.message);
+  console.error('Oops! There was an error while sending your OTP. Please try again.', error);
+  return internalServerResponse(res, false, 'Sorry! An internal error prevented us from sending the OTP.', error.message);
   }
  };
 
-export const sendOtpToMobile_test = async (req, res) => {
-  const { mobile } = req.body;
-
-  let templateType = 'authentication';
-
-  if (!mobile) {
-    return badRequestResponse(res, "Mobile number is required.");
-  }
-
-  try {
-   // const formattedMobile = formatPhoneNumber(mobile);
-    const formattedMobile = mobile
-    console.log(`Formatted mobile number: ${formattedMobile}`);
-
-    let otp = null;
-    let expiry = null;
-
-    let templateId;
-    if (templateType === 'authentication') {
-      templateId = '3bb3fa08-6958-427e-82ea-91026982980c';
-      otp = generateOtp();
-      expiry = Date.now() + OTP_EXPIRY_TIME;
-    } else if (templateType === 'marketing') {
-      templateId = 'd2c4fa06-78b1-439b-a2df-829b98234567';
-    } else {
-      return badRequestResponse(res, "Invalid template type.");
-    }
-
-    otpStore[formattedMobile] = {
-      otp,
-      expiry,
-      templateId,
-      messageType: templateType
-    };
-    console.log(`Stored Message Data: ${JSON.stringify(otpStore)}`);
-
-    // const keys = Object.keys(otpStore);
-    // console.log(keys);
-
-    const templatePayload = {
-      id: templateId,
-      params: templateType === 'authentication' ? [otp, otp] : []
-    };
-
-    const payload = new URLSearchParams({
-      channel: 'whatsapp',
-      'src.name': '8sqftwebApp',
-      source: process.env.GUPSHUP_WHATSAPP_NUMBER,
-      destination: formattedMobile,
-      template: JSON.stringify(templatePayload),
-    });
-
-    console.log(`Final payload (URL-encoded): ${payload}`);
-
-    const gupshupResponse = await axios.post(
-      'https://api.gupshup.io/wa/api/v1/template/msg',
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Cache-Control': 'no-cache',
-          apikey: process.env.GUPSHUP_API_KEY,
-        },
-      }
-    );
-
-    console.log('Gupshup API Response:', gupshupResponse.data);
-
-    if (gupshupResponse.data.status === 'submitted') {
-      const gsId = gupshupResponse.data.messageId;
-
-      otpStore[formattedMobile].gsId = gsId;
-      console.log(`Updated Stored Data with gsId: ${JSON.stringify(otpStore[formattedMobile])}`);
-
-      return successWithDataResponse(res, true, 'Message sent to WhatsApp.', gupshupResponse.data);
-    } else {
-      console.error('Error from Gupshup API:', gupshupResponse.data);
-      throw new Error(gupshupResponse.data.message || 'Failed to send message');
-    }
-  } catch (error) {
-    console.error('Error while sending message:', error);
-    return internalServerResponse(res, false, 'Failed to send message due to an internal error.', error.message);
-  }
-};
 
 export const verifyMobileOtp = async (req, res) => {
   const { mobile, otp } = req.body;
@@ -179,7 +96,7 @@ export const verifyMobileOtp = async (req, res) => {
 
   if (Date.now() > expiry) {
     delete otpStore[formattedMobile];
-    return res.status(400).json({ message: 'OTP expired' });
+    return badRequestResponse(res, false, "Otp expired, please click on resend.")
   }
 
   try {
@@ -187,23 +104,20 @@ export const verifyMobileOtp = async (req, res) => {
       const userQuery = 'SELECT * FROM tbl_users WHERE mobile = ?';
       const [user] = await pool.query(userQuery, [mobile]);
 
+      await handleOTP(mobile, otp, undefined, "verify"); 
       if (user.length === 0) {
-        return res.status(200).json({
-          status: true,
-          flag: 'M',
-          message: 'User not found, please register.',
+        let data = {
           needToRegister: true,
           mobile,
-        });
+        }
+        return successWithDataResponse(res, true, "User not found, Registration required.", data)
       }
 
       // Check user status
       const userStatus = user[0].status;
-      if (userStatus !== 1) {
-        return res.status(403).json({
-          status: false,
-          message: `Could not login. User status: ${userStatus}`,
-        });
+    
+      if (userStatus !== "1") {
+        return badRequestResponse(res, false, "Could not login. Account is inactive or blocked, please contact admin to reactivate.")
       }
 
       // Generate token only if user is active (status = 1)
@@ -214,11 +128,11 @@ export const verifyMobileOtp = async (req, res) => {
         last_name: user[0].lname,
         mobile: user[0]?.mobile,
       };
+
       const newToken = jwt.sign(tokenData, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRY,
       });
 
-      console.log(newToken, tokenData);
       data['token'] = newToken;
       delete otpStore[formattedMobile];
 
@@ -237,8 +151,12 @@ export const verifyMobileOtp = async (req, res) => {
   }
 };
 
-
-// Mobile verification for dashboard profile
+/**
+ * Mobile verification for dashboard profile : 
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
 export const verifyMobile = async (req, res) => {
   const { mobile, otp } = req.body;
   let userId = req.userId;
@@ -303,6 +221,8 @@ export const verifyMobile = async (req, res) => {
 
       await pool.query(updateQuery, queryParams);
 
+      await handleOTP(mobile, otp, undefined, "verify"); 
+
       return res.status(200).json({
         status: true,
         message: 'Mobile Verified Successfully',
@@ -319,7 +239,6 @@ export const verifyMobile = async (req, res) => {
 
 export const sendOtpToEmail = async (req, res) => {
   const { email } = req.body;
-  console.log(email)
   if (!email) {
     return res.status(400).json({ message: 'Email is required.' });
   }
@@ -330,8 +249,15 @@ export const sendOtpToEmail = async (req, res) => {
 
   try {
     const otp = generateOtp();
-    otpStore[email] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+    const expiryDate = Date.now() + OTP_EXPIRY_TIME;
+    otpStore[email] = { contact: email, otp, expiry: expiryDate };
     let data ={};
+
+    const storeResult = await handleOTP(email, otp, expiryDate, "store"); 
+
+    if (!storeResult.success) {
+      return internalServerResponse(res, false, "Failed to store OTP.", storeResult.message);
+    }
 
     const mailOptions = {
       from: `"8Sqft Team" <${process.env.SMTP_USER}>`,
@@ -339,8 +265,13 @@ export const sendOtpToEmail = async (req, res) => {
       subject: 'Login OTP',
       text: `Your login OTP is: ${otp}`,
     };
+
     const templateData = await renderEmailTemplate('templates/otpVerification', { name: email, otp: otp, validity: '5' })
     await sendMailTemplate(mailOptions.to, mailOptions.subject, '', templateData)
+    otpStore[email] = {
+      ...otpStore[email],
+      flag: "E"
+    };
 
     data['ismail'] = true;
     return successWithDataResponse(res, true, 'OTP sent to email.', data);
@@ -354,7 +285,6 @@ export const sendOtpToEmail = async (req, res) => {
 export const verifyEmailOtp = async (req, res) => {
   const { email, otp } = req.body;
   const data = {}
-  console.log(email, otp)
 
   if (!email) {
     return badRequestResponse(res, false, 'Please enter email.');
@@ -385,7 +315,8 @@ export const verifyEmailOtp = async (req, res) => {
       const userQuery = 'SELECT * FROM tbl_users WHERE email = ?';
       const [user] = await pool.query(userQuery, [email]);
 
-      // console.log(user[0]);
+      await handleOTP(email, otp, undefined, "verify"); 
+
       if (user.length === 0) {
         return res.status(200).json({
           status: true,
@@ -394,6 +325,7 @@ export const verifyEmailOtp = async (req, res) => {
           needToRegister: true,
           email,
         });
+
       } else {
         const tokenData = { id: user[0].id, email, first_name: user[0].fname, last_name: user[0].lname, mobile: user[0].mobile };
         const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY });
@@ -405,10 +337,17 @@ export const verifyEmailOtp = async (req, res) => {
     }
   } catch (error) {
     console.error('Database error:', error);
-    return internalServerResponse(res, false, 'Error checking user in database.');
+    return internalServerResponse(res, false, 'An error occurred while checking the user in the database.');
   }
 };
-// email verification for dashboard profile
+
+
+/**
+ * email verification for dashboard profile
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
 export const verifyEmail = async (req, res) => {
   const { email, otp } = req.body;
   const userId = req.userId;
@@ -476,6 +415,8 @@ export const verifyEmail = async (req, res) => {
 
       await pool.query(updateQuery, queryParams);
 
+      await handleOTP(email, otp, "verify"); 
+
       return res.status(200).json({
         status: true,
         message: 'Email Verified Successfully',
@@ -509,17 +450,11 @@ export const resendOtpToEmail = async (req, res) => {
   try {
     const storedOtpData = otpStore[email];
 
-    // if (storedOtpData) {
-    //   const { expiry } = storedOtpData;
-    //   if (Date.now() < expiry) {
-    //     return res.status(200).json({
-    //       message: 'OTP is still valid, please check your email.',
-    //     });
-    //   }
-    // }
 
     const otp = generateOtp();
     otpStore[email] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+
+    await handleOTP(email, otp, "store"); 
 
     await transporter.sendMail({
       from: `"8Sqft Team" <${process.env.SMTP_USER}>`,
@@ -533,6 +468,65 @@ export const resendOtpToEmail = async (req, res) => {
   } catch (error) {
     console.error('Error while resending OTP:', error);
     return badRequestResponse(res, false, 'Failed to resend OTP.');
+  }
+};
+
+export const resendOtpToMobile = async (req, res) => {
+  const { mobile } = req.body;
+
+  if (!mobile) {
+    return badRequestResponse(res, "Mobile number is required.");
+  }
+
+  try {
+    const formattedMobile = formatPhoneNumber(mobile);
+
+    const existingOtp = otpStore[formattedMobile];
+    if (existingOtp && Date.now() < existingOtp.expiry) {
+      return badRequestResponse(
+        res,
+        `An OTP was already sent. Please wait before requesting another OTP.`
+      );
+    }
+
+    const otp = generateOtp();
+    const expiryDate = Date.now() + OTP_EXPIRY_TIME;
+    otpStore[formattedMobile] = { otp, expiry: expiryDate };
+
+    await handleOTP(mobile, otp, expiryDate, "store"); 
+
+    const payload = new URLSearchParams({
+      channel: 'whatsapp',
+      'src.name': '8sqftwebApp', 
+      source: process.env.GUPSHUP_WHATSAPP_NUMBER,
+      destination: formattedMobile, 
+      template: JSON.stringify({
+        id: '3bb3fa08-6958-427e-82ea-91026982980c',
+        params: [otp, otp],
+      }),
+    });
+
+    const gupshupResponse = await axios.post(
+      'https://api.gupshup.io/wa/api/v1/template/msg',
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Cache-Control': 'no-cache',
+          apikey: process.env.GUPSHUP_API_KEY,
+        },
+      }
+    );
+
+    if (gupshupResponse.data.status === 'submitted') {
+      return successWithDataResponse(res, true, 'OTP resent to WhatsApp.', gupshupResponse.data);
+    } else {
+      console.error('Error from Gupshup API:', gupshupResponse.data);
+      throw new Error(gupshupResponse.data.message || 'Failed to resend OTP');
+    }
+  } catch (error) {
+    console.error('Error while resending OTP:', error);
+    return internalServerResponse(res, false, 'Failed to resend OTP due to an internal error.', error.message);
   }
 };
 
@@ -556,12 +550,11 @@ export const registerUser = async (req, res) => {
     if (users.length > 0) {
       return badRequestResponse(res, false, "User already exists.");
     }
+    const storeData = otpStore[email || mobile] || {};
 
-    const is_email_verified = flag === "E" ? "1" : "0";
-    const is_mobile_verified = flag === "M" ? "1" : "0";
-
-  
-    const is_wa_number = nonWhatsAppNumbers.has(mobile) ? '0' : '1'; 
+    const is_email_verified = storeData?.flag === "E" ? "1" : "0";
+    const is_mobile_verified = (storeData?.flag === "M" || storeData?.flag === "W" ) ? "1" : "0";
+    const is_wa_number = storeData?.flag === "W" ? "1" : "0";
 
     const insertQuery = `
       INSERT INTO tbl_users (email, fname, lname, mobile, is_email_verified, is_mobile_verified, is_wa_number)
@@ -584,8 +577,10 @@ export const registerUser = async (req, res) => {
       last_name,
       mobile: mobile || null,
     };
+
     const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY });
     data["token"] = token;
+    delete otpStore[email || mobile];
 
     return successWithDataResponse(res, true, "Registration successful", data);
   } catch (error) {
@@ -594,86 +589,32 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
-export const resendOtpToMobile = async (req, res) => {
-  const { mobile } = req.body;
-
-  if (!mobile) {
-    return badRequestResponse(res, "Mobile number is required.");
-  }
-
-  try {
-    const formattedMobile = formatPhoneNumber(mobile);
-    console.log(`Formatted mobile number: ${formattedMobile}`);
-
-    const existingOtp = otpStore[formattedMobile];
-    if (existingOtp && Date.now() < existingOtp.expiry) {
-      return badRequestResponse(
-        res,
-        `An OTP was already sent. Please wait before requesting another OTP.`
-      );
-    }
-
-    const otp = generateOtp();
-    otpStore[formattedMobile] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
-    console.log(`Generated OTP: ${otp}`);
-    console.log(`Stored OTP with expiry: ${JSON.stringify(otpStore[formattedMobile])}`);
-
-    const payload = new URLSearchParams({
-      channel: 'whatsapp',
-      'src.name': '8sqftwebApp', 
-      source: process.env.GUPSHUP_WHATSAPP_NUMBER,
-      destination: formattedMobile, 
-      template: JSON.stringify({
-        id: '3bb3fa08-6958-427e-82ea-91026982980c',
-        params: [otp, otp],
-      }),
-    });
-
-    console.log(`Final payload (URL-encoded): ${payload}`);
-
-    const gupshupResponse = await axios.post(
-      'https://api.gupshup.io/wa/api/v1/template/msg',
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Cache-Control': 'no-cache',
-          apikey: process.env.GUPSHUP_API_KEY,
-        },
-      }
-    );
-
-    console.log('Gupshup API Response:', gupshupResponse);
-
-    if (gupshupResponse.data.status === 'submitted') {
-      return successWithDataResponse(res, true, 'OTP resent to WhatsApp.', gupshupResponse.data);
-    } else {
-      console.error('Error from Gupshup API:', gupshupResponse.data);
-      throw new Error(gupshupResponse.data.message || 'Failed to resend OTP');
-    }
-  } catch (error) {
-    console.error('Error while resending OTP:', error);
-    return internalServerResponse(res, false, 'Failed to resend OTP due to an internal error.', error.message);
-  }
-};
-
 export const messageCallback = (req, res) => {
-
   const { app, timestamp, version, type, payload } = req.body;
   const { id, gsId, type: eventType, destination, payload: eventPayload } = payload;
   switch (eventType) {
       case "enqueued":
           break;
       case "failed":
-            if (destination) {
-              nonWhatsAppNumbers.add(destination); // Store failed number
+            const storeData = Object.entries(otpStore);
+            
+            // Find the key where messageId matches gsId
+            let keyDestination = storeData.find(([key, value]) => value.messageId === gsId);
+
+            if (keyDestination) {
+                const [key, value] = keyDestination;
+                otpStore[key] = { 
+                  ...otpStore[key], 
+                  flag: "M"
+              };
+
+                if (otpStore[key]?.contact) {
+                    sendTextMessage(otpStore[key].contact);
+                }
+            } else {
             }
-            const keys = Object.keys(otpStore);
-            sendTextMessage(keys[0]);
           break;
       default:
-          console.log(`Unknown event type: ${eventType}`);
   }
 
   res.status(200).json({ success: true, message: "Webhook received" });
@@ -688,7 +629,12 @@ export const sendTextMessage = async (mobile = '') => {
         const formattedMobile = formatPhoneNumber(mobile);
 
         const otp = generateOtp();
-        otpStore[formattedMobile] = { otp, expiry: Date.now() + OTP_EXPIRY_TIME };
+        const expiryDate = Date.now() + OTP_EXPIRY_TIME
+        otpStore[formattedMobile] = { 
+          ...otpStore[formattedMobile],
+          otp, expiry: expiryDate };
+
+        await handleOTP(formattedMobile, otp, expiryDate, "store"); 
 
         const API_URL = 'https://www.textguru.in/api/v22.0/';
         const USERNAME = process.env.TEXTGURU_USERNAME;
@@ -715,4 +661,3 @@ export const sendTextMessage = async (mobile = '') => {
         return { success: false, message: "Failed to send OTP.", error: error.message };
     }
 };
-

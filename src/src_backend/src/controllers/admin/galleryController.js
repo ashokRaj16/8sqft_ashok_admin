@@ -9,8 +9,10 @@ import { upload, s3, getAllS3Files,
   startAWSUpload, 
   uploadAWSChunk, 
   completeAWSUpload, 
-  abortAWSUpload} from "../../utils/imageUploadHelper.js";
+  abortAWSUpload,
+  removeAWSObject} from "../../utils/imageUploadHelper.js";
 import fs from 'fs';
+import { generateDirectoryName } from "../../utils/commonHelper.js";
 
 export const listAllImagesFromBucket = async (req, res) => {
   try {
@@ -23,46 +25,28 @@ export const listAllImagesFromBucket = async (req, res) => {
     const offset = (pageCount - 1) * limitCount;
 
     const filters = req.query;
-    let whereClauses = [];
-
-    if (filters?.searchFilter && filters?.searchFilter.trim()) {
-      const newSearchfilter = `img_name like '%${validator.escape(
-        filters.searchFilter.trim()
-      )}%'`;
-
-      whereClauses.push(newSearchfilter);
-    }
 
     const allowedColumns = [
       "id",
       "type",
-      "date",
+      "Size",
+      "LastModified",
     ];
     const allowedOrders = ["ASC", "DESC"];
 
     const sortColumn = allowedColumns.includes(filters.sortColumn)
       ? filters.sortColumn
-      : "id";
+      : "LastModified";
 
     const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase())
       ? filters.sortOrder?.toUpperCase()
       : "DESC";
 
+    const filesResult = await getAllS3Files(filters, limitCount, sortColumn, sortOrder );
+    const totalCount = filesResult.length;
+ 
 
-    console.log(filters, sortColumn, sortOrder);
-    const propertyResult = await getAllS3Files();
-
-    // const propertyResult = await getAllS3Files(
-    //   baseQuery,
-    //   sortColumn,
-    //   sortOrder,
-    //   pageCount,
-    //   limitCount
-    // );
-
-    const totalCount = await getAllEnquiryCountAdmin(baseQuery);
-
-    data["enquiry"] = propertyResult;
+    data["images"] = filesResult;
     data["totalCounts"] = totalCount;
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -72,10 +56,10 @@ export const listAllImagesFromBucket = async (req, res) => {
     data["startIndex"] = startIndex;
     data["endIndex"] = endIndex;
 
-    return successWithDataResponse(res, true, "Enquiry list.", data);
+    return successWithDataResponse(res, true, "Image list.", data);
   } catch (error) {
     console.error(error);
-    return badRequestResponse(res, false, "Error fetching Sponsared!", error);
+    return badRequestResponse(res, false, "Error fetching images!", error);
   }
 };
 
@@ -130,8 +114,6 @@ export const getLinkImageDetails = async (req, res) => {
     const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase())
       ? filters.sortOrder?.toUpperCase()
       : "DESC";
-
-    console.log(filters, sortColumn, sortOrder);
     const propertyResult = await getAllEnquiryListAdmin(
       baseQuery,
       sortColumn,
@@ -210,8 +192,6 @@ export const getImageLinkDetails = async (req, res) => {
     const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase())
       ? filters.sortOrder?.toUpperCase()
       : "DESC";
-
-    console.log(filters, sortColumn, sortOrder);
     const propertyResult = await getAllEnquiryListAdmin(
       baseQuery,
       sortColumn,
@@ -239,7 +219,6 @@ export const getImageLinkDetails = async (req, res) => {
   }
 };
 
-
 // Upload Image in chunk.
 export const postImageUploadStart = async (req, res) => {
   const { fileName, mimetype } = req.body;
@@ -247,10 +226,12 @@ export const postImageUploadStart = async (req, res) => {
     return badRequestResponse(res, false, "Missing required params.");
   }
   try {
-    const response = await startAWSUpload(fileName, mimetype)
-    console.log(response, "start response")
+
+    const updateFileName = generateDirectoryName(fileName);
+
+    const response = await startAWSUpload(updateFileName, mimetype)
     
-    const data = { uploadId : response.UploadId, fileName}
+    const data = { uploadId : response.UploadId, fileName: updateFileName }
     return successWithDataResponse(
       res,
       true,
@@ -258,51 +239,10 @@ export const postImageUploadStart = async (req, res) => {
       data
     );
   } catch (error) {
+    console.log(error, "error")
     return badRequestResponse(res, false, "Error file start uploading.", error);
   }
 };
-
-// export const postImageUploadChunk = (req, res) => {
-  
-//   upload.single('file') (req, res, async (err) => {
-//     console.log(req.file, "bodyyyy.");
-//     if (err) {
-//       console.error("SQFT Multer error:", err);
-//       return badRequestResponse(res, false, "Error processing uploaded files.", err);
-//     }
-
-//     const { fileName, uploadId, partNumber } = req.body;
-    
-//     if(!fileName || !uploadId || !partNumber) {
-//       return badRequestResponse(res, false, "Missing required fields.")
-//     }
-//     try {
-//       const filePath = req.file?.path || '';
-      
-//       if (!fs.existsSync(filePath)) {
-//         return badRequestResponse(res, false, "Uploaded file not found.");
-//       }
-      
-//       const fileStream = fs.createReadStream(filePath);
-//       const response = await uploadAWSChunk( fileName, fileStream, uploadId, parseInt(partNumber));
-//       console.log(fileStream,  ":::responsessss")
-//       // fs.unlinkSync(filePath);
-//       const data = {
-//         Etag : response.ETag, PartNumber : partNumber
-//       }
-//       return successWithDataResponse(
-//         res,
-//         true,
-//         "File part uploading...",
-//         data
-//       );
-//     } catch (error) {
-//       return badRequestResponse(res, false, "Error file chunk uploading.", error);
-//     }
-
-//   })
-// };
-
 
 export const postImageUploadChunk = async (req, res) => {
   upload.single('file')(req, res, async (err) => {
@@ -316,27 +256,24 @@ export const postImageUploadChunk = async (req, res) => {
       return badRequestResponse(res, false, "No file received.");
     }
 
-    console.log(req.body, "Request body");
     const { fileName, uploadId, partNumber } = req.body;
     const filePath = file.path;
     const mimetype = file.mimetype;
-
     try {
-      // Upload Full File
-      console.log(mimetype, "MimeTypessss.");
-      if (!uploadId || !partNumber) {
-        console.log(mimetype, "Full file upload detected.");
-
-        // Upload entire file to AWS
-        const response = await uploadFullFileToAWS(fileName, mimetype, fs.createReadStream(filePath));
-        
-        fs.unlinkSync(filePath); // Delete temp file after upload
-        console.log(response, 'full image')
-        return successWithDataResponse(res, true, "Full file uploaded successfully.", response);
+      
+      const fileContent = fs.readFileSync(filePath);
+      if (fileContent.length === 0) {
+        console.error(`⚠️ File is empty: ${file.originalname}`);
+        return badRequestResponse(res, false, "Failed to add configuration.");
       }
 
-      console.log(`Chunk Upload: Part ${partNumber}`);
-      // Upload in chunk.
+      // Upload whole image section...
+      if (!uploadId || !partNumber) {
+        const updateFileName = generateDirectoryName(fileName);
+        const response = await uploadFullFileToAWS(updateFileName, mimetype, fs.createReadStream(filePath));
+        fs.unlinkSync(filePath);
+        return successWithDataResponse(res, true, "Full file uploaded successfully.", response);
+      }
       const fileStream = fs.createReadStream(filePath);
       const response = await uploadAWSChunk(fileName, fileStream, uploadId, parseInt(partNumber));
 
@@ -358,14 +295,18 @@ export const postImageUploadComplete = async (req, res) => {
   const { uploadId, fileName, uploadedParts } = req.body;
 
   try {
+    // const updateFileName = generateDirectoryName(fileName);
     if(!fileName || !uploadId || !uploadedParts ) {
       return badRequestResponse(res, false, "Missing required fields.")
     }
     
-    console.log(uploadId, fileName, uploadedParts, "upload complete")
     const response = await completeAWSUpload(fileName, uploadId, uploadedParts);
-    console.log(response , "upload complete")
-    const data = response;
+
+    const data = {
+      ...response,
+      Location : decodeURIComponent(response.Location)
+    };
+    
     return successWithDataResponse(
       res,
       true,
@@ -385,8 +326,8 @@ export const postImageUploadAbort = async (req, res) => {
   }
 
   try {
-    const response = await abortAWSUpload(fileName, uploadId);
-     console.log(response , "upload abort")
+    const updateFileName = generateDirectoryName(fileName);    
+    const response = await abortAWSUpload(updateFileName, uploadId);
      const data = response;
     return successWithDataResponse(
       res,
@@ -400,21 +341,22 @@ export const postImageUploadAbort = async (req, res) => {
 }
 
 // remove Images
-export const deleteImage = async (req, res) => {
-  const { id } = req.params;
-
+export const deleteFileFromGallery = async (req, res) => {
+  const { file } = req.body;
+  if(!file) {
+    return badRequestResponse(res, false, "Missing required fields.");
+  }
   try {
-    const [result] = await deleteEnquiryAdmin(id);
-    console.log(id, result)
-    if (result.affectedRows === 0) {
-      return badRequestResponse(res, false, "Enquiry not found or not deleted.");
+    const response = await removeAWSObject(file.Key);
+    if (!response) {
+      return badRequestResponse(res, false, "Image not found or not deleted.");
     }
 
     return successWithDataResponse(
       res,
       true,
-      "Enquiry deleted successfully.",
-      result
+      "Image deleted successfully.",
+      response
     );
   } catch (error) {
     return badRequestResponse(res, false, "Error deleting data.", error);
@@ -426,7 +368,6 @@ export const deleteMultiImage = async (req, res) => {
 
   try {
     const [result] = await deleteEnquiryAdmin(data);
-    console.log(id, result)
     if (result.affectedRows === 0) {
       return badRequestResponse(res, false, "Images not found or not deleted.");
     }
@@ -447,7 +388,6 @@ export const changeImageProperty = async (req, res) => {
 
   try {
     const [result] = await deleteEnquiryAdmin(id);
-    console.log(id, result)
     if (result.affectedRows === 0) {
       return badRequestResponse(res, false, "Enquiry not found or not deleted.");
     }
@@ -462,3 +402,4 @@ export const changeImageProperty = async (req, res) => {
     return badRequestResponse(res, false, "Error deleting data.", error);
   }
 };
+

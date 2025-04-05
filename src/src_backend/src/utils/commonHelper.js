@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
+import path from "path";
 import _ from 'lodash';
 
 // Add days to given days, require days.
@@ -15,6 +16,17 @@ export function formattedDate(d = new Date) {
         .map(n => n < 10 ? `0${n}` : `${n}`).join('-');
 }
 
+export function formattedDateTime(timestamp = Date.now()) {
+    const d = new Date(timestamp);
+    
+    const datePart = [ d.getFullYear(), d.getMonth() + 1, d.getDate(),]
+        .map(n => n < 10 ? `0${n}` : `${n}`).join('-');
+    
+    const timePart = [d.getHours(), d.getMinutes(), d.getSeconds()]
+        .map(n => n < 10 ? `0${n}` : `${n}`).join(':');
+
+    return `${datePart} ${timePart}`;
+}
 export const generateSecretToken = () => {
     let secretRefresh = randomBytes(16).toString("hex");
     return secretRefresh;
@@ -166,5 +178,35 @@ export const sanitizeObjectFields = (data, config) => {
 // };
 
 // const sanitizedData = sanitizeObjectFields(data, config);
-// console.log(sanitizedData);
 // // Output: { name: "John Doe", email: "test@example.com" }
+
+/**
+ * 
+ * @param {string} fileName 
+ * @returns 
+ */
+export const generateDirectoryName = (fileName) => {
+    if(!fileName) {
+        return;
+    }
+
+    const currentDate = new Date();
+    const month = currentDate.toLocaleString('en-US', { month: 'short' }).toLowerCase();
+    const year = currentDate.getFullYear();
+    const folderName = `${month}-${year}`;
+
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const extension = path.extname(fileName).toLowerCase();
+    const updateFileName = `${folderName}/${uniqueSuffix}${extension}`;
+    
+    // const updateFileName = `${folderName}/${fileName}`;
+    return updateFileName;
+}
+
+
+export const formatPhoneNumber = (mobile) => {
+    if (typeof mobile !== 'string') {
+      mobile = String(mobile);
+    }
+    return mobile.replace(/\D/g, '');
+  };

@@ -7,14 +7,15 @@ import { sendMailTemplate } from '../../config/nodemailer.js';
 import { getSearchDropDownLocationByKey, getRecommendationData, getSpotlightData } from '../../models/homeModels.js';
 import { badRequestResponse, successResponse, successWithDataResponse } from '../../utils/response.js';
 import { getPropertyCountByIds } from '../../models/propertyModels.js';
+import { formatPhoneNumber } from '../../utils/commonHelper.js';
 
 export const getSearchDropDownLocations = async (req, res) => {
   try {
     const { searchKeyword, city, searchLimit } = req.query;
-    console.log(req.query)
+
     const result = await getSearchDropDownLocationByKey(searchKeyword, city, searchLimit);
 
-    console.log(result);
+
     if(result) {
       return successWithDataResponse( res, true, "Search list.", result);
     }
@@ -44,39 +45,50 @@ export const getHomeCountInfo = async (req, res) => {
     const userCountQuery = "SELECT COUNT(*) AS userCount FROM tbl_users";
     const propertyCountQuery = "SELECT COUNT(*) AS propertyCount FROM tbl_property";
     const savedBrokerageQuery = `
-    SELECT 
-      SUM(
-        CASE 
-          WHEN property_rent_buy = 'RENT' THEN rent_amount
-          ELSE 0
-        END
-      ) AS totalSavedBrokerage
-    FROM tbl_property
-  `;
-  console.log(savedBrokerageQuery)
-  const [[userCountResult], [propertyCountResult], [savedBrokerageResult]] = await Promise.all([
-    pool.query(userCountQuery),
-    pool.query(propertyCountQuery),
-    pool.query(savedBrokerageQuery),
-  ]);
+      SELECT 
+        SUM(
+          CASE 
+            WHEN property_rent_buy = 'RENT' THEN rent_amount
+            ELSE 0
+          END
+        ) AS totalSavedBrokerage
+      FROM tbl_property
+    `;
+    
+    const [[userCountResult], [propertyCountResult], [savedBrokerageResult]] = await Promise.all([
+      pool.query(userCountQuery),
+      pool.query(propertyCountQuery),
+      pool.query(savedBrokerageQuery),
+    ]);
 
-  const userCount = userCountResult[0]?.userCount || 0;
-  const propertyCount = propertyCountResult[0]?.propertyCount || 0;
-  const totalSavedBrokerage = savedBrokerageResult[0]?.totalSavedBrokerage || 0;
+    const userCount = userCountResult[0]?.userCount || 0;
+    const propertyCount = propertyCountResult[0]?.propertyCount || 0;
+    let totalSavedBrokerage = savedBrokerageResult[0]?.totalSavedBrokerage || 0;
 
-  const data =
-    { 
-      userCount,
-      propertyCount ,
-      totalSavedBrokerage 
+    // Alternate totalSavedBrokerage value
+    totalSavedBrokerage = totalSavedBrokerage % 2 === 0 ? totalSavedBrokerage + 5000 : totalSavedBrokerage - 5000;
+
+    // Calculate brokerageSavedStatic
+    const now = new Date();
+    const baseDate = new Date(2025, 0, 1);
+    const daysElapsed = Math.floor((now.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+    const brokerageSavedStatic = daysElapsed * 100000;
+
+    // Construct the data object
+    const data = {
+      totalSavedBrokerage : brokerageSavedStatic || 0,
+      userCount: userCount + 100000 || 0,
+      propertyCount: propertyCount || 0,
+      // brokerageSavedStatic, // Update new counter in data state
     };
 
-    successWithDataResponse(res, true, "Comman info fetched successfully", data);
+    successWithDataResponse(res, true, "Common info fetched successfully", data);
   } catch (error) {
     console.error("Database Error:", error);
     return badRequestResponse(res, false, "Failed to fetch data");
   }
 };
+
 
 export const contact_us = async (req, res) => {
   try {
@@ -141,7 +153,6 @@ export const getContactById = async (req, res) => {
     return badRequestResponse(res, false, "Failed to fetch contact record", error);
   }
 };
-
 
 /**
  * get recommendation 
@@ -208,7 +219,7 @@ export const contactSendMail = async (req, res) => {
     
     const userQuery = 'SELECT fname, lname, email, mobile FROM tbl_users WHERE id = ?';
     const [userResult] = await pool.query(userQuery, [userId]);
-    console.log("User result:", userId, userResult);
+
 
     if (userResult.length === 0) {
       return badRequestResponse(res, false, "User not found");
@@ -224,7 +235,7 @@ export const contactSendMail = async (req, res) => {
       WHERE properties.id = ?`;
     const [ownerResult] = await pool.query(ownerQuery, [propertyId]);
       
-      console.log("Owner details:",ownerResult);
+   
     if (ownerResult.length === 0) {
           return badRequestResponse(res, false, "Property owner not found");
     }
@@ -250,7 +261,7 @@ export const contactSendMail = async (req, res) => {
           await sendMailTemplate(userResult[0].email, mailOptions.subject, '', templateTenantData);
           await sendMailTemplate(ownerResult[0].email, mailOptions.subject, '', templateOwnerData);
         }
-        console.log('Email sent successfully');
+ 
       } catch (error) {
         console.error('Error sending email:', error);
       }
@@ -274,9 +285,8 @@ export const contactSendWhatsApp = async (req, res) => {
       return badRequestResponse(res, false, "Property Id is required");
     }
 
-    const userQuery = 'SELECT fname, lname, email, mobile FROM tbl_users WHERE id = ?';
+    const userQuery = 'SELECT fname, lname, email, mobile, is_wa_number FROM tbl_users WHERE id = ?';
     const [userResult] = await pool.query(userQuery, [userId]);
-    console.log("User results:", userId, propertyId, userResult);
 
     if (userResult.length === 0) {
       return badRequestResponse(res, false, "User not found");
@@ -284,122 +294,185 @@ export const contactSendWhatsApp = async (req, res) => {
 
     const user = userResult[0];
 
-    const ownerQuery = `SELECT users.fname, users.lname, users.email, users.mobile, properties.user_id, properties.id,
-      properties.property_title, properties.description, properties.rent_amount, properties.city_name, properties.property_type,
-      properties.status 
+    const ownerQuery = `
+      SELECT users.fname, users.lname, users.email, users.mobile, users.is_wa_number, 
+      properties.user_id, properties.id, properties.property_title, properties.description, 
+      properties.rent_amount, properties.city_name, properties.property_type, properties.status
       FROM tbl_property as properties 
       INNER JOIN tbl_users as users ON properties.user_id = users.id
       WHERE properties.id = ?`;
 
     const [ownerResult] = await pool.query(ownerQuery, [propertyId]);
-    
-    if ( ownerResult.length === 0 ) {
+
+    if (ownerResult.length === 0) {
       return badRequestResponse(res, false, "Property owner not found");
     }
-    
-    console.log("Owner result:", userId, ownerResult, ownerResult );
-    const owner = ownerResult[0];
 
+    const owner = ownerResult[0];
+   
+    let userResponse, ownerResponse;
     const gupshupApiKey = process.env.GUPSHUP_API_KEY;
 
-    
-    const userPayload = new URLSearchParams({
-      channel: 'whatsapp',
-      'src.name': 'pramoton8sqft',
-      source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
-      destination: `91${userResult[0].mobile}`,
-      template: JSON.stringify({
-        id: 'f2a6532e-6b32-483b-b8d7-7e801afed7d0',
-        params: [
-          userResult[0].fname, 
-          ownerResult[0].property_title,
-          ownerResult[0].fname,
-          ownerResult[0].mobile
-        ],
-      }),
-    });
+    if(user.is_wa_number === "1") {
+      const userPayload = new URLSearchParams({
+        channel: 'whatsapp',
+        'src.name': 'pramoton8sqft',
+        source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
+        destination: `91${user.mobile}`,
+        template: JSON.stringify({
+          id: 'f2a6532e-6b32-483b-b8d7-7e801afed7d0',
+          params: [user.fname, owner.property_title, owner.fname, owner.mobile],
+        }),
+      });
 
-    const ownerPayload = new URLSearchParams({
-      channel: 'whatsapp',
-      'src.name': 'pramoton8sqft', 
-      source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
-      destination: 91 +""+ ownerResult[0].mobile ,
-      template: JSON.stringify({
-        id: '62820aa7-2f74-4566-bf9f-4107269f1992',
-        params: [
-          ownerResult[0].fname,
-          ownerResult[0].property_title, 
-          userResult[0].fname,
-          userResult[0].mobile
-        ], 
-      }),
-    });
-
-    const gupshupResponse = await axios.post(
-      'https://api.gupshup.io/wa/api/v1/template/msg',
-      userPayload,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Cache-Control': 'no-cache',
-          apikey: process.env.GUPSHUP_API_KEY, 
-        },
-      }
-    );
-          
-    const gupshupOwnerResponse = await axios.post(
-      'https://api.gupshup.io/wa/api/v1/template/msg',
-      ownerPayload,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Cache-Control': 'no-cache',
-          apikey: process.env.GUPSHUP_API_KEY,
-        },
-      }
-    );
-
-    if (gupshupOwnerResponse.data.status === 'submitted' && gupshupResponse.data.status === "submitted") {
-
-        const checkInterestQuery = 'SELECT * FROM tbl_property_intrest WHERE user_id = ?';
-        const [interestResult] = await pool.query(checkInterestQuery, [userId]);
-
-        const currentDate = new Date().toISOString().split('T')[0];
-
-        if (interestResult.length > 0) {
-          let existingPropertyIds = JSON.parse(interestResult[0].property_id || '[]');
-
-          const propertyExists = existingPropertyIds.some(item => item.pid === propertyId);
-          console.log("tested contactsss : ", propertyExists, existingPropertyIds);
-
-          if (!propertyExists) {
-            existingPropertyIds.push({ pid: propertyId, date: currentDate });
-
-            const updatedPropertyIds = JSON.stringify(existingPropertyIds);
-
-            const updateInterestQuery = 'UPDATE tbl_property_intrest SET property_id = ? WHERE user_id = ?';
-            await pool.query(updateInterestQuery, [updatedPropertyIds, userId]);
-          }
-
+      userResponse = await axios.post(
+        'https://api.gupshup.io/wa/api/v1/template/msg',
+        userPayload,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cache-Control': 'no-cache',
+            apikey: gupshupApiKey,
+          },
         }
-        else {
-            let propertyIds = { pid: propertyId, date: currentDate };
-            const updatedPropertyIds = JSON.stringify( [ propertyIds ] );
-            const createInterestQuery = 'insert into tbl_property_intrest (user_id, property_id) values (?, ?)';
-            const result = await pool.query(createInterestQuery, [ userId, updatedPropertyIds]);
-            console.log('resultss:', result)
+      );
+    }
+    if(owner.is_wa_number === "1") {
+       const ownerPayload = new URLSearchParams({
+        channel: 'whatsapp',
+        'src.name': 'pramoton8sqft',
+        source: process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO,
+        destination: `91${owner.mobile}`,
+        template: JSON.stringify({
+          id: '62820aa7-2f74-4566-bf9f-4107269f1992',
+          params: [owner.fname, owner.property_title, user.fname, user.mobile],
+        }),
+      });
+
+      ownerResponse = await axios.post(
+        'https://api.gupshup.io/wa/api/v1/template/msg',
+        ownerPayload,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cache-Control': 'no-cache',
+            apikey: gupshupApiKey,
+          },
         }
-
-      return successResponse(res, true, 'Contact details exchanged via WhatsApp using templates.', gupshupOwnerResponse.data);
-
-    } else {
-      console.error('Error from Gupshup API:', gupshupOwnerResponse.data);
-      throw new Error(gupshupOwnerResponse.data.message || 'Failed to share contact.');
+      );
+    }
+    if(user.is_wa_number === "0") {
+      userResponse = await sendCustomerMessage(user.mobile, user.fname, owner.property_title, owner.fname, owner.mobile);
+    }
+    if(owner.is_wa_number === "0") {
+      ownerResponse = await sendBuilderMessage(owner.mobile, owner.fname, user.fname, owner.property_title, user.mobile);
     }
 
+
+    if ((ownerResponse.data?.status === 'submitted' || userResponse.data?.status === "submitted") || (ownerResponse.status === 200 || userResponse.status === 200)) {
+      await handleInterestTracking(userId, propertyId);
+      return successResponse(res, true, 'Contact details exchanged via Whatsapp/SMS.');
+    }
+    return badRequestResponse(res, false, 'Unable to exchanged contacts.');
+
   } catch (error) {
-    console.error('Error in contactSendWhatsApp:');
-    return badRequestResponse(res, false, 'Failed to exchange contact details via WhatsApp', error);
+    console.error('Error in contactSendWhatsApp:', error);
+    return badRequestResponse(res, false, 'Failed to exchange contact details via WhatsApp/SMS', error);
   }
 };
 
+const handleInterestTracking = async (userId, propertyId) => {
+  const checkInterestQuery = 'SELECT * FROM tbl_property_intrest WHERE user_id = ?';
+  const [interestResult] = await pool.query(checkInterestQuery, [userId]);
+
+  const currentDate = new Date().toISOString().split('T')[0];
+
+  if (interestResult.length > 0) {
+    let existingPropertyIds = JSON.parse(interestResult[0].property_id || '[]');
+    const propertyExists = existingPropertyIds.some(item => item.pid === propertyId);
+
+    if (!propertyExists) {
+      existingPropertyIds.push({ pid: propertyId, date: currentDate });
+      const updatedPropertyIds = JSON.stringify(existingPropertyIds);
+
+      const updateInterestQuery = 'UPDATE tbl_property_intrest SET property_id = ? WHERE user_id = ?';
+      await pool.query(updateInterestQuery, [updatedPropertyIds, userId]);
+    }
+
+  } else {
+    let propertyIds = { pid: propertyId, date: currentDate };
+    const updatedPropertyIds = JSON.stringify([propertyIds]);
+    const createInterestQuery = 'INSERT INTO tbl_property_intrest (user_id, property_id) VALUES (?, ?)';
+    await pool.query(createInterestQuery, [userId, updatedPropertyIds]);
+  }
+};
+
+
+export const sendCustomerMessage = async (mobile = '', name = '', property = '', owner = '', contact = '') => {
+  try {
+      if (!mobile) {
+          throw new Error("Mobile number is required.");
+      }
+
+      const formattedMobile = formatPhoneNumber(mobile);
+
+      const API_URL = 'https://www.textguru.in/api/v22.0/';
+      const USERNAME = process.env.TEXTGURU_USERNAME;
+      const PASSWORD = process.env.TEXTGURU_PASSWORD;
+      const SOURCE = 'ETSQFT';
+      const DLTTEMPID = `${process.env.TEXTGURU_CUSTOMER_TEMPID}`;
+
+      const MESSAGE = `Hello ${name}, Thank you for your interest in the property ${property}. The owner of this property is ${owner} and you can contact them at ${contact}. Team 8sqft.com`;
+      const apiEndpoint = `${API_URL}?username=${USERNAME}&password=${PASSWORD}&source=${SOURCE}&dmobile=${formattedMobile}&dlttempid=${DLTTEMPID}&message=${encodeURIComponent(MESSAGE)}`;
+ 
+      const response = await axios.get(apiEndpoint);
+
+      if (response.status === 200) {
+          const responseData = response.data;
+          if (responseData.includes('MsgID')) {
+            return { "MsgID": response.data, status : response.status, statusText : response.statusText };
+          } else {
+            return { "MsgID": null, status : 400, statusText : 'Not Found' };
+          }
+      } else {
+          throw new Error('Error from TextGuru API');
+      }
+  } catch (error) {
+      throw new Error('Error from TextGuru API: ' + error);
+  }
+};
+
+
+export const sendBuilderMessage = async (mobile = '', ownerName = '', customerName = '', property = '', customerContact = '') => {
+  try {
+      if (!mobile) {
+          throw new Error("Mobile number is required.");
+      }
+
+      const formattedMobile = formatPhoneNumber(mobile);
+
+      const API_URL = 'https://www.textguru.in/api/v22.0/';
+      const USERNAME = process.env.TEXTGURU_USERNAME;
+      const PASSWORD = process.env.TEXTGURU_PASSWORD;
+      const SOURCE = 'ETSQFT';
+      const DLTTEMPID = `${process.env.TEXTGURU_BUILDER_TEMPID}`;
+
+      const MESSAGE = `Hello ${ownerName}, ${customerName} is interested in your property ${property}. You can contact them at ${customerContact}. Team 8sqft.com`;
+      const apiEndpoint = `${API_URL}?username=${USERNAME}&password=${PASSWORD}&source=${SOURCE}&dmobile=${formattedMobile}&dlttempid=${DLTTEMPID}&message=${encodeURIComponent(MESSAGE)}`;
+ 
+      const response = await axios.get(apiEndpoint);
+
+      if (response.status === 200) {
+          const responseData = response.data;
+          if (responseData.includes('MsgID')) {
+            return { "MsgID": response.data, status : response.status, statusText : response.statusText };
+          } else {
+            return { "MsgID": null, status : 400, statusText : 'Not Found' };
+          }
+      } else {
+          throw new Error('Error from TextGuru API');
+      }
+  } catch (error) {
+      throw new Error('Error from TextGuru API: ' + error);
+  }
+};

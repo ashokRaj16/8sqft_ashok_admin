@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CButton, CModal, CModalHeader, CModalTitle, CModalBody, CRow, CCol, CFormLabel, CFormInput, CFormSelect,
+import { CButton, 
+  CRow, 
+  CCol, 
+  CModal, 
+  CModalHeader, 
+  CModalTitle, 
+  CModalBody, 
+  CFormLabel, 
+  CFormInput, 
+  CFormSelect,
   CToaster,
-  CHeader
  } from "@coreui/react";
 import { getPlansById } from "@model/plansModel";
 import { ToastMessage } from '@component/ToastMessage'
 
-
-const PromotionDetailsModal = ({ isModalVisible, toggleModal, id }) => {
+const SponsaredDetailsModal = ({ isModalVisible, toggleModal, id }) => {
   
   console.log('modals props:', isModalVisible, toggleModal, id)
   const [ planData, setPlanData] = useState({})
@@ -213,4 +220,4 @@ const PromotionDetailsModal = ({ isModalVisible, toggleModal, id }) => {
   );
 };
 
-export default PromotionDetailsModal;
+export default SponsaredDetailsModal;

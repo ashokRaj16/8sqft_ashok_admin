@@ -27,8 +27,6 @@ export const listPlans = async (req, res) => {
     if (whereClauses.length > 0) {
         baseQuery = ` WHERE ` + whereClauses.join(' AND ');
     }
-
-    console.log("Request body: ", whereClauses);
     
     
     const allowedColumns = ['id', 'plan_title', 'property_category', 'user_type', "plan_amount", "plan_discounted_amount"];
@@ -90,8 +88,6 @@ export const createPlan = async (req, res) => {
     plan_discounted_amount,
     plan_gst_per,
   } = req.body;
-
-  console.log(req.body);
   try {
     const query = `
       INSERT INTO tbl_subscription_plans (
@@ -111,7 +107,6 @@ export const createPlan = async (req, res) => {
 
     return successWithDataResponse(res, false, result[0]);
   } catch (error) {
-    console.log(error)
     return badRequestResponse(res, false, "Failed to create plan", error);
   }
 };

@@ -33,10 +33,15 @@ import {
 } from '@coreui/react'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import { ToastMessage } from '@component/ToastMessage'
-import { useNavigate } from 'react-router-dom'
-import { initialPromotionLeadValues, initialPromotionTempValues } from './data'
+import { useNavigate, Link } from 'react-router-dom'
+import {
+  initialPromotionLeadValues,
+  initialPromotionTempValues,
+  templateSocialGupshupOption,
+  templateSocialTypeOption,
+} from './data'
 import { validationMarketingLeadSchema, validationMarketingTempSchema } from './marketingValidation'
-import { createMarketingWAImageLead, createMarketingWAOwner } from '../../../models/marketingModel'
+import { createMarketingWAImageLead, createMarketingWAMarathiLead, createMarketingWAOwner } from '../../../models/marketingModel'
 
 import ExcelUploadComponent from './ExcelUploadComponent'
 import GalleryModal from '../Component/GalleryModal'
@@ -44,16 +49,21 @@ import SearchSelect from '../Component/SearchSelect'
 
 import { getPropertyList } from '../../../models/propertyModel'
 import { useDebounce } from '../../../hooks/useDebounce'
-import { usePushToastHelper } from '../../../utils/toastHelper'
+import { usePushToastHelper } from '../../../hooks/usePushToastHelper'
+import { FaDownload } from 'react-icons/fa'
+import SearchSelectMaster from '../Component/SearchSelectMaster'
+import { constant } from '../../../utils/constant'
 
 const AddMarketingTemp = () => {
   const navigate = useNavigate()
   const [properties, setProperties] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState(1)
 
   const [isVisible, setIsVisible] = useState(false)
   const [selectedImages, setSelectedImages] = useState('')
+  const [isExcelVisible, setIsExcelVisible] = useState(false)
+  const [selectedExcel, setSelectedExcel] = useState('')
 
   const toaster = useRef()
   const { toasts, pushToastsMessage } = usePushToastHelper()
@@ -82,10 +92,18 @@ const AddMarketingTemp = () => {
       if (selectedImages.length > 0) {
         updatedValues = {
           ...values,
-          banner_image: selectedImages[0].url,
         }
       }
-      const result = await createMarketingWAImageLead(updatedValues)
+      console.log(updatedValues, 'valuesssss')
+      let result;
+      if(updatedValues.template_type === templateSocialGupshupOption[0].value) 
+      {
+        result = await createMarketingWAImageLead(updatedValues)
+      }
+      if(updatedValues.template_type === templateSocialGupshupOption[1].value) 
+      {
+        result = await createMarketingWAMarathiLead(updatedValues)
+      }
       if (result) {
         pushToastsMessage('success', result.data.message)
       }
@@ -251,7 +269,7 @@ const AddMarketingTemp = () => {
                   <CCol lg={6} className="mb-2">
                     <Formik
                       initialValues={initialPromotionLeadValues}
-                      validationSchema={validationMarketingLeadSchema}
+                      validationSchema={validationMarketingLeadSchema(selectedExcel)}
                       onSubmit={(values, { setSubmitting, resetForm }) => {
                         handlePropertyLeadSubmit(values, resetForm, setSubmitting)
                       }}
@@ -267,6 +285,32 @@ const AddMarketingTemp = () => {
                         console.log(values, errors, 'val'),
                         (
                           <Form>
+                            <CRow className="mb-3">
+                              <CFormLabel
+                                htmlFor="template_type"
+                                className="col-sm-3 col-form-label"
+                              >
+                                Template Type:{' '}
+                              </CFormLabel>
+                              <CCol sm={10} md={6} lg={6}>
+                                <Field
+                                  name="template_type"
+                                  as={CFormSelect}
+                                  className="form-control"
+                                >
+                                  <option value="-1" label="Select Type" />
+                                  {templateSocialGupshupOption.map((item, index) => (
+                                    <option key={index} value={item.value} label={item.title} />
+                                  ))}
+                                </Field>
+                                <ErrorMessage
+                                  name="template_type"
+                                  component={CFormText}
+                                  className="text-danger"
+                                />
+                              </CCol>
+                            </CRow>
+
                             <CRow className="mb-3">
                               <CFormLabel htmlFor="full_name" className="col-sm-3 col-form-label">
                                 Full Name:
@@ -295,47 +339,159 @@ const AddMarketingTemp = () => {
                               </CCol>
                             </CRow>
 
-                            <SearchSelect
-                              label={'Properties'}
-                              name={'property_id'}
-                              placeholder={'Select Property'}
-                              searchTerm={searchTerm}
-                              setSearchTerm={setSearchTerm}
-                              options={properties || []}
-                            />
-
+                            <CFormLabel>
+                              <em>
+                                <strong>OR</strong>
+                              </em>
+                            </CFormLabel>
                             <CRow className="mb-3">
                               <GalleryModal
-                                visible={isVisible}
-                                setVisible={setIsVisible}
-                                onSelectImages={setSelectedImages}
+                                visible={isExcelVisible}
+                                setVisible={setIsExcelVisible}
+                                maxSelectedCount={1}
+                                onSelectImages={(files) => {
+                                  if (files && files.length > 0) {
+                                    let file = files[0]
+                                    // if(file.type !== 'excel'){
+                                    //   alert('Please select excel file');
+                                    //   return;
+                                    // }
+                                    setFieldValue('contacts_file', file.url)
+                                  }
+                                }}
                               />
                               <CFormLabel htmlFor="mobile" className="col-sm-3 col-form-label">
-                                Image:
+                                Select Excel:
                               </CFormLabel>
                               <CCol sm={10} md={6} lg={6}>
                                 <CButton
-                                  onClick={() => setIsVisible(true)}
+                                  onClick={() => setIsExcelVisible(true)}
                                   type="button"
                                   color="primary"
                                 >
-                                  {' '}
-                                  Select{' '}
+                                  Select
                                 </CButton>
                                 <ErrorMessage
-                                  name="banner_image"
+                                  name="contacts_file"
                                   component={CFormText}
                                   className="text-danger"
                                 />
-                              <CCol sm={10} md={6} lg={6} className='mt-2'>
-                                { selectedImages.length > 0 &&
-                                  <CImage src={selectedImages[0]?.url || ''} width={200} height={100} />
-                                }
+                                <CCol sm={10} md={6} lg={6} className="mt-2">
+                                  {/* {selectedExcel.length > 0 && (
+                                    <>
+                                      <Link to={selectedExcel[0]?.url}>
+                                        <FaDownload />
+                                      </Link>
+                                      <CFormLabel>{selectedExcel[0]?.name}</CFormLabel>
+                                    </>
+                                  )} */}
+                                  {values.contacts_file && (
+                                    <>
+                                      <Link target="_blank" to={values.contacts_file}>
+                                        <FaDownload />
+                                      </Link>
+                                      <CFormLabel>{values.contacts_file}</CFormLabel>
+                                    </>
+                                  )}
+                                </CCol>
                               </CCol>
-                              </CCol>
-
                             </CRow>
+                            {values.template_type === templateSocialGupshupOption[0].value && (
+                              <>
+                                <CRow className="mb-3">
+                                  <CFormLabel htmlFor="mobile" className="col-sm-3 col-form-label">
+                                    Select Proeprty:
+                                  </CFormLabel>
+                                  <CCol sm={10} md={6} lg={6}>
+                                    <SearchSelectMaster
+                                      name={'property_id'}
+                                      placeholder={'Select Property'}
+                                      searchTerm={searchTerm}
+                                      setSearchTerm={setSearchTerm}
+                                      setSelectedValue={(val) =>
+                                        setFieldValue('property_id', val.id)
+                                      }
+                                      options={properties || []}
+                                    />
+                                    <ErrorMessage
+                                      name="property_id"
+                                      component={CFormText}
+                                      className="text-danger"
+                                    />
+                                  </CCol>
+                                </CRow>
+                                <CRow className="mb-3">
+                                  <GalleryModal
+                                    visible={isVisible}
+                                    setVisible={setIsVisible}
+                                    maxSelectedCount={1}
+                                    onSelectImages={(files) => {
+                                      if (files && files.length > 0) {
+                                        let file = files[0]
+                                        setFieldValue('banner_image', file.url)
+                                      }
+                                    }}
+                                  />
+                                  <CFormLabel htmlFor="mobile" className="col-sm-3 col-form-label">
+                                    Image:
+                                  </CFormLabel>
+                                  <CCol sm={10} md={6} lg={6}>
+                                    <CButton
+                                      onClick={() => setIsVisible(true)}
+                                      type="button"
+                                      color="primary"
+                                    >
+                                      Select
+                                    </CButton>
+                                    <ErrorMessage
+                                      name="banner_image"
+                                      component={CFormText}
+                                      className="text-danger"
+                                    />
+                                    <CCol sm={10} md={6} lg={6} className="mt-2">
+                                      {values.banner_image && (
+                                        <CImage
+                                          src={values.banner_image || ''}
+                                          width={200}
+                                          height={100}
+                                        />
+                                      )}
+                                    </CCol>
+                                  </CCol>
+                                </CRow>
+                              </>
+                            ) }
+                            {values.template_type === templateSocialGupshupOption[1].value && (
+                              <>
+                                <CRow className="mb-3">
+                                  <CFormLabel htmlFor="txt_marathi" className="col-sm-3 col-form-label">
+                                    Message (In Marathi):
+                                  </CFormLabel>
+                                  <CCol sm={10} md={6} lg={6}>
+                                    <Field as={CFormTextarea} placeholder="Text Marathi" name="txt_marathi" />
+                                    <ErrorMessage
+                                      name="txt_marathi"
+                                      component={CFormText}
+                                      className="text-danger"
+                                    />
+                                  </CCol>
+                                </CRow>
 
+                                <CRow className="mb-3">
+                                  <CFormLabel htmlFor="msg_mobile" className="col-sm-3 col-form-label">
+                                    Mobile No:
+                                  </CFormLabel>
+                                  <CCol sm={10} md={6} lg={6}>
+                                    <Field as={CFormInput} placeholder="Msg Mobile" name="msg_mobile" />
+                                    <ErrorMessage
+                                      name="msg_mobile"
+                                      component={CFormText}
+                                      className="text-danger"
+                                    />
+                                  </CCol>
+                                </CRow>
+                              </>
+                            )}
                             <CButton
                               type="submit"
                               color="primary"

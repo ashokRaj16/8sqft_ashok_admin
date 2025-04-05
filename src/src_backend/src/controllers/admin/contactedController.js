@@ -50,8 +50,6 @@ export const getAllContactedUsersByProperty = async (req, res) => {
       parseInt(offset),
     ]);
 
-    console.log("intrested:::", interestedUsersResult, id, limit, offset, totalCount);
-
     return successResponse(res, true, "Interested users retrieved successfully...", {
       totalCount,
       users: interestedUsersResult,

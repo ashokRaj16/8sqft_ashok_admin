@@ -10,5 +10,18 @@ export const generateSlug = (property_title, locality, city_name, id) => {
       .replace(/^-+|-+$/g, ''); // Trim hyphens from start & end
   
     return slug;
-  };
+};
+
+export const generateSponsaredSlug = (property_title, categories, id) => {
+  const parts = [property_title, categories, id]
+    .filter(part => part)
+    .map(part => part.toString().replace(/,/g, '-'));
+
+  let slug = parts.join('-')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-') 
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug;
+};
   

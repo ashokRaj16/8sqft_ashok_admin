@@ -60,7 +60,6 @@ export const featureValidators = (req = {}) => {
 export const propertyValidators = (req = {}) => {
 
     let errors = [];
-    console.log("Images", req);
     if( !req.step_id ) {
         errors.push({field: "step_id", message: "Step id is required!"});
     }

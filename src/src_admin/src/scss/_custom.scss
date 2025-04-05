@@ -63,3 +63,14 @@ $order-info-border: rgb(252, 102, 0);
   background: #aaa;
   border-radius: 3px;
 }
+
+.ass-hover-effect:hover {
+  background-color: #e1e3e1 !important;
+  transform: scale(1.01);
+  border-color: #007bff;
+}
+
+.ass-selected-row {
+  background-color: #c2e7ff !important; /* Force highlight */
+  color: black !important; /* Ensure text remains visible */
+}

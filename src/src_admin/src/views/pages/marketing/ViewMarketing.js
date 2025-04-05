@@ -30,27 +30,17 @@ import {
   CCardText,
   CSpinner,
 } from '@coreui/react'
-import { FaTrash } from 'react-icons/fa'
+import { FaDownload, FaTrash } from 'react-icons/fa'
 
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { ToastMessage } from '../../../components/ToastMessage'
 import Loader from '../../../utils/Loader'
 import _ from 'lodash'
 // import { formattedDate } from '../../../utils/date';
-import { updateStatusProperty, sendPropertyMails } from '../../../models/propertyModel'
+// import { updateStatusProperty, sendPropertyMails } from '../../../models/propertyModel'
 import { getMarketingDetailsById, deleteMarketingDetailsById } from '../../../models/marketingModel'
-
-const mailTypes = [
-  { id: 1, title: 'Porperty Approved' },
-  { id: 2, title: 'Porperty Rejected' },
-  { id: 3, title: 'Porperty Pending' },
-  { id: 4, title: 'Porperty Notification' },
-]
-
-const marketingAction = [
-  { id: 1, title: 'RESEND' },
-  { id: 2, title: 'REMOVE' },
-]
+import { marketingAction, mailTypes } from './data.js'
+import { formattedDate } from '../../../utils/date.js'
 
 const ViewMarketing = () => {
   const { id } = useParams() // Get property ID from the URL
@@ -126,17 +116,17 @@ const ViewMarketing = () => {
   const handleMailSubmit = async (e) => {
     e.preventDefault()
     try {
-      setLoading(true)
-      const result = await sendPropertyMails(id, mailOption)
-      console.log('UI:', result.data.property)
-      if (result) {
-        loadPropertyData()
-        const toastContent = (
-          <ToastMessage type="success" message={result.data.message} onClick="close" />
-        )
-        addToast(toastContent)
-      }
-      setLoading(false)
+      // setLoading(true)
+      // const result = await sendPropertyMails(id, mailOption)
+      // console.log('UI:', result.data.property)
+      // if (result) {
+      //   loadPropertyData()
+      //   const toastContent = (
+      //     <ToastMessage type="success" message={result.data.message} onClick="close" />
+      //   )
+      //   addToast(toastContent)
+      // }
+      // setLoading(false)
     } catch (error) {
       console.log('Error: ', error)
       const toastContent = <ToastMessage type="error" message={error.message} onClick="close" />
@@ -201,17 +191,14 @@ const ViewMarketing = () => {
                       <CTable align="middle" className="mb-0 border" hover responsive>
                         <CTableHead color="light">
                           <CTableRow>
-                            <CTableHeaderCell>
-                              {/* <CFormCheck
-                                          checked={selectedMarketing.length === currentMarketing.length}
-                                          onChange={handleSelectAll}
-                                        /> */}
-                            </CTableHeaderCell>
                             <CTableHeaderCell>Id</CTableHeaderCell>
                             <CTableHeaderCell>Full Name</CTableHeaderCell>
                             <CTableHeaderCell>Mobile</CTableHeaderCell>
+                            <CTableHeaderCell>Contact File</CTableHeaderCell>
+                            <CTableHeaderCell>Total Contact</CTableHeaderCell>
+                            <CTableHeaderCell>Sent Contact</CTableHeaderCell>
+                            <CTableHeaderCell>Banner Image</CTableHeaderCell>
                             <CTableHeaderCell>Status</CTableHeaderCell>
-                            <CTableHeaderCell>Status Text</CTableHeaderCell>
                             <CTableHeaderCell>Publish Date</CTableHeaderCell>
                             <CTableHeaderCell>Action</CTableHeaderCell>
                           </CTableRow>
@@ -220,18 +207,37 @@ const ViewMarketing = () => {
                           {marketingDetails &&
                             marketingDetails?.marketing_log.map((item, index) => (
                               <CTableRow key={index}>
-                                <CTableDataCell>
-                                  {/* <CFormCheck
-                                            checked={selectedMarketing.includes(item)}
-                                            onChange={() => handleSelectItem(item)}
-                                          /> */}
-                                </CTableDataCell>
                                 <CTableDataCell>{item.id}</CTableDataCell>
-                                <CTableDataCell>{`${item.full_name}`}</CTableDataCell>
-                                <CTableDataCell>{item.mobile}</CTableDataCell>
-                                <CTableDataCell>{item.status}</CTableDataCell>
-                                <CTableDataCell>{item.status_text || '-'}</CTableDataCell>
-                                <CTableDataCell>{item?.created_at || '-'}</CTableDataCell>
+                                <CTableDataCell>{item?.full_name || '-'}</CTableDataCell>
+                                <CTableDataCell>{item?.mobile || '-'}</CTableDataCell>
+
+                                <CTableDataCell>
+                                  {item?.contacts_file ? (
+                                    <Link to={item?.contacts_file}>
+                                      <FaDownload />
+                                    </Link>
+                                  ) : (
+                                    '-'
+                                  )}
+                                </CTableDataCell>
+                                <CTableDataCell>{item?.total_contact || '-'}</CTableDataCell>
+                                <CTableDataCell>{item?.msg_send_contact || '-'}</CTableDataCell>
+                                
+                                <CTableDataCell>
+                                  {
+                                    item?.banner_image ?
+                                      <CImage
+                                        width={50}
+                                        src={item?.banner_image || ''}
+                                        alt="Banner Image"
+                                      />
+                                    : '-'
+                                  }
+                                </CTableDataCell>
+                                <CTableDataCell>{item?.status_text || '-'}</CTableDataCell>
+                                <CTableDataCell>
+                                  {formattedDate(item?.created_at) || '-'}
+                                </CTableDataCell>
 
                                 <CTableDataCell>
                                   <CButton

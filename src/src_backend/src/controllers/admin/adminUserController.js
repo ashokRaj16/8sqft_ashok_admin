@@ -43,7 +43,7 @@ export const listUsers = async (req, res) => {
         const allowedColumns = ['id', 'fname', 'email', 'mobile', "role_id"];
         const allowedOrders = ['ASC', 'DESC'];
 
-        const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'id';
+        const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'tu.id';
         const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase()) ? filters.sortOrder?.toUpperCase() : 'ASC';
 
         // const totalQuery = `SELECT COUNT(*) as total FROM tbl_users_admin WHERE is_deleted = '0' ${searchQuery}`;
@@ -76,8 +76,6 @@ export const listUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
-
-        console.log(id,"ssss")
         const result = await getUserAdminById(id)
         // const [user] = await pool.execute("SELECT * FROM tbl_users_admin WHERE id = ? AND is_deleted = '0'", [id]);
         if ( result.length === 0) {
@@ -110,7 +108,6 @@ export const addAdminUser = async (req, res) => {
             role_id : role_id || null,
             added_by : req.userId || null }
             
-            // console.log(userData)
 
             const whereClauses = 'email = ? OR mobile = ?'
             const userDetailsEmails = await readRecordDb('tbl_users_admin', undefined, whereClauses, [userData.email, userData.mobile]);
@@ -121,15 +118,12 @@ export const addAdminUser = async (req, res) => {
             const result = await createAdminUser(userData);
         return successWithDataResponse(res, false, 'User added successfully.', result);
     } catch (error) {
-        console.log(error)
         return badRequestResponse(res, false, 'Error adding user', error);
     }
 };
 
 export const updateAdminUser = async (req, res) => {
     const { id } = req.params;
-    
-    console.log(req.body, "boddddyyyy");
     if(!id) {
         return badRequestResponse(res, false, "Id required with request.")
     }

@@ -59,13 +59,13 @@ const _nav = [
     component: CNavGroup,
     name: 'Promotion',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-    to : '/promotion',
+    to : '/sponsared',
     role : ['SUPER ADMIN', 'SUB ADMIN'],
     items: [ 
       {
         component: CNavItem,
         name: 'Sponsared',
-        to: '/promotion',
+        to: '/sponsared',
         role : ['SUPER ADMIN', 'SUB ADMIN']
       },
       {

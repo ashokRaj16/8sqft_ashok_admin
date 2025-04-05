@@ -1,46 +1,46 @@
 
 import jwt from 'jsonwebtoken';
 import bcrypt from "bcryptjs";
-// import validator from 'validator';
 
-// import dotenv from 'dotenv';
 import * as AdminModel from "../../models/adminModel.js"
 import { loginValidator } from "../validators/loginValidator.js";
 import { badRequestResponse, successResponse, successWithDataResponse, unauthorizedResponse } from "../../utils/response.js";
+import { generateToken } from '../../utils/tokenHelper.js';
+import { constant } from '../../config/constant.js';
 
+// import { cookie }
 // dotenv.config();
-
-// Secret and expiry for JWT
 
 // Admin Login
 export const adminLogin = async (req, res) => {
     try {
-        const JWT_SECRET = process.env.JWT_SECRET_ADMIN;
-        const JWT_EXPIRY = process.env.JWT_EXPIRY;
         const data = {}
-        console.log(req.body);
         const errors = loginValidator(req.body);
         if(errors.length > 0)
         {
             return badRequestResponse(res, false, "Validation Message", errors);
         }
-            
+
         const { email, password } = req.body;
         const admin = await AdminModel.findByEmail(email);
-        console.log("admin",admin)
+        
         if (!admin) {
-            return badRequestResponse(res, false, "User not found.. Pleas enter valid user id or password.")
+            return badRequestResponse(res, false, "User not found. Pleas enter valid user id or password.")
         }
         const isPasswordValid = await bcrypt.compare(password, admin.password_hash);
-        // console.log(isPasswordValid);
         if (!isPasswordValid) {
             return unauthorizedResponse(res, false, 'Please enter valid password.' );
         }
 
         const userData = { id: admin.id, email: admin.email, role: admin.role_id, role_name: admin.role_name };
-        const token = jwt.sign(userData, JWT_SECRET, { expiresIn: JWT_EXPIRY });
-        data['token'] = token;
+
+        const accessToken = generateToken( userData, constant.USER_TYPE.ADMIN, constant.TOKEN_TYPE.ACCESS )
+        const refreshToken = generateToken( userData, constant.USER_TYPE.ADMIN, constant.TOKEN_TYPE.REFRESH )
+
+        data['sqftAccessToken'] = accessToken;
+        data['sqftRefreshToken'] = refreshToken;
         return successResponse(res, true, 'Login successful.', data)
+
     } catch (error) {
         return badRequestResponse(res, false, 'Error logging in.', error);
     }
@@ -66,7 +66,6 @@ export const getProfile = async (req, res) => {
     try {
         const admin = await AdminModel.findById(adminId);
         if (!admin) return res.status(404).json({ message: 'Profile not found' });
-
         res.status(200).json(admin);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching profile', error });
@@ -121,7 +120,6 @@ export const changePassword = async (req, res) => {
           return badRequestResponse(res, false, 'Admin not found.' );
         }
         const isPasswordValid = await bcrypt.compare(oldPassword, admin.password_hash);
-        console.log(admin, isPasswordValid)
         if (!isPasswordValid) {
           return badRequestResponse( res, false, 'Old password is incorrect.' );
         }
@@ -131,7 +129,6 @@ export const changePassword = async (req, res) => {
 
         return successWithDataResponse(res, false, 'Password changed successfully.', result );
     } catch (error) {
-      // console.log(error)
       return badRequestResponse(res, false, 'Error changing password', error );
     }
 };
@@ -139,26 +136,32 @@ export const changePassword = async (req, res) => {
 
 //Dashboard
 export const dashboard = async (req, res) => {
-    try {
-        
-        const userCount = await AdminModel.getUserCount();
-        const adminDetails = await AdminModel.findById(req.user.id);
+    let data = {}
+  let userId= req.userId
 
-        res.status(200).json({
-            message: 'Dashboard data',
-            data: {
-                totalUsers: userCount,
-                adminInfo: {
-                    fname: adminDetails.fname,
-                    lname: adminDetails.lname,
-                    email: adminDetails.email,
-                },
-            },
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching dashboard data', error });
-    }
+  try {
+      const userCount = await AdminModel.getUserCount();
+      const propertyCount = await AdminModel.getPropertyCount();
+      const adminDetails = await AdminModel.findById(userId);
+
+      // Fetch month-wise user and property counts
+      const userCountByMonth = await AdminModel.getUserCountByMonth();
+      const propertyCountByMonth = await AdminModel.getPropertyCountByMonth();
+
+        data['total_users'] = userCount;
+        data['total_property'] = propertyCount;
+        data['adminDetails'] = adminDetails;
+        data['userCountByMonth'] = userCountByMonth;
+        data['propertyCountByMonth'] = propertyCountByMonth;
+
+        return successWithDataResponse(res, true, "Site count info",data)
+    
+    
+  } catch (error) {
+     return badRequestResponse(res, false, 'Error fetching dashboard data', error)
+  }
 };
+
 
 
 export const getAdminRoles = async (req, res) => {

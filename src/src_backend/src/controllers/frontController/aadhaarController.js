@@ -10,7 +10,6 @@ const BASE_URL = "https://ippocloud.com/api/v1/uidai/aadhaar-authentication";
 
 async function initiateTransaction() {
     try {
-        console.log("Initiating transaction...");
 
         const response = await axios.get(`${BASE_URL}/initiate-transaction`, {
             headers: {
@@ -19,7 +18,6 @@ async function initiateTransaction() {
             },
         });
 
-        console.log("Transaction Response:", response.data);
         return response.data;
     } catch (error) {
         console.error("Transaction API Error:", error.response?.data || error.message);
@@ -29,7 +27,6 @@ async function initiateTransaction() {
 
 
 export const requestOtp = async (req, res) => {
-    console.log("Response Check", req.body);
     try {
         const { aadhaarNumber } = req.body;
         const transaction = await initiateTransaction();

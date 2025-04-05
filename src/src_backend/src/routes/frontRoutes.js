@@ -17,6 +17,8 @@ import contactDeveloper from "../routes/frontend/contactDeveloperRoutes.js";
 import planRoutes from '../routes/frontend/plansRoutes.js';
 import profileRoutes from '../routes/frontend/profileRoutes.js';
 import agreementRoutes from '../routes/frontend/agreementsRoutes.js';
+import sponsaredRoutes from '../routes/frontend/sponsaredRoutes.js';
+
 
 import { verifyClientToken } from "../Middleware/authMiddleware.js";
 import { assignSessionId } from "../Middleware/session.js";
@@ -27,6 +29,8 @@ import { uploadPropertyImages, deletePropertyImage, uploadPropertyFilesWithWater
 
 const router = express.Router();
 router.use('/', homeRoutes)
+router.use('/spotlight', sponsaredRoutes);
+
 router.use('/contact_developer', contactDeveloper);
 
 router.use('/property', propertyRoutes);
@@ -41,6 +45,7 @@ router.use('/blog', blogRoutes);
  */
 router.use(verifyClientToken);
           // done
+          
 router.use('/agreements', agreementRoutes);       //  check
 
 // ## make it proper.
