@@ -27,10 +27,17 @@ import { getBlogCategory } from '../../../models/blogCategoryModel'
 import { useNavigate } from 'react-router-dom'
 import GalleryModal from '../Component/GalleryModal'
 
+<<<<<<< HEAD
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 
 import { usePushToastHelper } from '../../../hooks/usePushToastHelper'
+=======
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import { usePushToastHelper } from '../../../utils/toastHelper'
+>>>>>>> 26a611d00620113d8eb69eb9ba5f64222fc32dd4
+
 
 const AddBlog = () => {
 
@@ -120,6 +127,7 @@ const AddBlog = () => {
     },
   }
 
+
   // function handleImageInsert() {
   //   const editor = quillRef.current.getEditor();
   //   const range = editor.getSelection();
@@ -189,6 +197,14 @@ const AddBlog = () => {
       {/* <CContainer> */}
       {/* <CRow> */}
       {/* <CCol> */}
+<<<<<<< HEAD
+=======
+      <GalleryModal 
+        visible={isVisible} 
+        setVisible={setIsVisible} 
+        selectImageCount={1}
+        onSelectImages={setSelectedImages} />
+>>>>>>> 26a611d00620113d8eb69eb9ba5f64222fc32dd4
 
       <CCard className="mb-4">
         <CCardHeader>
@@ -207,6 +223,7 @@ const AddBlog = () => {
                 handleSubmit(values, resetForm, setSubmitting)
               }}
             >
+<<<<<<< HEAD
               {({
                 setFieldValue,
                 setFieldError,
@@ -225,6 +242,109 @@ const AddBlog = () => {
                           <CCardBody>
                             {/* Blog Details Section */}
                             <CRow className="mb-3">
+=======
+              {({ setFieldValue, setFieldError, values, errors, handleChange, handleBlur, isSubmitting }) => (
+                console.log(values, errors, "values"),
+
+                <Form>
+                  <CRow className="mb-3">
+                    <CCol lg={8} md={8} sm={12} className="mb-2">
+                      <CCard>
+                        <CCardBody>
+                          {/* Blog Details Section */}
+                          <CRow className="mb-3">
+                            <CCol md="12">
+                              <CFormLabel>Title</CFormLabel>
+                              <Field
+                                name="title"
+                                as={CFormInput}
+                                value={values.title}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                placeholder="Enter the blog title"
+                              />
+                              <ErrorMessage name="title" component="div" className="text-danger" />
+                            </CCol>
+                          </CRow>
+
+                          <CRow className="mb-4">
+                            <CCol md="12">
+                              <CFormLabel>Description</CFormLabel>
+                              {/* <CFormTextarea /> */}
+                              
+                              <ReactQuill
+                                ref={quillRef}
+                                name="description"
+                                theme="snow"
+                                value={values.description}
+                                modules={EditorOptions}
+                                // onChangeSelection={(range) => {
+                                //   if (range) setSavedRange(range); // Save the cursor position
+                                // }}
+                                onChange={(content) => setFieldValue("description", content)}
+                                placeholder="Write the blog content..."
+                              />
+                              <ErrorMessage name="description" component="div" className="text-danger" />
+                            </CCol>
+                          </CRow>
+
+
+                          {/* <CRow className="mb-3">
+                            <CCol md="12">
+                              <CFormLabel>Description</CFormLabel>
+                              <Field
+                                type="textarea"
+                                name="description"
+                                rows={5}
+                                as={CFormTextarea}
+                                value={values.description}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                placeholder="Enter the blog description"
+                              />
+                              <ErrorMessage
+                                name="description"
+                                component="div"
+                                className="text-danger"
+                              />
+                            </CCol>
+                          </CRow> */}
+
+                          <CRow className="mb-3">
+                            <CCol md="12">
+                              <CFormLabel>Short Description</CFormLabel>
+                              <Field
+                                type="textarea"
+                                name="short_description"
+                                rows={5}
+                                as={CFormTextarea}
+                                value={values.short_description}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                placeholder="Enter the blog description"
+                              />
+                              <ErrorMessage
+                                name="short_description"
+                                component="div"
+                                className="text-danger"
+                              />
+                            </CCol>
+                          </CRow>
+
+                          {/* upload image seperately and set image url */}
+                          <CRow className="mb-3">
+                            <CCol md="12">                              
+                              <CButton 
+                                onClick={ () => setIsVisible(true)}
+                                className='btn btn-info mb-2'
+                                color='white'
+                                >
+                                Select Banner
+                              </CButton>
+                              </CCol>
+
+                              {/* Show server uploaded image url. */}
+>>>>>>> 26a611d00620113d8eb69eb9ba5f64222fc32dd4
                               <CCol md="12">
                                 <CFormLabel>Title</CFormLabel>
                                 <Field

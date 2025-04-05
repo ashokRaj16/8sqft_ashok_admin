@@ -336,6 +336,7 @@ const ListBlogs = () => {
                   <CTableDataCell>{index + 1}</CTableDataCell>
                   <CTableDataCell>{blog.title.length > 25 ? `${blog.title.slice(0, 25)} ...`  : blog.title || '-'}</CTableDataCell> 
                   <CTableDataCell>{blog.short_description?.length > 25 ? `${blog.short_description.slice(0, 25)} ...`  : blog.short_description || '-'}</CTableDataCell> 
+
                   <CTableDataCell>{blog.category_title || '-'}</CTableDataCell>
                   <CTableDataCell>{blog.tags}</CTableDataCell>
                   <CTableDataCell>{formattedDate(blog?.created_at) || '-'}</CTableDataCell>
