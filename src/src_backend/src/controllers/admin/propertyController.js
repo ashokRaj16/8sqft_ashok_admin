@@ -4,7 +4,7 @@ import _ from 'lodash';
 import path from 'path';
 import { PutObjectCommand, ListObjectsCommand, DeleteObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
-import { propertyValidators, propertyUpdateFeaturesValidators, amenetiesValidators, featureValidators, propertyFandQValidator, propertyNearbyValidator } from '../validators/propertyValidators.js';
+import { propertyValidators, propertyUpdateFeaturesValidators, amenetiesValidators, featureValidators, propertyFandQValidator, propertyNearbyValidator, nearybyValidation } from '../validators/propertyValidators.js';
 import { successResponse, badRequestResponse, internalServerResponse, successWithDataResponse } from '../../utils/response.js';
 import { uploadTempFile as upload, s3 } from '../../utils/imageUploadHelper.js';
 import { 
@@ -38,12 +38,14 @@ import {
   updatePropertyNearbyAdminDb,
   delPropertyNearbyByIdAdminDb,
   getAllPropertyNearbyCategoryAdmin,
-  getPropertyNearbyById
+  getPropertyNearbyById,
+  insertGeneratedNearbyLocationsData
  } from '../../models/propertyModels.js';
 import { getUsersById } from '../../models/userModel.js';
 import { propertyConfigurationValidator } from '../validators/propertyValidators.js';
 import { sanitizedField, sanitizedNumber } from '../../utils/commonHelper.js';
 import fs from 'fs';
+import axios from 'axios';
 
 export const getProperty = async (req, res) => {
     try {
@@ -1495,12 +1497,139 @@ export const deletePropertyNearbyAdmin = async (req, res) => {
   }
 };
 
+// export const generatePropertyNearbyAdmin = async (req, res) => {
+//   try {
+//     return successResponse(res, true, 'Property nearby generated!');
+
+//   } catch (error) {
+//     console.error("Database Error:", error);
+//     return badRequestResponse(res, false, 'Failed to generate nearby locations!', error);
+//   }
+// }
+
 export const generatePropertyNearbyAdmin = async (req, res) => {
+  const id = req.params.id;
+
+  if (!id) {
+    return badRequestResponse(res, false, 'Property ID is required');
+  }
+
   try {
-    return successResponse(res, true, 'Property nearby generated!');
+    // Step 1: Get latitude & longitude for the property
+    const [propertyRows] = await pool.execute(
+      'SELECT latitude, longitude FROM tbl_property WHERE id = ?',
+      [id]
+    );
+
+    if (propertyRows.length === 0) {
+      return badRequestResponse(res, false, 'Property not found');
+    }
+
+    const { latitude, longitude } = propertyRows[0];
+
+    // Step 2: Get location types and categories
+    const [locationRows] = await pool.execute(
+      'SELECT locations_name as location_type, location_categories as category FROM tbl_master_nearby_locations'
+    );
+
+    if (locationRows.length === 0) {
+      return badRequestResponse(res, false, 'No location types defined');
+    }
+
+    // Step 3: Build category-wise keywords
+    const categoryKeywords = {};
+    for (const row of locationRows) {
+      if (!categoryKeywords[row.category]) {
+        categoryKeywords[row.category] = [];
+      }
+      categoryKeywords[row.category].push(row.location_type);
+    }
+
+    const apiKey = process.env.GOOGLE_MAP_API_KEY;
+    const radius = 5000; // 5 KM
+    const groupedResults = {};
+    
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      const keywordString = keywords[0];
+      
+      console.log(keywordString, apiKey, "keywords");
+
+      const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&keyword=${keywordString}&key=${apiKey}`;
+
+      const response = await axios.get(placesUrl);
+      const places = response.data.results || [];
+
+      console.log(response.data, "keywords");
+
+      const limitedPlaces = places.slice(0, 5);
+      const distanceMatrixUrl = `https://maps.googleapis.com/maps/api/distancematrix/json`;
+      
+      // console.log(limitedPlaces, "reponse")
+      const destinations = limitedPlaces
+        .map(place => `${place.geometry.location.lat},${place.geometry.location.lng}`)
+        .join('|');
+  
+      const distRes = await axios.get(distanceMatrixUrl, {
+        params: {
+          origins: `${latitude},${longitude}`,
+          destinations,
+          key: apiKey,
+        }
+      });
+
+      const distances = distRes.data.rows[0]?.elements;
+  
+      groupedResults[category] = limitedPlaces.map((place, index) => ({
+        name: place.name,
+        address: place.vicinity,
+        location: place.geometry.location,
+        types: place.types?.join(' | '),
+        type_match: keywords.find(k => place.name.toLowerCase().includes(k.toLowerCase())) || '',
+        distance_text: distances[index].distance?.text || '',
+        duration_text: distances[index].duration?.text || '',
+      }));
+    }
+
+    return successWithDataResponse(res, true, 'Nearby locations grouped by category', groupedResults);
 
   } catch (error) {
-    console.error("Database Error:", error);
-    return badRequestResponse(res, false, 'Failed to generate nearby locations!', error);
+    console.error('Nearby Location Error:', error.message);
+    return badRequestResponse(res, false, 'Error fetching nearby locations');
   }
-}
+};
+
+
+export const insertBulkNearbyLocations = async (req, res) => {
+  const { locations } = req.body;
+  const property_id = req.params.id;
+  console.log(req.params, property_id, 'iddd');
+  if (!property_id || !Array.isArray(locations)) {
+    return badRequestResponse(res, false, 'Property id or locations array are required');
+  }
+
+  // ### validate all values,   //done
+  // if there is error then response error.
+  for (let index = 0; index < locations.length; index++) {
+    const loc = locations[index];
+    const error = nearybyValidation(loc);
+  
+    if (error.length > 0) {
+      const updatedError = error.map((err) => ({
+        ...err,
+        index: index + 1, // 1-based index
+      }));
+  
+      console.log(updatedError, 'val error');
+      return badRequestResponse(res, false, 'Validation errors', updatedError);
+    }
+  }
+    
+  try {
+    const result = await insertGeneratedNearbyLocationsData(property_id, locations);
+
+    return successWithDataResponse(res, true, 'Nearby locations inserted successfully', result);
+  } catch (error) {
+    console.error('Insert Nearby Location Error:', error.message);
+    return badRequestResponse(res, false, 'Error inserting nearby locations');
+  }
+};

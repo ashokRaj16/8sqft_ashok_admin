@@ -2,6 +2,10 @@ import pool from '../config/db.js';
 import * as propertyValidators from './validators/propertyValidators.js';
 import { successResponse, badRequestResponse, internalServerResponse, successWithDataResponse } from '../utils/response.js';
 import validator from 'validator';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 import { 
   createAmenties, 
   createFeatures, 
@@ -23,12 +27,14 @@ import {
   updatePropertySlug, 
   getPropertyCountById,
   getPropertyCountByIds,
-  getPropertyNearbyLocationsById } from '../models/propertyModels.js';
+  getPropertyNearbyLocationsById, 
+  insertGeneratedNearbyLocationsData} from '../models/propertyModels.js';
 
 import { renderEmailTemplate } from '../config/nodemailer.js';
 import { sendMailTemplate } from '../config/nodemailer.js';
 import { generateSlug } from '../utils/slugHelper.js';
 import { sanitizedField, sanitizedNumber } from '../utils/commonHelper.js';
+import axios from 'axios';
 
 
 export const postProperty = async (req, res) => {
@@ -1073,3 +1079,121 @@ export const submitReview = async (req, res) => {
       return badRequestResponse(res, false, 'Error submitting review')
   }
 };
+
+    // const newCategoryKeywords = {
+    //   Transit: [
+    //     'bus station', 'railway station', 'airport', 'metro station',
+    //     'tram station', 'taxi stand', 'ferry terminal', 'truck stop', 'bicycle stand'
+    //   ],
+    //   Essential: [
+    //     'hospital', 'clinic', 'pharmacy', 'convenience store', // for "Mini Store"
+    //     'school', 'university', 'police station', 'fire station',
+    //     'post office', 'government office'
+    //   ],
+    //   Utility: [
+    //     'power station', 'water treatment plant', 'telecom tower',
+    //     'waste collection center', 'fuel station', 'bank', // covers bank branch
+    //     'toll plaza', 'data center', 'atm', 'shopping mall',
+    //     'movie theater', 'ev charging station', 'multiplex', 'inox', 'pvr'
+    //   ],
+    //   Showrooms: [
+    //     'vehicle showroom',
+    //     'car showroom',
+    //     'bike showroom',
+    //     'motorcycle showroom',
+    //     'auto showroom'
+    //   ]
+    // };
+
+
+// export const getNearbyLocations = async (req, res) => {
+//   const id = req.params.id;
+  
+//   if (!id) {
+//   return badRequestResponse(res, false, 'Property ID is required');
+//   }
+  
+//   try {
+//   // Step 1: Get latitude & longitude for the property
+//   const [propertyRows] = await pool.execute(
+//   'SELECT latitude, longitude FROM tbl_property WHERE id = ?',
+//   [id]
+//   );
+  
+//   if (propertyRows.length === 0) {
+//   return badRequestResponse(res, false, 'Property not found');
+//   }
+  
+//   const { latitude, longitude } = propertyRows[0];
+  
+//   // Step 2: Get location types and categories
+//   const [locationRows] = await pool.execute(
+//   'SELECT locations_name as location_type, location_categories as category FROM tbl_master_nearby_locations'
+//   );
+  
+//   if (locationRows.length === 0) {
+//   return badRequestResponse(res, false, 'No location types defined');
+//   }
+  
+//   // Step 3: Build category-wise keywords
+//   const categoryKeywords = {};
+//   for (const row of locationRows) {
+//   if (!categoryKeywords[row.category]) {
+//   categoryKeywords[row.category] = [];
+//   }
+//   categoryKeywords[row.category].push(row.location_type);
+//   }
+  
+//   const radius = 50000; // 5 KM
+//   const groupedResults = {};
+  
+//   for (const [category, keywords] of Object.entries(categoryKeywords)) {
+//   groupedResults[category] = [];
+  
+//   for (const keyword of keywords) {
+//   const overpassUrl = `https://overpass-api.de/api/interpreter`;
+  
+//   const query = `[out:json];
+//   node(around:${radius},${latitude},${longitude})[name]["amenity"="${keyword.replace(' ','_').toLowerCase()}" ];
+//   out body;`;
+//   console.log(keyword.replace(' ','_').toLowerCase(), radius, latitude, longitude, "reponse")
+  
+//   const response = await axios.post(overpassUrl, query, {
+//   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+//   });
+  
+//   const elements = response.data.elements || [];
+//   console.log(elements, "reponse route")
+
+//   const locations = await Promise.all(elements.slice(0, 5).map(async (place) => {
+//   const distRes = await axios.get('https://router.project-osrm.org/route/v1/driving/' +
+//   `${longitude},${latitude};${place.lon},${place.lat}?overview=false`);
+  
+//   const route = distRes.data.routes[0];
+//   console.log(route, "reponse route")
+//   return {
+//   name: place.tags.name || 'Unnamed',
+//   address: `${place.tags.amenity || keyword}`,
+//   location: {
+//   lat: place.lat,
+//   lng: place.lon,
+//   },
+//   types: keyword,
+//   type_match: keyword,
+//   distance_text: route?.distance ? `${(route.distance / 1000).toFixed(1)} km` : '',
+//   duration_text: route?.duration ? `${Math.ceil(route.duration / 60)} min` : '',
+//   };
+//   }));
+  
+//   groupedResults[category].push(...locations);
+//   }
+//   }
+  
+//   return successWithDataResponse(res, true, 'Nearby locations grouped by category', groupedResults);
+  
+//   } catch (error) {
+//   console.error('Nearby Location Error:', error.message);
+//   return badRequestResponse(res, false, 'Error fetching nearby locations');
+//   }
+//   };
+

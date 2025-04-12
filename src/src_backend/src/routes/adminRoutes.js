@@ -26,9 +26,9 @@ router.post('/login', adminController.adminLogin);
 // router.post('/forgot-password', adminController.forgotPassword);
 
 router.use(verifyAdminToken); 
-router.get('/testTK', (req, res) => {
-       return res.json({ message: "test"})
-} )
+// router.get('/testTK', (req, res) => {
+//        return res.json({ message: "test"})
+// } )
 router.post('/logout', adminController.logout);
 router.get('/admin_roles', adminController.getAdminRoles);
 router.get('/dashboard', adminController.dashboard);

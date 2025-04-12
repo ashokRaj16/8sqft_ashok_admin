@@ -1,38 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperClass, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade, Navigation, Pagination } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/effect-fade";
-import "swiper/css/pagination";
 import { Card, CardContent } from "@/ui/card";
 import { Button } from "@/ui/Button";
 import { Pause, Play } from "lucide-react";
 import axios from "@/hooks";
 import { useRouter } from "next/navigation";
 import { formatNumber } from "@/utils/priceFormatter";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/ui/progress";
 
-const data = [
-  {
-    logo: "https://swiperjs.com/demos/images/nature-2.jpg",
-    title: "Kolte Patil",
-    subtitle: "Life Republic Aros",
-    image: "https://swiperjs.com/demos/images/nature-2.jpg",
-    config: "2,3 BHK Apartment",
-    possession: "Dec, 2029",
-    price: "₹ 5.5 K/sqft",
-    area: "910-1400 sqft",
-  },
-  {
-    logo: "https://swiperjs.com/demos/images/nature-1.jpg",
-    title: "ABC Developers",
-    subtitle: "Skyline Residences",
-    image: "https://swiperjs.com/demos/images/nature-1.jpg",
-    config: "2,3,4 BHK Apartment",
-    possession: "Jan, 2030",
-    price: "₹ 6.2 K/sqft",
-    area: "1000-1600 sqft",
-  },
-];
 const AUTOPLAY_DELAY = 3000;
 const SLIDE_SPEED = 1000;
 const MobSpotlightSlider: React.FC = () => {
@@ -91,7 +68,6 @@ const MobSpotlightSlider: React.FC = () => {
 
       const propertiesData = response.data.data || [];
 
-      console.log("API propertiesData:", propertiesData);
       setProperties(propertiesData);
     } catch (err) {
       setError("Failed to fetch properties. Please try again later.");
@@ -117,6 +93,22 @@ const MobSpotlightSlider: React.FC = () => {
     router.push(`/Builder/${id}`);
   };
 
+  if (loading) {
+    return <div>
+     <div className="flex flex-col items-center space-y-3">
+      <Skeleton className="h-[125px] w-[300px] rounded-xl" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[300px]" />
+        <Skeleton className="h-4 w-[200px]" />
+      </div>
+    </div>
+
+    </div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
   return (
     <>
       <div className=" mx-auto pt-4 shadow-custom my-2 rounded-[20px]">
@@ -169,7 +161,7 @@ const MobSpotlightSlider: React.FC = () => {
                   <CardContent className="p-4 text-start absolute bottom-0 left-1/2 right-1/2 -translate-x-1/2 w-full">
                     <div className="text-white text-xs flex flex-col gap-2 rounded-xl bg-[#6a6a6a4a] border backdrop-blur-[3px] border-white p-2">
                       <p className="font-semibold bg-[#222222] p-1 rounded-md">
-                        Configuration : {property_type === "RESIDENTIAL"
+                       <span className="font-normal"> Configuration :</span> {property_type === "RESIDENTIAL"
                           ? [
                               other_unit_types,
                               bhk_types,
@@ -180,13 +172,13 @@ const MobSpotlightSlider: React.FC = () => {
                           : property_variety || "-"}
                       </p>
                       <p className="font-semibold bg-[#222222] p-1 rounded-md">
-                        Possession Starts : {possession_date || "-"}
+                        <span className="font-normal">Possession Starts :</span> {possession_date || "-"}
                       </p>
                       <p className="font-semibold bg-[#222222] p-1 rounded-md">
-                        Average Price : {`₹ ${formatNumber(per_sqft_amount) || "-"} / sq ft`}
+                        <span className="font-normal">Average Price :</span> {`₹ ${formatNumber(per_sqft_amount) || "-"} / sq ft`}
                       </p>
                       <p className="font-semibold bg-[#222222] p-1 rounded-md">
-                        Carpet Area : {` ${carpet_area_range || "-"} sq ft`}
+                        <span className="font-normal">Carpet Area :</span> {` ${carpet_area_range || "-"} sq ft`}
                       </p>
                     </div>
                   </CardContent>
@@ -197,17 +189,9 @@ const MobSpotlightSlider: React.FC = () => {
 
           <div className="absolute top-0 left-0 right-0 z-10">
             <div className=" flex items-center gap-4 justify-between p-3">
-              <div className="w-full h-1 bg-gray-300 rounded-2xl">
-                <div
-                  className="h-1 bg-primary rounded-2xl"
-                  style={{
-                    width: `${progress}%`,
-                    transition: "width 0.1s linear",
-                  }}
-                ></div>
-              </div>
-
-              <Button className="bg-black p-1 h-5 w-5" onClick={togglePause}>
+            <Progress value={progress} className="w-full h-1" />
+       
+              <Button className="bg-black p-1 h-5 w-5 rounded-full" onClick={togglePause}>
                 {isPaused ? (
                   <Play className="text-white h-3" />
                 ) : (

@@ -44,7 +44,6 @@ interface RecentBlog {
 }
 
 const BlogDetailsPage = () => {
-  const token = useAuthStore((state) => state.token) || "";
   const [blog, setBlog] = useState<BlogDetails | null>(null);
   const [loadingBlog, setLoadingBlog] = useState<boolean>(true);
   const router = useRouter();
@@ -64,7 +63,6 @@ const BlogDetailsPage = () => {
             headers: {
               "Content-Type": "application/json",
               "x-api-key": "A8SQFT7767",
-              // Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -79,7 +77,7 @@ const BlogDetailsPage = () => {
     };
 
     fetchBlogDetails();
-  }, [blogId, token]);
+  }, [blogId]);
 
   useEffect(() => {
     if (!blogId) return;

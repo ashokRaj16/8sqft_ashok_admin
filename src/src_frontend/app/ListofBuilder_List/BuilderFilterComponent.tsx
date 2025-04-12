@@ -35,11 +35,11 @@ const calculateDate = (option: string): string => {
 };
 export default function BuilderFilterComponent() {
   const bhkType = [
-    { value: "1RK", label: "1 RK" },
-    { value: "1BHK", label: "1 BHK" },
-    { value: "2BHK", label: "2 BHK" },
-    { value: "3BHK", label: "3 BHK" },
-    { value: "4BHK", label: "4 BHK" },
+    { value: "1 RK", label: "1 RK" },
+    { value: "1 BHK", label: "1 BHK" },
+    { value: "2 BHK", label: "2 BHK" },
+    { value: "3 BHK", label: "3 BHK" },
+    { value: "4 BHK", label: "4 BHK" },
     { value: "5+BHK", label: "5+ BHK" },
   ];
   const rera = [
@@ -129,6 +129,12 @@ const ResidentialVariety = ["Apartment", "Penthouse", "Row House", "Villa", "Bun
     null
   );
   // const [rentRange, setRentRange] = useState<[number, number]>([0, 500000]);
+  const searchParams = useSearchParams();
+  const propertyVarietyType = searchParams.get("property_config_type");
+  const propertyCurrentStatus = searchParams.get("property_current_status");
+  const isReraNumber = searchParams.get("is_rera_number");
+  const widthFacingRoad = searchParams.get("width_facing_road");
+  const propertyType = searchParams.get("property_type");
 
   // Handle BHK selection
   type Filters = {
@@ -137,21 +143,21 @@ const ResidentialVariety = ["Apartment", "Penthouse", "Row House", "Villa", "Bun
 
   const handleBhkTypeClick = (type: string) => {
     // Normalize the input type (e.g., "1 BHK" -> "1BHK")
-    const formattedType = type.replace(/\s+/g, "").toUpperCase();
+    const formattedType = type.toUpperCase();
 
     // Convert the string back into an array for manipulation
-    const varietyArray = filters.property_variety_type
-      ? filters.property_variety_type.split(",") // Split the string into an array
+    const varietyArray = filters.property_config_type
+      ? filters.property_config_type.split(",") // Split the string into an array
       : [];
 
     const updatedVarietyType = varietyArray.includes(formattedType)
-      ? varietyArray.filter((t) => t !== formattedType) // Remove if already selected
+      ? varietyArray.filter((t:any) => t !== formattedType) // Remove if already selected
       : [...varietyArray, formattedType]; // Add if not selected
 
     // Convert the array back into a comma-separated string
     const updatedVarietyTypeString = updatedVarietyType.join(",");
     setSelectedBhkType(updatedVarietyTypeString);
-    setFilter({ property_variety_type: updatedVarietyTypeString });
+    setFilter({ property_config_type: updatedVarietyTypeString });
     console.log("BHK Type Updated:", updatedVarietyTypeString);
   };
 
@@ -199,6 +205,18 @@ const ResidentialVariety = ["Apartment", "Penthouse", "Row House", "Villa", "Bun
       console.log(selectedAmenities, "selectedAmenities");
     }
   }, [selectedAmenities]);
+  useEffect(() => {
+    setSelectedBhkType(propertyVarietyType || "");
+    setSelectedCurrentStatus(propertyCurrentStatus || "");
+    setSelectedRERA(isReraNumber || "");
+    setSelectedRoadWidth(widthFacingRoad || "");
+    
+    if (propertyType) {
+      setFilter({ property_type: propertyType });
+    }
+  }, [searchParams]);
+  
+  
 
   // Handle price slider changes
   const handleSliderChange = (values: [number, number]) => {
@@ -239,6 +257,7 @@ const ResidentialVariety = ["Apartment", "Penthouse", "Row House", "Villa", "Bun
     setSelectedFurnishing("");
     setSelectedParking("");
     setSelectedCurrentStatus("");
+    setPriceRange([1, 50000000]);
   };
   const toggleRoadWidth = (value: string) => {
     setSelectedRoadWidths(
@@ -249,9 +268,9 @@ const ResidentialVariety = ["Apartment", "Penthouse", "Row House", "Villa", "Bun
     );
   };
   return (
-    <Card className=" border-r border-b border-l border-[#22222233]">
-      <div className="h-[42px]">
-        <div className="h-9 flex items-center justify-between px-5 py-2 border-b border-[#fc6600] shadow-[0px_2px_2px_#00000033]">
+    <Card className=" lg:border border-[#22222233] border-0 h-[calc(100vh-322px)] overflow-y-auto lg:h-auto lg:overflow-hidden shadow-none lg:shadow-sm">
+      <div className="h-[42px] hidden lg:block">
+        <div className="h-9 items-center justify-between px-5 py-2 border-b border-[#fc6600] shadow-[0px_2px_2px_#00000033] flex">
           <span className="font-medium text-[#fc6600] text-xs">Filters</span>
           <button
             onClick={handleReset}
@@ -261,10 +280,18 @@ const ResidentialVariety = ["Apartment", "Penthouse", "Row House", "Villa", "Bun
             <RotateCcw className="w-[10.66px] h-[10.66px]" />
           </button>
         </div>
+
       </div>
+        <button
+            onClick={handleReset}
+            className="inline-flex items-center gap-1 float-end mt-4 lg:hidden"
+          >
+            <span className="font-medium text-[#222222] text-xs">Reset</span>
+            <RotateCcw className="w-[10.66px] h-[10.66px]" />
+          </button>
 
       <CardContent className="p-2">
-        <div className="flex-col items-start gap-3 flex">
+        <div className="flex-col items-start gap-3 flex w-full">
          {filters?.property_type==="Residential" &&( <div className="p-2">
             <h3 className="font-semibold text-[#222222cc] text-sm">BHK Type</h3>
             <div className="flex flex-wrap gap-2 mt-2">

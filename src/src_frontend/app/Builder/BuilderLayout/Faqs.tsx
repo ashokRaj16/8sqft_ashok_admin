@@ -83,22 +83,19 @@ const Faqs = () => {
     return <p>Error loading FAQs. Please try again later.</p>;
   }
   return (
-    <div className=" p-4">
-
-
-      <h2 className="text-xl font-semibold mb-4 ml-2 p-4 border-y-[1px] w-full">Frequently Asked Questions</h2>
-      <div className="space-y-4">
-        {faqs.length > 0 ? (
-          <Accordion type="single" collapsible className="w-full">
+    <>
+        {faqs.length > 0 && (
+          <div className="shadow-custom my-2 bg-white  mx-4 lg:mx-0">
+        <h2 className="font-semibold lg:text-lg border-b border-[#D9D9D9] py-2 mb-2 px-4 shadow-sm">Frequently Asked Questions</h2>
+          <Accordion type="single" collapsible className="w-full p-2">
 
             {
               faqs.map((faq: any, index) => (
-                <AccordionItem key={faq.id} value={faq.id}>
+                <AccordionItem key={faq.id} value={faq.id} className={`${index===faqs.length-1?'border-none':'border-b'}`}>
                   <AccordionTrigger onClick={() => handleToggle(faq.id)} className="relative flex font-medium text-black gap-2 hover:no-underline">
-                    <div className="flex items-center font-medium text-black gap-2">
-                      {/* <span className="bg-[#E9EBEF] text-black px-2 py-1 rounded-full">Q</span> */}
-                      <span className="bg-[#E9EBEF] text-black px-2 py-1 rounded-full">{index+1}</span>
-                      <span className="ml-2 text-black font-semibold text-base">{faq.faq_question}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-[#E9EBEF] text-primary-black p-1 h-8 w-8 flex items-center justify-center rounded-full">{index+1}</span>
+                      <span className="ml-2 text-primary-black font-medium text-base">{faq.faq_question}</span>
                     </div>
                     <ChevronDown
                   className={`right-0 bg-white p-1 absolute transition-transform ${
@@ -113,11 +110,9 @@ const Faqs = () => {
               ))
             }
           </Accordion>
-        ) : (
-          <p>No FAQs available.</p>
-        )}
       </div>
-    </div>
+        )}
+    </>
   );
 };
 

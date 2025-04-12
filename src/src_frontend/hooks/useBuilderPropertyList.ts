@@ -176,6 +176,7 @@ interface PropertylistParams {
   other_amenities?: string;
   is_rera_number?: string;
   property_variety_type?: string;
+  property_config_type?: string;
 }
 
 // Hook definition
@@ -200,6 +201,7 @@ const useBuilderPropertylist = (params: PropertylistParams) => {
         other_amenities,
         is_rera_number,
         property_variety_type,
+        property_config_type,
         property_variety,
       } = params;
       const response = await axios.get(`/api/v1/front/property/list_properties`, {
@@ -220,6 +222,7 @@ const useBuilderPropertylist = (params: PropertylistParams) => {
           other_amenities,
           is_rera_number,
           property_variety_type,
+          property_config_type,
           property_variety,
         },
         headers: {

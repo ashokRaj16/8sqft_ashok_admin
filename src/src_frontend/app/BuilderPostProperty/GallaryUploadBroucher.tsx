@@ -24,7 +24,7 @@ interface FileUploadComponentProps {
 
 export default function FileUploadComponent({
   title,
-  imageCategory,
+  imageCategory="RERA",
   label,
 }: FileUploadComponentProps) {
   const [files, setFiles] = useState<any[]>([]); // Uploaded files
@@ -155,6 +155,7 @@ console.log( imageCategory,'imageCategory')
       <Card className="w-[350px] bg-[#f8f8f8] border border-[#b6b6b6] rounded-lg">
         <CardContent className="flex flex-col items-center justify-center gap-4 p-6">
           <label
+          onClick={()=>console.log(imageCategory,'clicked')}
             htmlFor="fileUpload"
             className="w-full max-w-[140px] h-10 bg-[#fc6600] hover:bg-[#fc6600]/90 text-lg text-white flex items-center justify-center cursor-pointer rounded"
           >

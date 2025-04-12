@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Button } from "@/ui/Button";
 import { formatNumber } from "@/utils/priceFormatter";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Sponsor = () => {
   const [properties, setProperties] = useState<any[]>([]);
@@ -25,7 +26,7 @@ const Sponsor = () => {
 
       const propertiesData = response.data.data || [];
 
-      console.log("API propertiesData:", propertiesData);
+
       setProperties(propertiesData);
     } catch (err) {
       setError("Failed to fetch properties. Please try again later.");
@@ -42,9 +43,17 @@ const Sponsor = () => {
   const moveToDetailsHandler = async (id: string) => {
     router.push(`/Builder/${id}`);
   };
-  console.log(properties, "properties");
+
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>
+      <div className="flex flex-col gap-4 items-center justify-between mt-4">
+  <Skeleton className="h-64 w-full rounded-md" />
+  <div className="flex gap-4 w-full">
+  <Skeleton className="h-[120px] w-full rounded-md" />
+  <Skeleton className="h-[120px] w-full rounded-md" />
+  </div>
+  </div>
+    </div>;
   }
 
   if (error) {
@@ -69,7 +78,7 @@ const Sponsor = () => {
               Sponsored
             </span>
             <div className="bg-gradient-to-b from-[#22222210] via-[#22222250] to-[#222222] w-full h-64 absolute bottom-0"></div>
-            <div className="p-4 gap-3 justify-between flex absolute items-center bottom-0">
+            <div className="p-4 gap-3 justify-between flex absolute items-center bottom-0 w-full">
               <div>
                 <h2 className="text-xs text-white">
                   {properties[0].property_rent_buy === "RENT"
@@ -107,7 +116,7 @@ const Sponsor = () => {
                   alt={property.property_title}
                   width={300}
                   height={200}
-                  className="w-full lg:h-32 h-56 object-cover"
+                  className="w-full lg:h-32 h-56 object-cover transition-transform duration-300 ease-in-out transform hover:scale-110"
                 />
                 <div className="p-2">
                   <p className={`text-xs text-balck font-semibold`}>

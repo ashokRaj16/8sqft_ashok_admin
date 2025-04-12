@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from "react";
+import { CiCircleMore } from "react-icons/ci";
 
 
 
@@ -276,17 +277,28 @@ const AmenitiesContent: React.FC<AmenitiesProps> = ({ otherAmenities, parking, w
   });
 
   const previewAmenities = availableAmenities.slice(0, 12);
+  const shouldShowMore = availableAmenities.length > 12;
 
   console.log(otherAmenities, 'otherAmenities')
   return (
-    <div className=" bg-white rounded-lg">
-      <h2 className="text-lg font-semibold mb-4">Amenities</h2>
-      <div className="grid md:grid-cols-6 grid-cols-3 gap-3">
-        {(isExpanded ? availableAmenities : previewAmenities).map(
-          (amenity, index) => (
+    <div className="bg-white shadow-custom my-2">
+    <h2 className="font-semibold lg:text-lg border-b border-[#D9D9D9] py-2 mb-2 px-4 shadow-sm">Amenities</h2>
+    <div className="grid md:grid-cols-6 grid-cols-3 gap-3 p-2">
+      {(isExpanded ? availableAmenities : previewAmenities).map(
+        (amenity, index, array) =>
+          index === array.length - 1 && !isExpanded && shouldShowMore ? (
             <div
               key={index}
-              className="flex flex-col items-center justify-center bg-[#F8F8F8] p-2 rounded-lg border  border-[#d4d4d4]"
+              className="flex flex-col items-center justify-center bg-primary-light p-1 rounded-lg border border-primary group cursor-pointer"
+              onClick={toggleExpand}
+            >
+              <span>{availableAmenities.length-previewAmenities.length+1}+</span>
+              <span className="text-primary lg:text-sm text-xs font-medium flex items-center group-hover:scale-110 ease-in duration-200">Show More</span>
+            </div>
+          ) : (
+            <div
+              key={index}
+              className="flex flex-col items-center justify-center bg-[#F8F8F8] p-2 rounded-lg border border-[#d4d4d4]"
             >
               <img
                 src={amenity.icon}
@@ -298,18 +310,19 @@ const AmenitiesContent: React.FC<AmenitiesProps> = ({ otherAmenities, parking, w
               </span>
             </div>
           )
-        )}
-      </div>
-
-      {availableAmenities.length > 12 && (
-        <button
-          onClick={toggleExpand}
-          className="mt-4 text-blue-600 text-sm font-medium hover:underline block text-center"
-        >
-          {isExpanded ? "Show Less" : "Read More"}
-        </button>
       )}
     </div>
+  
+    {availableAmenities.length > 12 && isExpanded && (
+      <button
+        onClick={toggleExpand}
+        className="mt-4 text-primary text-sm font-medium hover:underline block text-center w-full"
+      >
+        Show Less
+      </button>
+    )}
+  </div>
+  
   );
 };
 

@@ -179,14 +179,14 @@ const BuilderContactSection: React.FC = () => {
         </div>
           {/* Pop-up Message */}
       {showPopup && (
-      <div className="bottom-[108px] lg:bottom-auto absolute bg-black text-white lg:w-fit w-[180px] px-4 py-2 rounded-full  lg:left-1/2 right-4 transform lg:-translate-x-1/2 mt-[3.5rem] lg:ml-12 ml-[6.7rem] z-[1]">
-      <div className="absolute lg:top-0 top-[51px] rotate-180 lg:rotate-0 lg:left-[70%] left-[75%] transform -translate-x-1/2 -translate-y-full border-8 border-transparent border-b-black"></div>
+      <div className="animate-bounce bottom-[108px] lg:bottom-auto absolute bg-black text-white lg:w-fit w-[180px] px-4 py-1 rounded-full  right-4 transform lg:-translate-x-1/2 mt-[3.7rem] lg:ml-0 ml-[6.7rem] z-[1]">
+      <div className="absolute lg:top-0 top-[44px] rotate-180 lg:rotate-0 lg:left-[70%] left-[75%] transform -translate-x-1/2 -translate-y-full border-8 border-transparent border-b-black"></div>
 
      <div className="flex flex-row gap-1">
-     <span className="text-sm text-center hidden lg:block whitespace-nowrap">Chat with Builder</span>
-     <span className="text-sm text-center block lg:hidden">Chat with Builder</span>
+     <span className="text-sm text-center btn-shine2  whitespace-nowrap">Chat with Builder</span>
+     {/* <span className="text-sm text-center btn-shine block lg:hidden">Chat with Builder</span> */}
       <button onClick={() => setShowPopup(false)}>
-        <X className="w-5 h-5 text-white border-2 rounded-full  " />
+        <X className="w-5 h-5 text-white/70" />
       </button>
      </div>
     </div>

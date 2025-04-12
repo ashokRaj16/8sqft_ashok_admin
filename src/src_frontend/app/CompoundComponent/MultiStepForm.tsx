@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/ui/Button";
@@ -117,18 +117,15 @@ export default function MultiStepForm({closeDialog}:MultiStepFormProps) {
     error: otpError,
   } = useVerifyDetail({
     onSuccess: (data) => {
-      if ("data" in data) {
-        // Login successful
+      if ("data" in data && "needToRegister" in data.data && data.data.needToRegister) {    
+        handleNext({ otp: formData.otp });
+      } else {
         toast.success("Login successful!");
         closeDialog();
-        // router.push("/");
-      } else if ("needToRegister" in data) {
-        // Registration required
-        handleNext({ otp: formData.otp });
       }
     },
     onError: (error) => {
-      toast.error(error.message || "OTP verification failed");
+      toast.error("Invalid OTP");
     },
   });
 
@@ -200,6 +197,46 @@ export default function MultiStepForm({closeDialog}:MultiStepFormProps) {
     setCurrentStep((prev) => getNextStep(prev));
   };
   
+
+  const [timer, setTimer] = useState(10); // 10 seconds countdown
+const [canResend, setCanResend] = useState(false);
+const timerRef = useRef<NodeJS.Timeout | null>(null); 
+const startTimer = () => {
+  setTimer(59);
+  setCanResend(false);
+
+  // Clear previous timer if exists
+  if (timerRef.current) {
+    clearInterval(timerRef.current);
+  }
+
+  // Start new countdown
+  timerRef.current = setInterval(() => {
+    setTimer((prev) => {
+      if (prev === 1) {
+        clearInterval(timerRef.current!);
+        setCanResend(true);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+};
+
+// Start the timer when entering Step 2
+useEffect(() => {
+  if (currentStep === 2) {
+    startTimer();
+  }
+  return () => {
+    if (timerRef.current) clearInterval(timerRef.current); // Cleanup on unmount
+  };
+}, [currentStep]);
+
+const handleResendOtp = () => {
+  sendWhatapp({ mobile: Number(formData.mobile) }); // Resend OTP API call
+  startTimer(); // Restart the timer properly
+};
   return (
     <div className="w-full">
       <Tabs value={`step-${currentStep}`} className="w-full">
@@ -363,6 +400,17 @@ export default function MultiStepForm({closeDialog}:MultiStepFormProps) {
                   >
                     Next
                   </Button>
+                  {canResend ? (
+              <Button
+                type="button"
+                onClick={handleResendOtp}
+                className="bg-[#FC6600] text-white w-full"
+              >
+                Resend OTP
+              </Button>
+            ) : (
+              <span className="text-xs text-gray-500">Resend OTP In <span className="text-sm text-primary">00:{timer}</span></span>
+            )}
                 </Form>
               )}
             </Formik>

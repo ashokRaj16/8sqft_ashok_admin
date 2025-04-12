@@ -3,6 +3,7 @@ import { FaCircleUser } from "react-icons/fa6";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from "./menu";
 import MyProfile from "@/app/my-profile/MyProfile";
 import { useRouter } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 
 interface UserCardProps {
   name: string;
@@ -20,9 +21,10 @@ const UserCard: React.FC<UserCardProps> = ({ name, onLogout }) => {
     <Menubar className="border-none">
       <MenubarMenu>
         {/* Trigger with Icon and User Name */}
-        <MenubarTrigger className="flex items-center gap-2 cursor-pointer px-3 py-2 border-0 ">
-          <FaCircleUser size={24} className="text-white" />
-          <span className="text-sm text-white font-medium text-gray-700">{name}</span>
+        <MenubarTrigger className="flex items-center gap-2 cursor-pointer px-2 py-1 border-0 ">
+          <FaCircleUser size={24} className="text-primary-black" />
+          <span className="text-sm font-medium text-gray-700">{name}</span>
+          <ChevronDown/>
         </MenubarTrigger>
 
         {/* Dropdown Menu Content */}

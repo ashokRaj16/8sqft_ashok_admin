@@ -21,8 +21,11 @@ import {
     createNearbyLocationAdmin,
     updatePropertyNearbyAdmin,
     deletePropertyNearbyAdmin,
-    generatePropertyNearbyAdmin
+    generatePropertyNearbyAdmin,
+    insertBulkNearbyLocations
+    
 } from '../../controllers/admin/propertyController.js';  
+
 
 const router = express.Router();
 
@@ -123,6 +126,8 @@ router.route('/:id/nearby')
     .get( generatePropertyNearbyAdmin);
 
 router.get('/:id/nearby_categories', getNearbyLocationsByCategory);
+router.post('/:id/nearby_locations', insertBulkNearbyLocations);
+
 
 // Property Status 
 router.put('/:id/status', propertyController.changePropertyStatus);

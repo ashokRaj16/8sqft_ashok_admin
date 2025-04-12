@@ -44,7 +44,6 @@ const useEmailVerifyDetail = ({ onSuccess, onError }: useEmailVerifyOptions) => 
         "Content-Type": "application/json",
       },
     });
-    console.log("API response:", response.data);
     return response.data as useEmailVerifyResponse;
   };
 
@@ -55,12 +54,11 @@ const useEmailVerifyDetail = ({ onSuccess, onError }: useEmailVerifyOptions) => 
         // Check if response is a LoginResponse (nested data object exists)
         if ("data" in data && data.data) {
           const token = data.data.token;
-          console.log(token,'this is the token ')
+        
           // Store token in localStorage
           const tokenName = "authToken";
           sessionStorage.setItem("authToken", token);
           
-          console.log(sessionStorage.getItem(tokenName), 'this is the token after setting it in local storage')
           // Decode token and update Zustand
           const decoded = decodeToken(token);
           if (decoded && decoded.id && (decoded.email || decoded.mobile)) {

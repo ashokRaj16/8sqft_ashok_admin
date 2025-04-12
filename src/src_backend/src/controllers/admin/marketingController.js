@@ -4,9 +4,8 @@ import AWS from '@aws-sdk/client-s3';
 
 import { badRequestResponse, successResponse, successWithDataResponse } from '../../utils/response.js';
 import { createMarketingAdmin, deleteMarketingByIdAdmin, deleteMarketingDetailsRowByIdAdmin, getAllMarketingCountAdmin, getAllMarketingListAdmin, getLeadsByPropertyId, getLeadsCountsByPropertyId, getMarketingByIdAdmin, getMarketingLogByIdAdmin } from '../../models/marketingModels.js';
-import { formattedDate, sanitizedNumber } from '../../utils/commonHelper.js';
+import { formattedDate, sanitizedField, sanitizedNumber } from '../../utils/commonHelper.js';
 import validator from 'validator';
-import fs from 'fs';
 import { downloadAndProcessExcel } from '../../utils/imageUploadHelper.js';
 import { whatsappImageTemplateValidator, whatsappMarathiTemplateValidator } from '../validators/marketingValidator.js';
 
@@ -120,6 +119,7 @@ export const sendWAPromotionWithImageMessage = async (req, res) => {
           }
       );
 
+    console.log(gupshupResponse,  "response gup")
 
       if (gupshupResponse.data.status === 'submitted') {
         const data = {
@@ -166,14 +166,14 @@ export const sendWAPromotionWithMarathiMessage = async (req, res) => {
   }
 
   try {
-   
+    const cleanedText = txt_marathi.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     let mobileNumbersArray = [];
     if(contacts_file) {
       const contactList = contacts_file;      
       mobileNumbersArray = await downloadAndProcessExcel(contactList);
       
       if(mobileNumbersArray && mobileNumbersArray.length > 0) {
-        const response = await sendMarketingMarathiMessages(mobileNumbersArray, txt_marathi, msg_mobile )
+        const response = await sendMarketingMarathiMessages(mobileNumbersArray, cleanedText, msg_mobile )
         if(response) {
             const data = {
               full_name: full_name || null,
@@ -181,8 +181,10 @@ export const sendWAPromotionWithMarathiMessage = async (req, res) => {
               email: email || null,
               status: "1",
               status_text : "Success",
+              property_id : null,
+              banner_image : null,
               contacts_file : contacts_file || null,
-              txt_marathi : txt_marathi || null,
+              txt_marathi : cleanedText || null,
               msg_mobile : msg_mobile || null,
               total_contact : mobileNumbersArray.length || null,
               msg_send_contact : mobileNumbersArray.length || null,
@@ -194,13 +196,13 @@ export const sendWAPromotionWithMarathiMessage = async (req, res) => {
             }
             const result = await createMarketingAdmin(data)
             return successResponse(res, true, 'Marketing messages sent successfully', result);
-
         }
         else {
           return badRequestResponse(res, false, 'Unable to sent some messages.');
         }
       }
     }
+    // console.log(txt_marathi,msg_mobile, process.env.GUPSHUP_APP_NAME, process.env.GUPSHUP_WHATSAPP_NUMBER_PROMO, sanitizedNumber(mobile), process.env.GUPSHUP_API_KEY, "keys")
 
     const marketingPayload = new URLSearchParams({ 
       channel: 'whatsapp',
@@ -211,8 +213,8 @@ export const sendWAPromotionWithMarathiMessage = async (req, res) => {
       template: JSON.stringify({
           id: '47af9f73-2f5e-4df7-9368-59638c15998a',
           params : [
-            `${txt_marathi}`, 
-            `${msg_mobile}`
+            `${cleanedText}`, 
+            `${msg_mobile}`,
           ]
       })
     });
@@ -229,6 +231,7 @@ export const sendWAPromotionWithMarathiMessage = async (req, res) => {
         }
     );
 
+    // console.log(gupshupResponse,  "response gup")
     if (gupshupResponse.data.status === 'submitted') {
       const data = {
         full_name: full_name || null,
@@ -239,7 +242,7 @@ export const sendWAPromotionWithMarathiMessage = async (req, res) => {
         property_id: null,
         banner_image : null,
         contacts_file : contacts_file || null,
-        txt_marathi : txt_marathi || null,
+        txt_marathi : cleanedText || null,
         msg_mobile : msg_mobile || null,
         total_contact : 1 || null,
         msg_send_contact : 1 || null,
@@ -316,7 +319,7 @@ const sendMarketingMessages = async (numbersArray, properties, bannerImgUrl, bat
         const batch = numbersArray.slice(i, i + batchSize);
         await sendBatch(batch);
       }
-
+      return true;
   } catch (error) {
       console.error("Error sending messages:", error.response?.data || error.message);
   }
@@ -325,7 +328,7 @@ const sendMarketingMessages = async (numbersArray, properties, bannerImgUrl, bat
 
 const sendMarketingMarathiMessages = async (numbersArray, txt_marathi, msg_mobile, batchSize = 20) => {
   try {
-
+      // console.log(txt_marathi, msg_mobile,  "message data")
       const sendBatch = async (batch) => {
         const requests = batch.map(async (number) => {
             try {
@@ -341,7 +344,7 @@ const sendMarketingMarathiMessages = async (numbersArray, txt_marathi, msg_mobil
                         txt_marathi,
                         `${msg_mobile}`,
                     ]
-                }));               
+                }));
 
                 const response = await axios.post(
                     "https://api.gupshup.io/wa/api/v1/template/msg",
@@ -354,8 +357,9 @@ const sendMarketingMarathiMessages = async (numbersArray, txt_marathi, msg_mobil
                         },
                     }
                 );
-                return { status: "fulfilled", value: response.data };
 
+                console.log( sanitizedNumber(number), response.data, "data msg")
+                return { status: response.data.status, value: response.data };
             } catch (error) {
                 console.error(`Error sending to ${number}:`, error.response?.data || error.message);
                 return { status: "rejected", reason: error.response?.data || error.message };
@@ -364,14 +368,14 @@ const sendMarketingMarathiMessages = async (numbersArray, txt_marathi, msg_mobil
 
         // Send all requests in parallel
         const responses = await Promise.allSettled(requests);
-
+        console.log(responses, "responses")
       };
 
       for (let i = 0; i < numbersArray.length; i += batchSize) {
         const batch = numbersArray.slice(i, i + batchSize);
         await sendBatch(batch);
       }
-
+      return true;
   } catch (error) {
       console.error("Error sending messages:", error.response?.data || error.message);
   }
@@ -383,7 +387,6 @@ const sendMarketingMarathiMessages = async (numbersArray, txt_marathi, msg_mobil
  * @param {*} res 
  * @returns 
  */
-
 export const sendWAPromotionPropertyMessage = async (req, res) => {
 
     const {full_name, mobile, email, property_id, contacts_file } = req.body;
@@ -707,11 +710,11 @@ export const getMarketingLogById = async (req, res) => {
     const resultDetails = await getMarketingLogByIdAdmin(id);
     data = result[0];
     data['marketing_log'] = resultDetails;
-    
+
     return successWithDataResponse(res, true, "Marketing details", data);
 
   } catch (error) {
-    return badRequestResponse(res, false, "Error fetching Marketing.", error);
+    return badRequestResponse(res, false, "Error fetching Marketings.", error);
   }
 };
 

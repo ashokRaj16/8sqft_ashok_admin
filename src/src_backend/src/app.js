@@ -5,7 +5,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import frontRoutes from './routes/frontRoutes.js';
 
 import locationRoutes from './routes/locationRoutes.js';
-import { messageCallback } from "./controllers/authController.js";
+import { messageCallback, messageCallbackForPromo } from "./controllers/authController.js";
 
 import { accessKeyMiddleware } from "./Middleware/accessKeyMiddleware.js";
 import { badRequestResponse } from "./utils/response.js";
@@ -13,6 +13,7 @@ import { badRequestResponse } from "./utils/response.js";
 const app = express();
 
 app.post('/gupshup-webhook', messageCallback);
+app.post('/gupshup-webhook-promo', messageCallbackForPromo);
 app.use(accessKeyMiddleware);
 
 app.use('/admin', adminRoutes);

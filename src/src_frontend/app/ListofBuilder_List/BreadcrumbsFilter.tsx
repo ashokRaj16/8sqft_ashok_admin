@@ -18,7 +18,7 @@ const BuilderBreadcrumbsFilter = ({ getTotalCount }: BreadcrumbProps) => {
 
       <p className="text-sm text-[#222222E5]">
         {/* {getTotalCount} -  */}
-        {property_type} properties for {searchKeyword}, {city_name}{" "}
+        {property_type} properties for {searchKeyword} {city_name}{" "}
       </p>
       {/* Sort Dropdown */}
       <div className="flex items-center space-x-2">

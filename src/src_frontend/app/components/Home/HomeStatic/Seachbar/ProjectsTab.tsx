@@ -1,3 +1,5 @@
+import { Label } from "@/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/ui/radio";
 import {
   Select,
   SelectContent,
@@ -21,7 +23,18 @@ export default function ProjectsTab({propertyType, setPropertyType}: ProjectsTab
     <>
       <div className="flex flex-col">
         {/* Radio Buttons for Property Type */}
-        <div className="flex space-x-4  flex-wrap ">
+        <RadioGroup value={propertyType} onValueChange={(value) => setPropertyType(value as "Residential" | "Commercial" | "Open Land")} className="flex space-x-1 text-white lg:text-black">
+      {["Residential", "Commercial", "Open Land"].map((type) => (
+        <div key={type} className="flex items-center">
+          <RadioGroupItem value={type} id={type} />
+          <Label className="ml-1 text-[10px] lg:text-sm font-normal " htmlFor={type}>
+            {type}
+          </Label>
+        </div>
+      ))}
+    </RadioGroup>
+
+        {/* <div className="flex space-x-4  flex-wrap ">
           <label className="items-center flex">
             <input
               type="radio"
@@ -58,7 +71,7 @@ export default function ProjectsTab({propertyType, setPropertyType}: ProjectsTab
             />
             <span className="ml-1 text-xs lg:text-sm">Open Land</span>
           </label>
-        </div>
+        </div> */}
 
         {/* Dropdown for Options */}
 

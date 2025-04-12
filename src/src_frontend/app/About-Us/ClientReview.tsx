@@ -3,28 +3,31 @@ import Image from "next/image";
 import BoyImg from "@/public/assets/AboutUs/3dboy.svg";
 import Ellipse1 from "@/public/assets/AboutUs/Ellipse1.svg";
 import Ellipse2 from "@/public/assets/AboutUs/Ellipse2.svg";
-import Rectangle1 from "@/public/assets/AboutUs/Rectangle1.svg";
-import Rectangle2 from "@/public/assets/AboutUs/Rectangle2.svg";
+import Female1 from "@/public/assets/users/Female1.svg";
+import Female5 from "@/public/assets/users/Female5.svg";
+import Male4 from "@/public/assets/users/male4.svg";
+import Male3 from "@/public/assets/users/male3.svg";
 import { IoStar, IoStarHalf } from "react-icons/io5";
+
 const testimonials = [
   {
     name: "Divya Jadhav",
-    image: Rectangle1,
+    image: Female1,
     text: "8sqft attention to detail and commitment to excellence is unparalleled. Their team is professional, courteous, and always willing to go the extra mile.",
   },
   {
     name: "Vivaan Kulkarni",
-    image: Rectangle2,
+    image: Male4,
     text: "I was blown away by the quality of work and the level of service provided by 8sqft. They truly understand the importance of delivering exceptional results.",
   },
   {
     name: "Aarush Kamble",
-    image: Rectangle1,
+    image: Male3,
     text: "I was thoroughly impressed by the outstanding quality and exceptional service provided by 8sqft. Their commitment to excellence is truly unmatched!",
   },
   {
     name: "Aditi Sharma",
-    image: Rectangle2,
+    image: Female5,
     text: "8sqft ability to balance budget, schedule, and quality is impressive. They're a true partner in the construction process.",
   },
 ];

@@ -6,6 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/ui/radio";
+import { Label } from "@/ui/label";
 
 // Define types for fixed options
 type PropertyType = "Full House" | "Land/Plot";
@@ -22,7 +24,22 @@ export default function BuyTab() {
   return (
     <div className="flex flex-col ">
       <div className="flex flex-wrap gap-4">
-        <label className="text-sm sm:text-base items-center flex">
+      <RadioGroup className="flex items-center text-white lg:text-black" value={propertyType} onValueChange={(value) => setPropertyType(value as PropertyType)}>
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="Full House" id="full_house" />
+        <Label className="ml-1 text-[10px] lg:text-sm font-normal" htmlFor="full_house">
+          Full House
+        </Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="Land/Plot" id="land_plot" />
+        <Label className="ml-1 text-[10px] lg:text-sm font-normal" htmlFor="land_plot">
+          Land/Plot
+        </Label>
+      </div>
+    </RadioGroup>
+
+        {/* <label className="text-sm sm:text-base items-center flex">
           <input
             type="radio"
             name="propertyType"
@@ -41,7 +58,7 @@ export default function BuyTab() {
             onChange={(e) => setPropertyType(e.target.value as PropertyType)}
           />
               <span className="ml-1 text-xs lg:text-sm">Land/Plot</span> 
-        </label>
+        </label> */}
       </div>
 
       {propertyType === "Full House" && (

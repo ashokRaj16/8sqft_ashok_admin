@@ -1350,4 +1350,50 @@ export const getPropertyNearbyLocationsById = async (propertyId) => {
             console.error('Error fetching nearby locations:', error);
             throw new Error('Error fetching nearby locations', error);
         }
-    };
+};
+
+export const insertGeneratedNearbyLocationsData = async (property_id, locations) => {
+    try {
+        let values = [];
+        let placeholders = [];
+
+        for(let loc of locations) {
+            const {
+                location_title,
+                location_value,
+                address,
+                latitude,
+                longitude,
+                distance,
+                time,
+                nearby_id,
+              } = loc;
+
+            values.push(
+                property_id,
+                location_title || '',
+                location_value ? location_value : location_title || '',
+                address || '',
+                nearby_id || '',
+                latitude || null,
+                longitude || null,
+                distance || '',
+                time || ''
+              );
+            placeholders.push(`(?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        }
+
+        const insertQuery = `INSERT INTO
+                 tbl_property_nearby_locations 
+                 (property_id, location_title, location_value, address, nearby_id, latitude, longitude, distance, time)
+                 VALUES
+                    ${placeholders.join(', ')}
+            `;
+        const [result] = await pool.execute(insertQuery, values)
+        console.log( result, "test result")
+        return { affectedRows : result.affectedRows, values }
+    } catch (error) {
+        console.log(error, "logging")
+        throw new Error('Unable to insert entry', error);
+    }
+}

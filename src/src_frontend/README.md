@@ -1,34 +1,93 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 8SQFT Real Tech 
 
-## Getting Started
+To make buying, selling, and renting properties easy and affordable, with zero brokerage, by providing a clear and trustworthy platform for everyone.
 
-First, run the development server:
+## Web Version
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+* [Versions](#versions)
+* [Versioning](#versioning)
+
+## Versions
+
+* [8SQFT Front v1.0 ](https://8sqft.com)
+
+
+### Installation
+
+``` bash
+$ npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+or
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+``` bash
+$ yarn install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Basic usage
 
-## Learn More
+``` bash
+# dev server with hot reload at http://localhost:3000
+$ npm start 
+```
 
-To learn more about Next.js, take a look at the following resources:
+or 
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+``` bash
+# dev server with hot reload at http://localhost:3000
+$ yarn start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Navigate to [http://localhost:3000](http://localhost:3000). The app will automatically reload if you change any of the source files.
 
-## Deploy on Vercel
+#### Build
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Run `build` to build the project. The build artifacts will be stored in the `build/` directory.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```bash
+# build for production with minification
+$ npm run build
+```
+
+or
+
+```bash
+# build for production with minification
+$ yarn build
+```
+
+## What's included
+
+Within the download you'll find the following directories and files, logically grouping common assets and providing both compiled and minified variations. You'll see something like this:
+
+```
+8sqft-admin-panel
+├── public/          
+│   ├── favicon.ico
+│   └── manifest.json
+│
+├── src/             
+│   ├── assets/      
+│   ├── components/  
+│   ├── layouts/     
+│   ├── scss/        
+│   ├── views/       
+│   |   └── pages
+│   ├── _nav.js      
+│   ├── App.js
+│   ├── index.js
+│   ├── routes.js    
+│   └── store
+│       └── store.js
+│
+├── tailwind.config.js
+├── ...
+├── package.json
+├── ...
+└── next.config.js  # vite config
+```
+
+
+## Versioning
+
+For transparency into our release cycle and in striving to maintain backward compatibility, 8sqft Admin Panel is maintained under [the Semantic Versioning guidelines](http://semver.org/).

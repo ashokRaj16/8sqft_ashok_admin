@@ -87,29 +87,27 @@ export default function FloorPlanContent({
   : [];
   const isMobile = useMediaQuery("(max-width: 640px)");
   const renderCardContent = (config: Configuration) => (
-    <Card className=" px-2 mt-4 rounded-md p-0 w-[165px] lg:w-[200px] h-[190px]">
+    <Card className=" px-2 mt-4 rounded-md p-0 w-[165px] lg:w-[200px] h-auto">
       <CardContent className="p-0">
         <div className="flex flex-col items-start bg-white p-2 rounded-md">
           {/* Show the image above the text */}
-          <div className="mb-9 flex justify-center w-full h-[6rem]">
+          <div className="mb-2 flex justify-center w-full h-[6rem]">
             <Image
               src={config.unit_img_url} // Ensure this URL is valid
               alt="Plot Plan"
               width={200} // Image width
               height={140} // Image height
               layout="intrinsic" // This ensures the aspect ratio is maintained
-              className="object-contain rounded-md w-full" // 'object-contain' will make sure the image fits inside the container without cropping
+              className="object-cover rounded-md w-full" // 'object-contain' will make sure the image fits inside the container without cropping
             />
           </div>
-
-          <p className="text-xs mb-2 text-[#AAAAAA]">
+                       {propertytype?.toLowerCase() ==="residential" &&( <div className="text-xs">{config.unit_name}</div>)}
+                       {propertytype?.toLowerCase() ==="commercial" &&( <div className="text-xs">{propertyVariety}</div>)}
+          <p className="text-[10px] text-[#AAAAAA]">
             Plot Area:
             <span className="text-[#222222]">{config.carpet_area} sq.ft</span>
           </p>
-          {/* <p className="text-xs mb-2 text-[#AAAAAA]">
-            Price:<span className="text-black"> ₹ {config.carpet_price}</span>
-          </p> */}
-          <div className="text-xs text-[#AAAAAA]">Price:
+          <div className="text-[10px] text-[#AAAAAA]">Price:
             <span className="text-[#222222]"> {formatPrice(Number(config.carpet_price))}</span>
 
           </div>
@@ -125,24 +123,29 @@ export default function FloorPlanContent({
   );
 
   return (
-    <div className="lg:mt-4 p-4 lg:p-0">
+    <div className=" px-4 lg:p-0">
       {isMobile ? (
         <>
           <div className="text-lg font-semibold">Price & Floor Plan</div>
 
-          <div>
-            <ReusableCarousel className="w-full max-w-sm" itemsPerView={{ default: 1, sm: 1, md: 2 }}>
+          <div className="overflow-hidden">
+          <div className="w-[calc(100vw-30px)]  overflow-x-auto flex gap-2 p-2">
+{configration?.map((config) => (
+                <div key={config.id}>{renderCardContent(config)}</div>
+              ))}
+              </div>
+            {/* <ReusableCarousel className="w-full max-w-sm" itemsPerView={{ default: 1, sm: 1, md: 2 }}>
               {configration?.map((config) => (
                 <div key={config.id}>{renderCardContent(config)}</div>
               ))}
-            </ReusableCarousel>
+            </ReusableCarousel> */}
           </div>
         </>
       ) : (
         <div className="">
-          <Card className="">
-            <CardHeader className="border-b">
-              <CardTitle className="text-base font-semibold">
+            <Card className="flex flex-col rounded-none border-none bg-white !shadow-custom my-2">
+            <CardHeader className=" border-b border-[#D9D9D9] py-3 mb-2 px-4 shadow-sm">
+              <CardTitle className="font-semibold lg:text-lg">
                 Price & Plot Plan
               </CardTitle>
             </CardHeader>

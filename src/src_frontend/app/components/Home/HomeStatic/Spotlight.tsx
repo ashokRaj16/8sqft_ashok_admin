@@ -49,7 +49,6 @@ const Spotlight = () => {
       const propertiesData = response.data.data || [];
 
 
-      console.log("API propertiesData:", propertiesData);
       setProperties(propertiesData);
     } catch (err) {
       setError("Failed to fetch properties. Please try again later.");

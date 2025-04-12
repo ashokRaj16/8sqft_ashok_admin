@@ -109,8 +109,8 @@ html {
 
 
 .heroImage {
-  background-image: url('/assets/Home_page/Maskgroup.png');
-  background-size: 100% 100%;
+  background-image: url('/assets/Home_page/Maskgroup.svg');
+  background-size: cover;
   background-repeat: no-repeat;
   transition: 0.4s ease-in-out;
 }
@@ -130,8 +130,269 @@ html {
 @media (max-width: 768px) {
   .heroImage {
     background-image: url('/assets/Home_page/Maskgroup_mobile.png');
+    background-size: 100% 100%;
   }
   .about_hero_section{
     background-position: left;
   }
+}
+
+@keyframes shine {
+  0% { background-position: 200%; }
+  100% { background-position: -200%; }
+}
+
+.shine-text {
+  background: linear-gradient(45deg, #ffffff93, #000000d9, #ffffff9a);
+  background-size: 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 2s linear infinite;
+}
+
+.swiper-button-prev:after, .swiper-button-next:after{
+  font-size: 20px !important;
+}
+.swiper-button-next,
+.swiper-button-prev {
+  color: white !important;
+  border: 2px solid white !important;
+  padding: 10px !important;
+  background: transparent !important;
+  height: 40px !important;
+  width: 40px !important;
+  border-radius: 50% !important;
+  font-size: 20px !important;
+}
+
+.swiper-pagination-bullet {
+  background: white !important;
+}
+
+.swiper-pagination-progressbar .swiper-pagination-progressbar-fill{
+  background: #FC6600 !important;
+}
+
+
+.blur-swiper .swiper-slide.swiper-slide-visible.swiper-slide-next,.swiper-slide.swiper-slide-visible.swiper-slide-prev{
+
+  filter: blur(2px) !important;
+}
+
+.scroll-x{
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.scroll-x::-webkit-scrollbar {
+  width: 2px;
+  height: 0px;
+}
+
+.loading-text {
+  color: #FC6600;
+  font-size: 14pt;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+.loading-text .dot {
+  margin-left: 3px;
+  animation: blink 1.5s infinite;
+}
+.loading-text .dot:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.loading-text .dot:nth-child(3) {
+  animation-delay: 0.6s;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+
+
+.btn-shine {  
+  color: #fff;
+  background: linear-gradient(to right, #777777 0, #fff 10%, #777777 20%);
+  background-position: 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine2 4s infinite linear;
+  animation-fill-mode: forwards;
+  -webkit-text-size-adjust: none;
+}
+.btn-shine2 {  
+  color: #fff;
+  background: linear-gradient(to right, #ffffff 0, #808080 10%, #ffffff 20%);
+  background-position: 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine2 5s infinite linear;
+  animation-fill-mode: forwards;
+  -webkit-text-size-adjust: none;
+}
+@-moz-keyframes shine2 {
+  0% {
+    background-position: 0;
+  }
+  60% {
+    background-position: 215px;
+  }
+  100% {
+    background-position: 230px;
+  }
+}
+@-webkit-keyframes shine2 {
+  0% {
+    background-position: 0;
+  }
+  60% {
+    background-position: 215px;
+  }
+  100% {
+    background-position: 230px;
+  }
+}
+@-o-keyframes shine2 {
+  0% {
+    background-position: 0;
+  }
+  60% {
+    background-position: 215px;
+  }
+  100% {
+    background-position: 230px;
+  }
+}
+@keyframes shine2 {
+  0% {
+    background-position: 0;
+  }
+  60% {
+    background-position: 215px;
+  }
+  100% {
+    background-position: 230px;
+  }
+}
+
+
+
+
+.Imgshine {
+  position: relative;
+  overflow: hidden;
+}
+.Imgshine::before {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 100%);
+  content: "";
+  display: block;
+  height: 100%;
+  left: -75%;
+  position: absolute;
+  top: 0;
+  transform: skewX(-25deg);
+  width: 50%;
+  z-index: 2;
+}
+.Imgshine:hover::before, .Imgshine:focus::before {
+  -webkit-animation: Imgshine 0.85s;
+          animation: Imgshine 0.85s;
+}
+@-webkit-keyframes Imgshine {
+  100% {
+    left: 125%;
+  }
+}
+@keyframes Imgshine {
+  100% {
+    left: 125%;
+  }
+}
+
+
+
+
+.animated-image {
+  /* width: 16rem;
+  height: 16rem; */
+  scale:1.6;
+  border-radius: 24px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  animation: slideScale 7s linear infinite;
+}
+
+@keyframes slideScale {
+  0%, 100% {
+    transform: translateX(0) ;
+  }
+  50% {
+    transform: translateX(100px);
+  }
+}
+
+
+.gradient-animate {
+	/* background: linear-gradient(-45deg, #131e31, #152135, #0078DB,#131e31); */
+	background-size: 150% 150%;
+	animation: gradient 15s ease-in-out infinite;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+
+
+.bg-blue-img {
+  background-image: url('https://images.unsplash.com/photo-1523633589114-88eaf4b4f1a8?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&fit=crop&w=460&h=340&q=100');
+}
+.bg-green-img {
+  background-image: url('https://images.unsplash.com/photo-1488330890490-c291ecf62571?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&fit=crop&w=460&h=340&q=100');
+}
+.bg-purple-img {
+  background-image: url('https://images.unsplash.com/photo-1511800453077-8c0afa94175f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&fit=crop&w=460&h=340&q=100');
+}
+.bg-red-img {
+  background-image: url('https://images.unsplash.com/photo-1519181245277-cffeb31da2e3?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&fit=crop&w=460&h=340&q=100');
+}
+.bg-yellow-img {
+  background-image: url('https://images.unsplash.com/photo-1485550409059-9afb054cada4?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&fit=crop&w=460&h=340&q=100');
+}
+
+.pane.active {
+  flex-grow: 10;
+  max-width: 100%;
+}
+.pane.active .background {
+  transform: scale(1.25, 1.25);
+}
+@media (min-width: 640px) {
+  .pane.active .label {
+    transform: translateX(0.5rem);
+  }
+}
+.pane.active .label .content > * {
+  opacity: 1;
+  transform: translateX(0);
+}
+.pane.active .shadow {
+  opacity: 0.75;
+  transform: translateY(0);
 }

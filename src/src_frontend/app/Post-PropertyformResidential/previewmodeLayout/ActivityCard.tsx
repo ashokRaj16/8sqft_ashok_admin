@@ -33,20 +33,21 @@ export default function ActivityCard({ title, shortlistedCount, intrestedCount, 
       count: intrestedCount || 0,
     },
     {
-      label: "Engagement",
+      label: "Engaged",
       icon: "/assets/ActivityCard/Contacted.svg",
       count: isViewCount? engagement+1 : 0,
     },
   ];
   return (
-    <div className="pb-2  my-3 w-full mx-w-md  border-b border-dashed">
-      <h2 className="text-lg font-semibold mb-1 text-[#222222CC]">
-        Activity On This  {title || "Property"}
+    <div className="pb-2 lg:pt-1 lg:my-3 w-full mx-w-md shadow-custom lg:shadow-none lg:border-b border-dashed bg-white px-2 lg:px-0">
+      <h2 className="font-semibold lg:text-base text-sm text-primary-black py-2">
+        {/* Activity On This  {title || "Property"} */}
+        Milestone Map
       </h2>
       <div className="flex  gap-1 justify-between  items-start">
         {activityData.map((activity, index) => (
-          <div key={index} className="bg-[#FFF0E5] p-2 rounded-md ml-1 w-full">
-            <div className="flex items-center gap-2 ">
+          <div key={index} className="bg-[#FFF0E5] p-2 rounded-md w-full">
+            <div className="flex items-center gap-1 ">
               {/* <img
                 src={activity.icon}
                 alt={activity.label}
@@ -55,8 +56,9 @@ export default function ActivityCard({ title, shortlistedCount, intrestedCount, 
               <Image
                 src={activity.icon}
                 alt={activity.label}
-                width={20}
-                height={20}
+                width={15}
+                height={15}
+                className="w-4 h-4"
               />
               <div className="flex flex-col self-start">
                 <span className="text-sm font-bold">{formatNumber(activity.count)}</span>

@@ -48,6 +48,29 @@ export const getAllSponsaredCountAdmin = async ( whereClause = null ) => {
     }
 };
 
+export const getSponsaredDetailsById = async (id) => {
+    try {
+        const propertyJoin = `LEFT JOIN tbl_property tp ON tp.id = tps.property_id`;
+        const UserJoin = `LEFT JOIN tbl_users tu ON tu.id = tps.user_id`;
+        const query = `SELECT 
+                        tps.*,
+                        tu.id as tu_id, tu.fname, tu.mname, tu.lname, tu.profile_picture_url, tu.mobile, tu.email, tu.user_description, tu.company_name as user_company_name, tu.company_web_url, 
+                        tp.id as tp_id, tp.property_title, tp.title_slug, tp.property_logo_url, tp.company_name, tp.description, tp.full_address, tp.landmark, tp.locality, tp.city_name
+                       FROM tbl_property_sponsared tps
+                       ${propertyJoin}
+                       ${UserJoin}
+                       WHERE 
+                       tps.id = ${id}`;
+
+        const [[rows]] = await pool.execute(query);
+        console.log(rows, 'rows')
+        return rows;
+    } catch (error) {
+        console.error('Database Error:', error);
+        throw new Error('Unable to fetch spotlight property.');
+    }
+};
+
 export const createSponsaredAdmin = async (data) => {
 
     let connection;
@@ -327,20 +350,31 @@ export const getSpotlightHeroBannerData = async (limit = 10, categories = "HOME 
             where += ` AND tps.categories = '${categories}'`;
         }
 
-        where += ` AND tsg.img_categories = 'BANNER' `;
+        where += ` AND tsg.img_categories in ('BANNER' , 'BANNER MOBILE') `;
         const queryLimit = `LIMIT ${limit}`;
         const orderBy = `ORDER BY tps.sequence_no ASC`;
         const joinProperty = `LEFT JOIN tbl_property tp ON tp.id = tps.property_id`;
         const joinGallery = `LEFT JOIN tbl_sponsared_gallery tsg ON tsg.sp_id = tps.id`;
-        const query = `SELECT tps.id as sp_id, tp.id as p_id, tps.is_dedicated, tps.spotlight_slug, tps.theme_color_dark, tps.categories, tsg.img_url, tsg.file_type, tps.published_date, tp.property_title, tp.company_name, tp.per_sqft_amount, tp.landmark, tp.city_name, tp.title_slug
+        const query = `SELECT tps.id as sp_id, tp.id as p_id, tps.is_dedicated, tps.spotlight_slug, tps.theme_color_dark, tps.categories, 
+                        MAX(CASE WHEN tsg.img_categories = 'BANNER' THEN tsg.img_url END ) as banner_url,  
+                        MAX(CASE WHEN tsg.img_categories = 'BANNER MOBILE' THEN tsg.img_url END ) as banner_mobile_url,                          
+                        MAX(tsg.file_type) as file_type, 
+                        MAX(tsg.img_categories) as img_categories,
+                        tps.published_date,
+                        tp.property_title, tp.company_name, tp.per_sqft_amount, tp.landmark, tp.city_name, tp.title_slug
                        FROM tbl_property_sponsared tps 
                        ${joinProperty}
                        ${joinGallery}
-                       ${where} ${orderBy} 
+                       ${where} 
+                       GROUP BY 
+                        tps.id, tp.id, tps.is_dedicated, tps.spotlight_slug, tps.theme_color_dark, tps.categories,
+                        tps.published_date, tp.property_title, tp.company_name, tp.per_sqft_amount, tp.landmark,
+                        tp.city_name, tp.title_slug
+                        ${orderBy} 
                        ${queryLimit}`;
 
+                       console.log(query, "query")
         const [rows] = await pool.execute(query);
-
         return rows;
     } catch (error) {
         console.error('Database Error:', error);
@@ -492,7 +526,7 @@ export const getSponsaredImagesById = async (id) => {
         const [rows] = await pool.execute(
             `SELECT tsg.*
                 FROM tbl_sponsared_gallery tsg
-                WHERE tsg.sp_id = ?
+                WHERE tsg.sp_id = ? AND tsg.img_categories NOT IN ('BANNER', 'BANNER MOBILE')
                 ORDER BY img_categories
              `, 
             [id]

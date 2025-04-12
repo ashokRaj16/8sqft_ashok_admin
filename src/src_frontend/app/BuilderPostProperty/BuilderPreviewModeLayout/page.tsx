@@ -101,7 +101,7 @@ const BuilderPreviewModeLayout: React.FC = () => {
         />
       </div>
 
-      <div className="flex space-x-4 overflow-x-auto items-center scrollbar-hide border-b border-gray-200 py-2 sticky top-20 bg-white z-20">
+      <div className="flex space-x-4 overflow-x-auto items-center scrollbar-hide border-b border-gray-200 py-2 sticky top-14 bg-white z-20">
           <button onClick={() => scrollNav("left")} className="p-2 absolute left-0  translate-y-[0px] z-30 bg-white">
             <ChevronLeft className="h-4 w-4 text-gray-600" />
           </button>

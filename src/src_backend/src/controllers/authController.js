@@ -661,3 +661,20 @@ export const sendTextMessage = async (mobile = '') => {
         return { success: false, message: "Failed to send OTP.", error: error.message };
     }
 };
+
+export const messageCallbackForPromo = (req, res) => {
+
+  const { app, timestamp, version, type, payload } = req.body;
+  const { id, gsId, type: eventType, destination, payload: eventPayload } = payload;
+  console.log("returned Response ----", req.body);
+
+  switch (eventType) {
+      case "enqueued":
+          break;
+      case "failed":
+          break;
+      default:
+  }
+
+  res.status(200).json({ success: true, message: "Webhook Promo received" });
+};

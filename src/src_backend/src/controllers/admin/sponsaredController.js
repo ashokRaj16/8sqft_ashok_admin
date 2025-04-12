@@ -2,7 +2,10 @@
 import { readRecordDb } from "../../models/commonModel.js";
 import { addGalleryImages } from "../../models/galleryModel.js";
 import { createSponsaredAdmin, deleteSponsaredAdmin, getAllSponsaredCountAdmin, getAllSponsaredListAdmin, getLastSponsaredSequenceAdmin, 
-  updateSponsaredAdmin, updateMultipleSponsaredAdmin } from "../../models/sponsaredModel.js";
+  updateSponsaredAdmin, updateMultipleSponsaredAdmin, 
+  getSponsaredDetailsById,
+  getPropertyContructionPhaseById,
+  getSponsaredImagesById} from "../../models/sponsaredModel.js";
 import {
   badRequestResponse,
   successWithDataResponse,
@@ -10,9 +13,9 @@ import {
 import validator from "validator";
 import { generateSponsaredSlug } from "../../utils/slugHelper.js";
 
-  //  need work
-  //  ### add image feature for home page banner. 
-  //  ### 
+//  need work
+//  ### add image feature for home page banner. 
+//  ### 
 
 export const listSponsared = async (req, res) => {
   try {
@@ -96,7 +99,27 @@ export const listSponsared = async (req, res) => {
   }
 };
 
-// Add a new blog
+export const getSponsaredById = async (req, res) => {
+  try {
+
+    const id = req.params.id;
+    const sponsaredResult = await getSponsaredDetailsById(id);
+    const data = sponsaredResult;
+    if(sponsaredResult) {
+      if(sponsaredResult.property_id) {
+        data.construction = await getPropertyContructionPhaseById(sponsaredResult.property_id);
+      }
+      data.gallery = await getSponsaredImagesById(id);
+    }
+    
+    return successWithDataResponse(res, true, "Sponsared details.", data);
+  } catch (error) {
+    console.error(error);
+    return badRequestResponse(res, false, "Error fetching Sponsared!", error);
+  }
+};
+
+// Add a new sponsared property
 export const addSponsared = async (req, res) => {
   const {
       sponsared_title, sponsared_description,

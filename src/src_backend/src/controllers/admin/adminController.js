@@ -42,6 +42,7 @@ export const adminLogin = async (req, res) => {
         return successResponse(res, true, 'Login successful.', data)
 
     } catch (error) {
+      console.log(error, "error")
         return badRequestResponse(res, false, 'Error logging in.', error);
     }
 };
