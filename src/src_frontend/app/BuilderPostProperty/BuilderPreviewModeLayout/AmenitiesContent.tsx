@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from "react";
+import { CiCircleMore } from "react-icons/ci";
 
 
 
@@ -272,39 +273,47 @@ const AmenitiesContent: React.FC<AmenitiesProps> = ({ otherAmenities, parking, w
   });
   const previewAmenities = availableAmenities.slice(0, 12);
   return (
-    <div className="p-4 bg-white rounded-lg">
-      <h2 className="text-lg font-semibold mb-4">Amenities</h2>
-      <div className="grid md:grid-cols-6 grid-cols-3 gap-3">
-        {(isExpanded ? availableAmenities : previewAmenities).map(
-          (amenity, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center justify-center bg-[#F8F8F8] p-2 rounded-lg border  border-[#d4d4d4]"
-            >
-              <img
-                src={amenity.icon}
-                alt={amenity.label}
-                className="w-8 h-8 mb-2 object-contain"
-              />
-              <span className="lg:text-xs text-[10px] text-gray-700 font-medium text-center line-clamp-1">
-                {amenity.label}
-              </span>
-            </div>
-          )
-        )}
-      </div>
-
-      {availableAmenities.length > 12 && (
-        <div className="flex justify-center ">
-          <button
-            onClick={toggleExpand}
-            className="mt-4 text-[#FC6600] text-sm  hover:underline block text-center"
-          >
-            {isExpanded ? "Show Less Amenities" : "Show More Amenities"}
-          </button>
-        </div>
-      )}
-    </div>
+  <div className="bg-white rounded-lg mb-4">
+     <h2 className="text-lg font-semibold mb-4">Amenities</h2>
+     <div className="grid md:grid-cols-6 grid-cols-3 gap-3">
+       {(isExpanded ? availableAmenities : previewAmenities).map(
+         (amenity, index, array) =>
+           index === array.length - 1 && !isExpanded ? (
+             <div
+               key={index}
+               className="flex flex-col items-center justify-center bg-primary-light p-1 rounded-lg border border-primary group cursor-pointer"
+               onClick={toggleExpand}
+             >
+                <span>{availableAmenities.length-previewAmenities.length+1}+</span>
+               <span className="text-primary lg:text-sm text-xs font-medium flex items-center group-hover:scale-110 ease-in duration-200">Show More</span>
+             </div>
+           ) : (
+             <div
+               key={index}
+               className="flex flex-col items-center justify-center bg-[#F8F8F8] p-2 rounded-lg border border-[#d4d4d4]"
+             >
+               <img
+                 src={amenity.icon}
+                 alt={amenity.label}
+                 className="w-8 h-8 mb-2 object-contain"
+               />
+               <span className="lg:text-xs text-[10px] text-gray-700 font-medium text-center line-clamp-1">
+                 {amenity.label}
+               </span>
+             </div>
+           )
+       )}
+     </div>
+   
+     {availableAmenities.length > 12 && isExpanded && (
+       <button
+         onClick={toggleExpand}
+         className="mt-4 text-primary text-sm font-medium hover:underline block text-center w-full"
+       >
+         Show Less
+       </button>
+     )}
+   </div>
   );
 };
 

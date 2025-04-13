@@ -5,16 +5,15 @@ import adminRoutes from "./routes/adminRoutes.js";
 import frontRoutes from './routes/frontRoutes.js';
 
 import locationRoutes from './routes/locationRoutes.js';
-import { messageCallback } from "./controllers/authController.js";
+import { messageCallback, messageCallbackForPromo } from "./controllers/authController.js";
 
 import { accessKeyMiddleware } from "./Middleware/accessKeyMiddleware.js";
+import { badRequestResponse } from "./utils/response.js";
 
 const app = express();
 
-app.use((req, res, next) => { console.log(`[${new Date()}] ${req.method} ${req.url}`); next(); });
-
 app.post('/gupshup-webhook', messageCallback);
-
+app.post('/gupshup-webhook-promo', messageCallbackForPromo);
 app.use(accessKeyMiddleware);
 
 app.use('/admin', adminRoutes);
@@ -24,7 +23,7 @@ app.use("/auth", authRoutes);
 app.use("/location", locationRoutes);
 
 app.get("*", (req, res) => {
-  res.status(404).json({ status: false, message: '404! Not found error.'});
+  return badRequestResponse (res, false, '404! Not found error.');
 });
 
 export default app;

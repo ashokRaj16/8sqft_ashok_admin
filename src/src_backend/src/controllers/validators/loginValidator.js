@@ -2,7 +2,6 @@ import validator from 'validator';
 
 const loginValidator = (req = {}) => {
 
-    console.log('request: ', req)
     const errors = [];
     if(!req.email){
         errors.push({ field: "email", message: "Email id is required."})

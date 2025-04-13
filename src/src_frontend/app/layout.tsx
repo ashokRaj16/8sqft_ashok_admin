@@ -4,11 +4,16 @@ import LocationFetcher from "@/StaticComponent/LocationFetcher";
 import ProviderComponent from "./Provider";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
-import HomeAnimation from "./components/Home/HomeStatic/HomeAnimation";
 import HydrateAuth from "./components/Home/HomeStatic/HydrateAuth";
 import Script from "next/script";
 import dotenv from "dotenv";
 import ClientFooter from "./ClientFooter";
+import Loading from "./loading";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/effect-fade";
+import "swiper/css/effect-coverflow";
 dotenv.config();
 export const metadata = {
   title: "8SQFT - India's fastest-growing zero-brokerage property platform",
@@ -52,16 +57,16 @@ export default function RootLayout({
         <link rel="icon" href={metadata.logo} />
       </head>
       <body className="w-screen h-screen overflow-x-hidden ">
-        <Suspense fallback={<HomeAnimation />}>
+        <Suspense fallback={<Loading />}>
           <HydrateAuth />
           <ProviderComponent>
-            <div className="w-full bg-white fixed top-0 z-50 h-[80px]">
+            <div className="w-full fixed top-0 z-50 lg:h-[80px]">
               <Navbar />
             </div>
             <Toaster />
             <LocationFetcher />
             {/* Main Content */}
-            <main className="w-full mx-auto pt-[80px] ">{children}</main>
+            <main className="w-full mx-auto lg:pt-[80px] pt-[57px] ">{children}</main>
             {/* Footer */}
             <ClientFooter />
           </ProviderComponent>

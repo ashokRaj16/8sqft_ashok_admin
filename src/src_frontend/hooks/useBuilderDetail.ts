@@ -45,11 +45,29 @@ interface PropertyConfiguration {
   updated_at: string;
   unit_price_type:string;
 }
+interface Location {
+  id: number;
+  distance: string;
+  latitude: string;
+  longitude: string;
+  time_to_reach: string;
+  location_title: string;
+}
+
+interface LocationCategory {
+  icon_url: string;
+  locations: Location[];
+}
+
+interface NearbyLocations {
+  location_categories: string;
+  [key: string]: string | LocationCategory;
+}
 
 // ✅ Main Property Interface
 interface useBuilderDetails {
   id: number;
-  
+  property_id: number;
   user_id: number;
   form_step_id: string;
   form_status: string;
@@ -149,6 +167,7 @@ interface useBuilderDetails {
   unit_price_type:string;
   full_address:string;
   title_slug: string;
+  nearbyLocations: NearbyLocations[];
   
 }
 

@@ -122,8 +122,8 @@ function BuilderPropertyCardSimilar() {
   const filters = useFilterStore();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedCityName = searchParams.get("city_name") || "this location";
-  const selectedlocality = searchParams.get("searchKeyword") || "this location";
+  const selectedCityName = searchParams.get("city_name") || "";
+  const selectedlocality = searchParams.get("searchKeyword") || "";
   const sortOrder = searchParams.get("sortOrder") || filters?.sortOrder;
   const isMobile = useMediaQuery("(max-width: 1024px)");
 
@@ -253,6 +253,11 @@ function BuilderPropertyCardSimilar() {
     } else {
       newParams.delete("property_variety_type");
     }
+    if (filters.property_config_type) {
+      newParams.set("property_config_type", filters.property_config_type);
+    } else {
+      newParams.delete("property_config_type");
+    }
 
     router.push(`?${newParams.toString()}`, { scroll: false }); // Update URL without page reload
   }, [
@@ -269,6 +274,7 @@ function BuilderPropertyCardSimilar() {
     filters.property_type,
     filters.is_rera_number,
     filters.property_variety_type,
+    filters.property_config_type,
   ]);
 
   if (isLoading) {

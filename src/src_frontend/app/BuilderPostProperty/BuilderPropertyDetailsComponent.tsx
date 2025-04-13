@@ -38,6 +38,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useSearchQuery from "@/hooks/useSearchQuery";
 import useGetProfileDetails from "@/hooks/useGetProfileDetails";
+import { getUserLocation } from "../components/common/GetAddressByLatLong";
 const ProjectVariety = ["Residential", "Commercial", "Open Land"];
 const ProjectVarietyType = [
   "New Launch",
@@ -252,11 +253,9 @@ export default function BuilderPropertyDetailsComponent({
   });
   const { data: City } = useGetCitylist();
   const { profile } = useGetProfileDetails();
-  console.log(City, 'getcity')
   const [cityId, setCityID] = useState(0)
   const [cityQuery, setCityQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("");
-  console.log(cityQuery,selectedCity,'cityQuery')
   const filteredCities: { id: number; city_name: string }[] = City?.data ? City.data.filter((city: { city_name: string }) =>
     city.city_name.toLowerCase().includes(cityQuery.toLowerCase())
   ) : [];
@@ -284,31 +283,37 @@ export default function BuilderPropertyDetailsComponent({
   const [show, setShow] = useState(false);
   const { id } = usePropertyIdStore();
   const userid = id!;
-
   const [searchQuery, setSearchQuery] = useState<string>(""); // User's search input
   const [selectedDate, setSelectedDate] = useState({ month: "", year: "2025" });
   const date = `${selectedDate.month}, ${selectedDate.year}`;
   const [selectedProjectAreaType, setSelectedProjectAreaType] =
     useState("Acre");
-
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-
-  const getLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ latitude, longitude });
-
+    const [isCoordinatesChange, setCoordinatesChange] = useState(false);
+ 
+  useEffect(() => {
+    if (!isCoordinatesChange) {
+      getUserLocation(
+        (lat, lng, address) => {
+          setSelectedLocation({ lat, lng });
+          setSearchQuery(address);
         },
-        (error) => {
-          console.log(error.message);
-        }
+        (error) => console.error("Location Error:", error)
       );
-    } else {
-      console.log("Geolocation is not supported by this browser.");
     }
+  }, [isCoordinatesChange])
+  const handleManualLocationChange = (lat: number, lng: number) => {
+    setCoordinatesChange(true);
+    getUserLocation(
+      (lat, lng, address) => {
+        setSelectedLocation({ lat, lng });
+        setSearchQuery(address);
+      },
+      (error) => console.error("Location Error:", error),
+      lat,
+      lng // Pass manually selected coordinates
+    );
   };
+  
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -321,7 +326,6 @@ export default function BuilderPropertyDetailsComponent({
   const [suggestions, setSuggestions] = useState<
     google.maps.places.AutocompletePrediction[]
   >([]);
-  console.log(suggestions, 'location')
   const [loading, setLoading] = useState(false);
   const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLEMAP || '';
   const INDIA_BOUNDS = {
@@ -406,7 +410,7 @@ export default function BuilderPropertyDetailsComponent({
       if (event.latLng) {
         const lat = event.latLng.lat();
         const lng = event.latLng.lng();
-
+handleManualLocationChange(lat, lng)
         // Check if the click is within India's bounds
         if (
           lat < INDIA_BOUNDS.south ||
@@ -445,7 +449,7 @@ export default function BuilderPropertyDetailsComponent({
 
 
 
-
+  const [hasTyped, setHasTyped] = useState(false);
   const [searchQueryLocality, setSearchQueryLocality] = useState<string>("");
   const [localityPincode, setLocalityPincode] = useState<string>("");
   const [localitySuggestions, setLocalitySuggestions] = useState<Suggestion[]>([]);
@@ -454,7 +458,6 @@ export default function BuilderPropertyDetailsComponent({
     city: selectedCity,
     searchKeyword: searchQueryLocality,
   });
-  console.log(cityId, 'cityName')
 
   // ✅ Update suggestions when data changes
   useEffect(() => {
@@ -613,7 +616,7 @@ export default function BuilderPropertyDetailsComponent({
                         type="text"
                         name="locality"
                         placeholder="Enter locality name"
-                        onChange={(e: any) => setSearchQueryLocality(e.target.value)}
+                        onChange={(e: any) => {setSearchQueryLocality(e.target.value); setHasTyped(true);}}
                         className="w-full p-2 border rounded-md h-10 text-sm"
                       />
                       <ErrorMessage
@@ -621,7 +624,7 @@ export default function BuilderPropertyDetailsComponent({
                         component="div"
                         className="text-red text-xs"
                       />
-                      {localitySuggestions.length > 0 && (
+                      {localitySuggestions.length > 0 && hasTyped&& (
                                    <ul className="w-full mt-1 border rounded-lg top-[40px] shadow-sm absolute z-10 bg-white overflow-y-auto max-h-48">
                           {localitySuggestions.map((item, index) => (
 
@@ -631,6 +634,7 @@ export default function BuilderPropertyDetailsComponent({
                                 setSearchQueryLocality(item?.postal_name);
                                 setLocalityPincode(item?.pincode);
                                 setLocalitySuggestions([]);
+                                setHasTyped(false)
                               }}
                             >
                               {item.postal_name} <span className="font-normal text-xs">Locality</span>

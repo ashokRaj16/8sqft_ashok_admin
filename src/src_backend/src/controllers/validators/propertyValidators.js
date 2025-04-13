@@ -60,7 +60,6 @@ export const featureValidators = (req = {}) => {
 export const propertyValidators = (req = {}) => {
 
     let errors = [];
-    console.log("Images", req);
     if( !req.step_id ) {
         errors.push({field: "step_id", message: "Step id is required!"});
     }
@@ -348,6 +347,47 @@ export const propertyNearbyValidator = (req = {}) => {
     {
         errors.push({field: "latitute", message: "Latitute is required."});
     }
+  
+    return errors;
+}
+
+export const nearybyValidation = (req ={}) => {
+    let errors = [];
+   
+    if( !req.location_title )
+    {
+        errors.push({field: "location_title", message: "Title is required."});
+    }
+
+    if( !req.address )
+    {
+        errors.push({field: "address", message: "Address is required."});
+    }
+
+    if( !req.distance )
+    {
+        errors.push({field: "distance", message: "Distance is required."});
+    }
+
+    if( !req.time )
+    {
+        errors.push({field: "time", message: "Time is required."});
+    }
+
+    if( !req.longitude )
+    {
+        errors.push({field: "lagitute", message: "Lagitute is required."});
+    }
+
+    if( !req.latitude )
+    {
+        errors.push({field: "latitute", message: "Latitute is required."});
+    }
+
+    if( !req.nearby_id )
+        {
+            errors.push({field: "nearby_id", message: "Nearby id required."});
+        }
   
     return errors;
 }

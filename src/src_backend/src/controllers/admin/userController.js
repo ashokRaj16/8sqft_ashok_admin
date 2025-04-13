@@ -66,9 +66,6 @@ export const listMembers = async (req, res) => {
         
         return successWithDataResponse(res, true, "User list.", data);
 
-        // console.log("Listing users")
-        // const users = await UserModel.getAllUsers();
-        // res.status(200).json(users);
     } catch (error) {
         return badRequestResponse(res, false, 'Error fetching users!', error);
     }
@@ -77,7 +74,7 @@ export const listMembers = async (req, res) => {
 
 export const listMembersById = async (req, res) => {
     const userId = req.params.id;
-    console.log(req.params);
+   
     if (!userId) {
         return badRequestResponse(res, false, "Id required with request.");
     }
@@ -95,7 +92,7 @@ export const listMembersById = async (req, res) => {
 
 // Add a new user 
 export const addMemberUser = async (req, res) => {
-    console.log("body",req.body);
+
     try {
         const { fname, mname, lname, email, mobile, phone } = req.body;
         const userData = { 
@@ -195,7 +192,7 @@ export const editMemeberAdmin = async (req, res) => {
 // Delete a user
 export const removeMemberAdmin = async (req, res) => {
     const userId = req.params.id;
-    console.log(userId);
+
     try {
         const result = await deleteMemberAdmin(userId);
 
@@ -232,13 +229,13 @@ export const listPropertiesByMemberId = async (req, res) => {
         
         const allowedColumns = ['id', 'property_title', 'city_name', 'property_type', "user_type"];
         const allowedOrders = ['ASC', 'DESC'];
-        // console.log(whereClauses)
+      
         const sortColumn = allowedColumns.includes(filters.sortColumn) ? filters.sortColumn : 'id';
         const sortOrder = allowedOrders.includes(filters.sortOrder?.toUpperCase()) ? filters.sortOrder?.toUpperCase() : 'DESC';
 
         const propertiesResult = await getAllPropertyListAdminByMemberId(baseQuery, sortColumn, sortOrder, pageCount, limitCount);
         const totalCount = await getAllPropertyCountAdminByMemberId(baseQuery);
-        console.log(propertiesResult, totalCount, offset), "result";
+
         data['properties'] = propertiesResult;
         data['totalCounts'] = totalCount;
         const totalPages = Math.ceil(totalCount / limitCount);

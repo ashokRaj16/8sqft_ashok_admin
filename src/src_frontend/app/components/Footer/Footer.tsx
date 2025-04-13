@@ -1,8 +1,13 @@
+import useColorStore from "@/Store/colorStore";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { BsInstagram, BsWhatsapp, BsYoutube } from "react-icons/bs";
 import {
   FaFacebook,
+  FaFacebookF,
   FaInstagramSquare,
   FaLinkedin,
+  FaLinkedinIn,
   FaYoutube,
 } from "react-icons/fa";
 interface FooterSectionProps {
@@ -11,12 +16,12 @@ interface FooterSectionProps {
 }
 
 const FooterSection: React.FC<FooterSectionProps> = ({ title, links }) => (
-  <div className="flex-1 min-w-[250px]">
-    <h3 className="mb-4 text-lg font-semibold">{title}</h3>
+  <div className="flex-1">
+    <h3 className="mb-4 lg:text-lg font-semibold">{title}</h3>
     <ul className="space-y-2">
       {links.map((link, index) => (
         <li key={index}>
-          <Link href={link.href} className="hover:underline">
+          <Link href={link.href} className="hover:underline text-sm lg:text-base">
             {link.label}
           </Link>
         </li>
@@ -26,6 +31,10 @@ const FooterSection: React.FC<FooterSectionProps> = ({ title, links }) => (
 );
 
 const FooterComponent = () => {
+    const pathname = usePathname();
+ const isBuilderPropertyShowcase = pathname.startsWith('/BuilderPropertyShowcase');
+   const themeColor = useColorStore((state) => state.color)
+ const primaryColor=isBuilderPropertyShowcase?themeColor:'#222222';
   const quickLinks = [
     { label: "About Us", href: "/About-Us" },
     { label: "Terms & Conditions", href: "/TermsandCondition" },
@@ -41,25 +50,32 @@ const FooterComponent = () => {
     { label: "Bangalore", href: "https://www.google.com/maps/place/Bangalore" },
     { label: "Ahmedabad", href: "https://www.google.com/maps/place/Ahmedabad" },
   ];
+  function openWhatsapp() {
+    const phoneNumber = "917219009062"; // Ensure this is in international format without '+' or spaces
+    const message = "Hi, I want to post my project/property";
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
+    window.open(whatsappURL, "_blank");
+  }
   return (
-    <div className="bg-[#101010] text-white px-5 py-10 flex flex-col items-center space-y-8 ">
+    <div className="text-white px-5 lg:py-10 py-4 flex flex-col items-center lg:space-y-8 " style={{backgroundColor:primaryColor?primaryColor:'#222222'}}>
       {/* Main Content */}
-      <div className="flex flex-wrap justify-center w-full gap-12 py-5">
+      <div className="grid lg:grid-cols-3 grid-cols-2 justify-center w-full lg:gap-12 gap-4 py-5">
         <FooterSection title="Quick Links" links={quickLinks} />
         <FooterSection title="Discover" links={discoverLinks} />
-        <div className="flex-1 min-w-[250px]">
-          <h3 className="mb-4 text-lg font-semibold">Search</h3>
+        <div className="flex-1 col-span-3 lg:col-span-1">
+          <h3 className="mb-4 text-lg font-semibold hidden lg:block">Subscription</h3>
           <p className="mb-3 text-sm">
             Get the latest information about properties from 8sqft
           </p>
-          <div className="flex flex-col lg:flex-row gap-3">
+          <div className="flex flex-row gap-3 p-2 border text-sm lg:text-base border-white/80 rounded-lg">
             <input
               type="email"
               placeholder="Enter your email here"
-              className="w-full p-2 text-[#222222] rounded-md outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full p-1 text-white/80 bg-transparent rounded-md outline-none focus:ring-0"
             />
-            <button className="lg:w-1/4 bg-[#FC6600] text-white p-2 rounded-md hover:bg-orange-600 transition">
+            <button className="lg:w-1/4 bg-transparent btn-shine border border-white/80 text-white/70 px-2 rounded-sm hover:text-white transition">
               Subscribe
             </button>
           </div>
@@ -67,10 +83,10 @@ const FooterComponent = () => {
       </div>
 
       {/* Separator */}
-      <div className="w-full border-t border-gray-700"></div>
+      <div className="w-full border-t"></div>
 
       {/* Bottom Section */}
-      <div className="flex flex-wrap justify-between items-center w-full max-w-6xl gap-4 py-2">
+      <div className="flex flex-wrap justify-center lg:justify-between items-center w-full max-w-6xl gap-4 py-2">
         <div className="text-sm">
           <Link href="/PrivacyPolicy" className="hover:underline">
             Privacy Policy
@@ -89,20 +105,15 @@ const FooterComponent = () => {
             &copy; 2024-2025, Eight Sqft Real Tech
           </a>
         </div>
-        <div className="flex gap-4">
-          <Link href="https://www.instagram.com/8sqftrealtech/">
-            <FaInstagramSquare className="w-7 h-7" />
-          </Link>
-          <Link href="https://www.facebook.com/profile.php?id=61571128571431">
-            <FaFacebook className="w-7 h-7" />
-          </Link>
-          <Link href="https://www.youtube.com/channel/UCyldPEQF0AIX1AzvAmBcnbg">
-            <FaYoutube className="w-7 h-7" />
-          </Link>
-          <Link href="https://www.linkedin.com/search/results/all/?fetchDeterministicClustersOnly=true&heroEntityKey=urn%3Ali%3Aorganization%3A105332630&keywords=8sqft&origin=RICH_QUERY_SUGGESTION&position=0&searchId=7dc9bdcc-d5ba-4696-8a81-6ceacf94eb76&sid=UF9&spellCorrectionEnabled=false">
-            <FaLinkedin className="w-7 h-7" />
-          </Link>
-        </div>
+     
+        <div className="flex gap-2 px-2"> 
+                    <Link href={'https://www.instagram.com/8_sqft/'} className="p-1 rounded-full hover:bg-primary text-white" target="_blank"><BsInstagram size={17} /></Link>
+                    <Link href={'https://www.facebook.com/people/8-sqft/61571128571431/'} className="p-1 rounded-full hover:bg-primary text-white" target="_blank"><FaFacebookF size={17} /></Link>
+                    <Link href={'#'} className="p-1 rounded-full hover:bg-primary text-white"  onClick={openWhatsapp}><BsWhatsapp size={17} /></Link>
+                    <Link href={'https://www.youtube.com/channel/UCyldPEQF0AIX1AzvAmBcnbg'} className="p-1 rounded-full hover:bg-primary text-white" target="_blank"><BsYoutube size={17} /></Link>
+                    <Link href={'https://www.linkedin.com/company/8sqft'} className="p-1 rounded-full hover:bg-primary text-white" target="_blank"><FaLinkedinIn size={17} /></Link>
+                    </div>
+
       </div>
     </div>
   );

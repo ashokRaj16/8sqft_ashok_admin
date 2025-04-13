@@ -56,7 +56,6 @@ export const listBlogs = async (req, res) => {
     if (whereClauses.length > 0) {
       baseQuery = ` WHERE ` + whereClauses.join(" AND ");
     }
-    console.log(baseQuery,"baseee")
     const allowedColumns = [
       "id",
       "title",
@@ -74,7 +73,6 @@ export const listBlogs = async (req, res) => {
       ? filters.sortOrder?.toUpperCase()
       : "DESC";
 
-    console.log(filters, sortColumn, sortOrder);
     const propertyResult = await getAllblogListAdmin(
       baseQuery,
       sortColumn,
@@ -133,8 +131,6 @@ export const addBlog = async (req, res) => {
     meta_keyword,
     publish_date,
   } = req.body;
-
-  //console.log(req.body, "bodyyyyy");
   
   try {
     const data = {
@@ -210,7 +206,6 @@ export const updateBlog = async (req, res) => {
       ? sanitizedField(title, true, "CAPITALIZE", { replaceMultipleSpaces: true })
       : null;
 
-      // Generate new slug if title is updated
       const titleSlug = sanitizedTitle
       ? `${slugify(sanitizedTitle, { lower: true, strict: true })}-${id}`
       : null;
@@ -312,7 +307,6 @@ export const listCategory = async (req, res) => {
       ? filters.sortOrder?.toUpperCase()
       : "ASC";
 
-    console.log(filters, sortColumn, sortOrder);
     const propertyResult = await getAllCategoryListAdmin(
       baseQuery,
       sortColumn,
@@ -344,7 +338,6 @@ export const addCategory = async (req, res) => {
   const { title, description, cat_icon, cat_banner, parent_cat_id } = req.body;
 
   try {
-      console.log("data::", req.body)
     const data = {
       title: title || null,
       description: description || null,
@@ -375,7 +368,6 @@ export const updateCategory = async (req, res) => {
       cat_icon: cat_icon || null,
       cat_banner: cat_banner || null,
     };
-    console.log("data::", req.body)
 
     const result = await updateCategoryAdmin(id, data);
 

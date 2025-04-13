@@ -111,7 +111,6 @@ export const createAgreement = async (req, res) => {
 export const getAgreementsRender = async (req, res) => {
   try {
     
-    console.log(req.query);
       const searchPhone = validator.escape(req.query.searchPhone || "") || ""; 
       const searchDate  = validator.escape(req.query.searchDate || "") || "";
       const searchType  = validator.escape(req.query.searchType || "") || ""; 
@@ -137,7 +136,6 @@ export const getAgreementsRender = async (req, res) => {
     const agreementsQuery = `SELECT * FROM tbl_rent_agreement_enquiry ${searchQuery} LIMIT ${limit} OFFSET ${offset}`;
 
     const [[totalCountResult]] = await pool.query(totalCountQuery);
-    console.log(totalCountResult);
     const totalCount = totalCountResult.count;
 
     const [agreements] = await pool.query(agreementsQuery);
@@ -182,8 +180,6 @@ export const getAgreementDetailsRender = async (req, res) => {
 
 export const getAgreements = async (req, res) => {
   try {
-    
-    console.log(req.query);
       const searchPhone = validator.escape(req.query.searchPhone || "") || ""; 
       const searchDate  = validator.escape(req.query.searchDate || "") || "";
       const searchType  = validator.escape(req.query.searchType || "") || ""; 
@@ -209,7 +205,6 @@ export const getAgreements = async (req, res) => {
     const agreementsQuery = `SELECT * FROM tbl_rent_agreement_enquiry ${searchQuery} LIMIT ${limit} OFFSET ${offset}`;
 
     const [[totalCountResult]] = await pool.query(totalCountQuery);
-    console.log(totalCountResult);
     const totalCount = totalCountResult.count;
 
     const [agreements] = await pool.query(agreementsQuery);

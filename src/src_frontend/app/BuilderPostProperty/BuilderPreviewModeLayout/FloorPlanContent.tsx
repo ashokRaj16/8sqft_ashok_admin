@@ -71,20 +71,22 @@ const propertyDetails = activeConfiguration
 : [];
   const isMobile = useMediaQuery("(max-width: 640px)");
   const renderCardContent = (config: Configuration) => (
-    <Card className=" px-2 mt-4 rounded-md p-0 w-[165px] lg:w-[200px] h-[190px]">
+  <Card className=" px-2 mt-4 rounded-md p-0 w-[165px] lg:w-[200px] h-auto">
       <CardContent className="p-0">
         <div className="flex flex-col items-start bg-white p-2 rounded-md">
           {/* Show the image above the text */}
-          <div className="mb-9 flex justify-center w-full h-[6rem]">
+          <div className="mb-2 flex justify-center w-full h-[6rem]">
             <Image
               src={config.unit_img_url} // Ensure this URL is valid
               alt="Plot Plan"
               width={200} // Image width
               height={140} // Image height
               layout="intrinsic" // This ensures the aspect ratio is maintained
-              className="object-contain rounded-md w-full" // 'object-contain' will make sure the image fits inside the container without cropping
+              className="object-cover rounded-md w-full"  // 'object-contain' will make sure the image fits inside the container without cropping
             />
           </div>
+          {propertytype?.toLowerCase() ==="residential" &&( <div className="text-xs">{config.unit_name}</div>)}
+                       {propertytype?.toLowerCase() ==="commercial" &&( <div className="text-xs">{propertyVariety}</div>)}
 
           <p className="text-xs mb-2 text-[#AAAAAA]">
             Plot Area:

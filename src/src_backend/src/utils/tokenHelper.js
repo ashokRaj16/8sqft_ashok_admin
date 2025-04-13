@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { constant } from '../config/constant.js';
 
 // generate Access & Refresh token.
 /**
@@ -8,26 +9,29 @@ import jwt from 'jsonwebtoken';
  * @param {ACCESS, REFRESH} type 
  * @returns 
  */
-export const generateToken = (payload, request = "ADMIN", type = "ACCESS") => {
+export const generateToken = (payload, request = constant.USER_TYPE.ADMIN, type = constant.TOKEN_TYPE.ACCESS) => {
     let access_secret_key;
     let refresh_token_key;
 
-    if(request === "ADMIN") {
+    if(request === constant.USER_TYPE.ADMIN) {
         access_secret_key = process.env.JWT_SECRET_ACCESS_KEY_ADMIN || "8SQFT_SECRET";
         refresh_token_key = process.env.JWT_SECRET_REFRESH_KEY_ADMIN || "8SQFT_REFRESH_SECRET";
     } else {
         access_secret_key = process.env.JWT_SECRET_ACCESS_KEY || "8SQFT_SECRET";
         refresh_token_key = process.env.JWT_SECRET_REFRESH_KEY || "8SQFT_REFRESH_SECRET";
     }
-
+    
     // ***After testing change to this.
-    const expire_in = (type === "ACCESS") ? process.env.JWT_EXPIRY : process.env.JWT_REFRESH_EXPIRY;
+    const expire_in = (type === constant.TOKEN_TYPE.ACCESS) 
+        ? process.env.JWT_EXPIRY || "1h" 
+        : process.env.JWT_REFRESH_EXPIRY || "7d";
+
 
     try {
-        if (type === "ACCESS") {
+        if (type === constant.TOKEN_TYPE.ACCESS ) {
             return jwt.sign(payload, access_secret_key, { expiresIn: expire_in });
-        } else if (type === "REFRESH") {
-            return jwt.sign(payload, refresh_token_key);
+        } else if (type === constant.TOKEN_TYPE.REFRESH) {
+            return jwt.sign(payload, refresh_token_key, { expiresIn: expire_in });
         } else {
             throw new Error("Invalid token type specified.");
         }
@@ -38,26 +42,36 @@ export const generateToken = (payload, request = "ADMIN", type = "ACCESS") => {
 }
 
 // verify refresh token.
-export const verifyRefreshToken = (token, request = "ADMIN", type = "ACCESS") => {
-
-    const secret_key = (type === "ACCESS") ? process.env.JWT_SECRET_ACCESS_KEY || "NEXUS_SECRET_KEY" : process.env.JWT_SECRET_REFRESH_KEY || "NEXUS_REFRESH_SECRET";
+export const verifyToken = (token, request = constant.USER_TYPE.ADMIN, type = constant.TOKEN_TYPE.ACCESS) => {
+    
     let access_secret_key;
     let refresh_token_key;
 
-    if(request === "ADMIN") {
-        access_secret_key = process.env.JWT_SECRET_ACCESS_KEY_ADMIN || "8SQFT_SECRET";
-        // refresh_token_key = process.env.JWT_SECRET_REFRESH_KEY_ADMIN || "8SQFT_REFRESH_SECRET";
+    if(request === constant.USER_TYPE.ADMIN) {
+        if(type === constant.TOKEN_TYPE.ACCESS) {
+            access_secret_key = process.env.JWT_SECRET_ACCESS_KEY_ADMIN || "8SQFT_SECRET";
+        } else {
+            refresh_token_key = process.env.JWT_SECRET_REFRESH_KEY_ADMIN || "8SQFT_REFRESH_SECRET";
+        }
     } else {
-        access_secret_key = process.env.JWT_SECRET_ACCESS_KEY || "8SQFT_SECRET";
-        // refresh_token_key = process.env.JWT_SECRET_REFRESH_KEY || "8SQFT_REFRESH_SECRET";
+        if(type === constant.TOKEN_TYPE.ACCESS) {
+            access_secret_key = process.env.JWT_SECRET_ACCESS_KEY || "8SQFT_SECRET";
+        } else {
+            refresh_token_key = process.env.JWT_SECRET_REFRESH_KEY || "8SQFT_REFRESH_SECRET";
+        }
     }
 
     try{
-        let tokenDetails = jwt.verify(token, secret_key);
+
+
+        let tokenDetails = jwt.verify(token, type === constant.TOKEN_TYPE.ACCESS ? access_secret_key : refresh_token_key );
+        
         return { status : true, tokenDetails : tokenDetails };
     }
-    catch(err)
+    catch(error)
     {
-        return { status: false, tokenDetails: err };
+        console.log(error, "ver errorssss")
+
+        return { status: false, error };
     }
 }

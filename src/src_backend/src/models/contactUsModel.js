@@ -8,7 +8,6 @@ export const getAllContactUsListAdmin = async (whereClause = null, sortColumn = 
                   ${whereClause} ${orderQuery}
                   LIMIT ${limit} OFFSET ${offset}`;
   
-                  console.log(searchQuery)
       const [rows] = await pool.execute(searchQuery);
       return rows;
     } catch (error) {
@@ -26,7 +25,7 @@ export const getAllContactUsCountAdmin = async ( whereClause = null ) => {
               ${whereClause}`;
     
       const [rows] = await pool.query(totalCountQuery);
-      console.log(rows);
+
       return rows[0].count;
   }
   catch(error) {
@@ -38,7 +37,7 @@ export const getAllContactUsCountAdmin = async ( whereClause = null ) => {
 export const updateContactUsAdmin = async (id, contactusData) => {
 
   try {
-      console.log("models", contactusData);
+
       
       let queryField = [];
       let queryParams = [];
@@ -79,7 +78,7 @@ export const getContactUsByIdAdmin = async (id) => {
 
     try {
         const [rows] = await pool.execute('SELECT * FROM tbl_contact_us where id = ?', [id]);
-        console.log(rows)
+
         return rows;
 
     } catch (error) {

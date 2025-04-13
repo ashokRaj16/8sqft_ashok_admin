@@ -20,7 +20,6 @@ export const getAllblogListAdmin = async (whereClause = null, sortColumn = "id",
                     ${whereClause} ${orderQuery}
                     LIMIT ${limit} OFFSET ${offset}`;
 
-                    console.log(searchQuery)
         const [rows] = await pool.execute(searchQuery);
         return rows;
     } catch (error) {
@@ -53,7 +52,6 @@ export const createBlogAdmin = async (data) => {
         tags, comment_enabled, author_name, meta_title, meta_description,
         meta_keyword, publish_date, user_id } = data;
 
-    // console.log(data)
     try {
       const inserQuery = `INSERT INTO tbl_blogs 
         (title, description, short_description, banner_image, 
@@ -80,7 +78,6 @@ export const createBlogAdmin = async (data) => {
 export const updateBlogAdmin = async (id, blogData) => {
 
 try {
-    console.log("models", blogData);
     
     let queryField = [];
     let queryParams = [];
@@ -127,7 +124,7 @@ export const getBlogByIdAdmin = async (id) => {
             WHERE tb.id = ?`;
         
         const [rows] = await pool.execute(query, [id]);
-        console.log(rows)
+
         return rows;
 
     } catch (error) {
@@ -153,7 +150,6 @@ export const getAllCategoryListAdmin = async ( whereClause = null, sortColumn = 
                 ${whereClause} ${orderQuery}
                 LIMIT ${limit} OFFSET ${offset}`;
 
-                    console.log(searchQuery)
         const [rows] = await pool.execute(searchQuery);
         return rows;
     } catch (error) {
@@ -172,7 +168,7 @@ export const getAllCategoryCountAdmin = async ( whereClause = null ) => {
                 ${whereClause}`;
         
         const [rows] = await pool.query(totalCountQuery);
-        console.log(rows);
+
         return rows[0].count;
     }
     catch(error) {
@@ -185,7 +181,6 @@ export const createCategoryAdmin = async (data) => {
 
     const { title, description, cat_icon, cat_banner, parent_cat_id } = data;
 
-    console.log(data)
     try {
       const inserQuery = `INSERT INTO tbl_blog_category 
         ( title, description, cat_icon, cat_banner, parent_cat_id ) 
@@ -194,8 +189,7 @@ export const createCategoryAdmin = async (data) => {
       const paramsData = [ title, description, cat_icon, cat_banner, parent_cat_id ];
 
       const [result] = await pool.execute( inserQuery, paramsData );
-  
-      console.log(result)
+
       return { result, ...data };
 
     } catch (error) {
@@ -207,7 +201,6 @@ export const createCategoryAdmin = async (data) => {
 export const updateCategoryAdmin = async (id, blogData) => {
 
 try {
-    console.log("models", blogData);
     
     let queryField = [];
     let queryParams = [];

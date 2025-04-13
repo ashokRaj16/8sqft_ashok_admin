@@ -206,7 +206,7 @@ const BadgesSection: React.FC = () => {
           <button
             key={badge}
             onClick={() => setActiveForm(badge)}
-            className="bg-white border border-gray text-black text-xs px-2 py-1 rounded-sm"
+            className="bg-white border border-gray text-black text-xs p-1"
           >
             {badge}
           </button>

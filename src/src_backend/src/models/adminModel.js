@@ -1,43 +1,5 @@
 import pool from '../config/db.js';
 
-// export const getAllMemberListAdmin = async (whereClause = null, sortColumn = "id", sortOrder = "ASC", page = 1, limit = 10 ) => {
-//   try {
-//     console.log('where: ',whereClause);
-//     const offset = (page - 1) * limit;
-//     const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
-//     const searchQuery = `SELECT * FROM  tbl_users_admin tu
-//                 ${whereClause} ${orderQuery}
-//                 LIMIT ${limit} OFFSET ${offset}`;
-
-//     const [rows] = await pool.execute(searchQuery);
-//     return rows;
-//   } catch (error) {
-//     console.error('Error fetching all users:', error);
-//     throw new Error('Unable to fetch users.');
-//   }
-// };
-
-
-// export const getAllMemberCountAdmin = async ( whereClause = null ) => {
-//   try {
-
-//       const totalCountQuery = `SELECT 
-//                   COUNT(*) AS count
-//               FROM 
-//                    tbl_users_admin tu 
-//               ${whereClause}`;
-
-//       // const totalCountQuery = `SELECT COUNT(*) AS count FROM tbl_property ${whereClause}`;
-//       const [rows] = await pool.query(totalCountQuery);
-//       console.log(rows);
-//       return rows[0].count;
-//   }
-//   catch(error) {
-//       throw new Error('Unable to fetch entry', error);
-//   }
-// };
-
-
 export const findByEmail = async (email) => {
   try {
       const [rows] = await pool.execute(
@@ -47,7 +9,7 @@ export const findByEmail = async (email) => {
            WHERE tua.email = ?`, 
           [email]
       );
-      console.log(rows);
+
       return rows[0];
   } catch (error) {
       throw new Error('Unable to fetch entry.', error);
@@ -84,7 +46,6 @@ export const findById = async (id) => {
 };
 
 export const update = async (id, data) => {
-    console.log("model:", data)
   try {
         
     let queryField = [];
@@ -107,28 +68,6 @@ export const update = async (id, data) => {
     const [result] = await pool.execute(query, queryParams);
     return { result, ...data };
 
-    // await pool.execute(
-    //   `UPDATE tbl_users_admin 
-    //   SET fname = ?, mname = ?, lname = ?, mobile = ?, phone = ?,
-    //   email = ?,
-    //    address = ?, pan = ?, pincode = ?, 
-    //    city_id = ?, city_name = ?, state_id = ?, state_name = ?
-    //   WHERE id = ?`,
-    //   [ fname, 
-    //     mname, 
-    //     lname, 
-    //     mobile, 
-    //     phone, 
-    //     email,
-    //     address, 
-    //     pan, 
-    //     pincode, 
-    //     city_id, 
-    //     city_name, 
-    //     state_id, 
-    //     state_name, id]
-    // );
-    // return { id, ...data };
   } catch (error) {
     console.error('Error updating user:', error);
     throw new Error('Unable to update user.');
@@ -138,7 +77,6 @@ export const update = async (id, data) => {
 export const updatePassword = async (id, password) => {
   try {
     const result = await pool.execute('UPDATE tbl_users_admin SET password_hash = ? WHERE id = ?', [password, id]);
-    console.log(result)
     return result;
   } catch (error) {
     console.error('Error updating password:', error);
@@ -149,6 +87,16 @@ export const updatePassword = async (id, password) => {
 export const getUserCount = async () => {
   try {
     const [rows] = await pool.execute('SELECT COUNT(*) AS total FROM tbl_users');
+    return rows[0].total;
+  } catch (error) {
+    console.error('Error fetching user count:', error);
+    throw new Error('Unable to fetch user count.');
+  }
+};
+
+export const getPropertyCount = async () => {
+  try {
+    const [rows] = await pool.execute(`SELECT COUNT(*) AS total FROM tbl_property WHERE is_deleted = '0'`);
     return rows[0].total;
   } catch (error) {
     console.error('Error fetching user count:', error);
@@ -168,4 +116,89 @@ export const getRoleMaster = async (id) => {
     throw new Error('Unable to fetch roles.');
   }
 };
+
+export const getUserCountByMonth = async () => {
+  try {
+    const [results] = await pool.execute(`
+      SELECT 
+          YEAR(created_at) AS year,
+          MONTH(created_at) AS month,
+          COUNT(*) AS count
+      FROM tbl_users
+      WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+      GROUP BY YEAR(created_at), MONTH(created_at)
+      ORDER BY YEAR(created_at), MONTH(created_at);
+  `);
+
+
+  // return formattedResult;
+   // Get the current date
+   const now = new Date();
+   const allMonths = [];
+ 
+   // Generate last 12 months
+   for (let i = 6; i >= 0; i--) {
+       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+       const year = date.getFullYear();
+       const month = date.getMonth() + 1; // 0-based, so add 1
+       const monthName = date.toLocaleString('en-US', { month: 'long' });
+       const key = `${monthName} ${year}`;
+ 
+       // Find the matching result or set to 0
+       const match = results.find(item => item.year === year && item.month === month);
+       allMonths.push({ [key]: match ? match.count : 0 });
+   }
+ 
+   // Convert array to object for the final output
+   const formattedResult = Object.assign({}, ...allMonths);
+  
+   return formattedResult;
+  } catch (error) {
+    console.error('Error fetching user count:', error);
+    throw new Error('Unable to fetch user count.');
+  }
+
+};
+
+export const getPropertyCountByMonth = async () => {
+  try {
+    const [results] = await pool.execute(`
+      SELECT 
+          YEAR(created_at) AS year,
+          MONTH(created_at) AS month,
+          COUNT(*) AS count
+      FROM tbl_property
+      WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+      GROUP BY YEAR(created_at), MONTH(created_at)
+      ORDER BY YEAR(created_at), MONTH(created_at);
+  `);
+
+  // Get the current date
+  const now = new Date();
+  const allMonths = [];
+
+  // Generate last 12 months
+  for (let i = 6; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1; // 0-based, so add 1
+      const monthName = date.toLocaleString('en-US', { month: 'long' });
+      const key = `${monthName} ${year}`;
+
+      // Find the matching result or set to 0
+      const match = results.find(item => item.year === year && item.month === month);
+      allMonths.push({ [key]: match ? match.count : 0 });
+  }
+
+  // Convert array to object for the final output
+  const formattedResult = Object.assign({}, ...allMonths);
+
+  return formattedResult;
+  } catch (error) {
+    console.error('Error fetching user count:', error);
+    throw new Error('Unable to fetch user count.');
+  }
+
+};
+
   

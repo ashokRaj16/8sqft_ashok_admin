@@ -18,6 +18,8 @@ interface Overview {
   totalUnits?: number | null | undefined;
   perSqftAmount?: string | null | undefined;
   propertyVariety?: string | null | undefined;
+  propertyCurrentStatus?: string | null | undefined;
+  floorNumber?: number | null | undefined;
 }
 
 interface Configuration {
@@ -47,7 +49,9 @@ const OverviewComponent = ({
   totalTowers,
   totalUnits,
   perSqftAmount,
-  propertyVariety
+  propertyVariety,
+  floorNumber,
+  propertyCurrentStatus
 }: Overview) => {
   console.log(configration,'configration')
   // Extract min and max carpet area
@@ -78,19 +82,24 @@ const OverviewComponent = ({
   const hasBoundaryWall =
     other_amenities && other_amenities.includes("Boundary Wall") ? "Yes" : "No";
 
-  // Property details
+    const isSingleCarpetArea = configration
+    ? configration.map((item) => item.carpet_area || 0)
+    : null;
+    const sortedValue = isSingleCarpetArea?.length === 1
+    ? `${minCarpetArea} sq ft`
+    : isSingleCarpetArea
+      ? `${minCarpetArea} - ${maxCarpetArea} sq ft`
+      : `${maxCarpetArea} sq ft`;
   const propertyDetails = [
     {
       icon: "/assets/icon/projectArea.svg",
-      value: property_type==="RESIDENTIAL" ? `${totalTowers} Building - ${totalUnits} Units` : `${projectArea} ${projectAreaUnit} `,
+      // value: property_type==="RESIDENTIAL" ? `${totalTowers} Building - ${totalUnits} Units` : `${projectArea} ${projectAreaUnit} `,
+      value:`${projectArea} ${projectAreaUnit} ${totalUnits? `, ${totalUnits} Units`  :''} `,
       label: "Project Area",
     },
     {
       icon: "/assets/icon/carpetArea.svg",
-      value:
-        minCarpetArea && maxCarpetArea
-          ? `${minCarpetArea} - ${maxCarpetArea} sq. ft.`
-          : "N/A",
+       value: sortedValue || "N/A",
       label: "Carpet Area",
     },
     {
@@ -100,7 +109,10 @@ const OverviewComponent = ({
     },
     {
       icon: "/assets/icon/avgPrice.svg",
-      value: property_type==="RESIDENTIAL" ?  `${formatPrice(Number(perSqftAmount))}/Sq ft` : minCarpetPrice && maxCarpetPrice ? `${formatPrice(minCarpetPrice)} - ${formatPrice(maxCarpetPrice)}`: "N/A" ,
+        value: perSqftAmount
+                  ? `${formatPrice(Number(perSqftAmount))}/sq ft`
+                  : "N/A",
+      // value: property_type==="RESIDENTIAL" ?  `${formatPrice(Number(perSqftAmount))}/Sq ft` : minCarpetPrice && maxCarpetPrice ? `${formatPrice(minCarpetPrice)} - ${formatPrice(maxCarpetPrice)}`: "N/A" ,
       label: "Avg Price",
     },
     {
@@ -110,14 +122,36 @@ const OverviewComponent = ({
     },
     {
       icon: "/assets/icon/propertyType.svg",
-      value: property_type==="RESIDENTIAL"? unitNames : propertyVariety || "N/A",
+      value: property_type==="RESIDENTIAL"? unitNames :  "N/A",
       label: "Property Type",
     },
+
+    {
+      icon:"/assets/icon/Readytomove.svg",
+      label: "Current Status",
+      value: propertyCurrentStatus? propertyCurrentStatus: "N/A",
+    },
+    {
+      icon:property_type?.toLowerCase()==="open land" ? "/assets/Builder/facingDirection.svg" : "/assets/Builder/amenity/Floor.svg" ,
+       label: property_type?.toLowerCase()==="open land" ?  "Width Of Facing Road" : "Total Floors",
+      value: property_type?.toLowerCase()==="open land" ? `${width_facing_road } feet` || "N/A" : floorNumber || "N/A"},
+    {
+      icon: "/assets/icon/propertyType.svg",
+      label: property_type?.toLowerCase()==="open land" ? "Total Units" : "Total Towers",
+      value:property_type?.toLowerCase()==="open land" ? totalUnits : totalTowers || "N/A" 
+    },
+    {
+      icon: "/assets/icon/NewlyLaunch.svg",
+       label: "Residential Variety",
+        value: propertyVariety || "N/A" 
+      },
+    
+       
   ];
 
   return (
-    <div className="flex flex-col justify-center items-center w-full px-5 my-3">
-      <h2 className="font-medium text-sm text-[#222222] text-start w-full">
+    <div className="flex flex-col justify-center items-center w-full px-4 mt-3">
+      <h2 className="font-medium text-sm text-[#222222] text-start w-full p-2 bg-white">
         Overview
       </h2>
       <div className="flex items-center p-1 bg-white border-b-2 border-[#fc6600] w-full"></div>

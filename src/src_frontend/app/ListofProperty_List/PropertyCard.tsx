@@ -94,8 +94,8 @@ const Card = ({ property }: any) => {
 function PropertyCard() {
 
   const searchParams = useSearchParams();
-  const selectedCityName = searchParams.get("city_name") || "this location";
-  const selectedlocality = searchParams.get("searchKeyword") || "this location";
+  const selectedCityName = searchParams.get("city_name") || "";
+  const selectedlocality = searchParams.get("searchKeyword") || "";
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const filters = useFilterStore();
 

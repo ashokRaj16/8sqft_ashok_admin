@@ -38,8 +38,8 @@ export default function OverviewFunction() {
         return (
           <FloorPlanContent configration={[]} possession_date={undefined} />
         );
-      case "amenities":
-        return <AmenitiesContent />;
+      // case "amenities":
+      //   return <AmenitiesContent />;
       case "ratings":
         return <RatingsContent />;
       default:

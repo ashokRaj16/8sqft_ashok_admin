@@ -8,6 +8,9 @@ import { useParams, usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 interface ShareShortlistProps {
+    btnHeight?:string;
+    btnWidth?:string;
+    btnPadding?:string;
     background?: string;
     shadow?: string;
     rounded?: string;
@@ -27,6 +30,9 @@ interface ShareShortlistProps {
 }
 
 const ShareShortlist: React.FC<ShareShortlistProps> = ({
+    btnHeight="h-auto",
+    btnWidth="w-auto",
+    btnPadding="w-auto",
     background = "bg-white",
     shadow = "shadow-lg",
     rounded = "rounded-lg",
@@ -145,7 +151,7 @@ const ShareShortlist: React.FC<ShareShortlistProps> = ({
 
                 <Dialog>
                     <DialogTrigger asChild>
-                        <Button onClick={(e) => { e.stopPropagation(), setIsVisible(true); }} className={`group ${background} ${shadow} ${rounded} ${fontSize} ${textTransform} ${fontWeight} ${hoverBackground} ${hoverTextColor}`}>
+                        <Button onClick={(e) => { e.stopPropagation(), setIsVisible(true); }} className={`group ${background} ${shadow} ${rounded} ${fontSize} ${textTransform} ${fontWeight} ${hoverBackground} ${hoverTextColor} ${btnHeight} ${btnWidth} ${btnPadding}`}>
                             <Share2 className={`h-5 w-5 ${iconColor} ${iconHoverColor}`} />
                             {showBtnText && (<span>Share</span>)}
                         </Button>
@@ -205,7 +211,7 @@ const ShareShortlist: React.FC<ShareShortlistProps> = ({
 
 
                 <div className="relative">
-                    <Button onClick={(e) => { e.stopPropagation(), handleShortListClick(e) }} className={`group ${background} ${shadow} ${rounded} ${fontSize} ${textTransform} ${fontWeight} ${hoverBackground} ${hoverTextColor}`}>
+                    <Button onClick={(e) => { e.stopPropagation(), handleShortListClick(e) }} className={`group ${background} ${shadow} ${rounded} ${fontSize} ${textTransform} ${fontWeight} ${hoverBackground} ${hoverTextColor} ${btnHeight} ${btnWidth} ${btnPadding}`}>
                         <Heart className={`h-5 w-5 ${iconColor} ${iconHoverColor}`} /> {showBtnText && (btnSaveText)}
                     </Button>
                     {showPopup && (

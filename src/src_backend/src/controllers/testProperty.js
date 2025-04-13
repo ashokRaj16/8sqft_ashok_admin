@@ -18,7 +18,6 @@ import {
 export const postProperty = async (req, res) => {
     
     try {
-      // console.log(req.body.step_id)
       // ### If error then unlink all images.
       // ### upload images within steps only = step: 1 {property_videos, property_flooring_plans, property_description} step 2: { pan_card, addhar_card, verification_document}
       // ### check if proeprty_id
@@ -175,7 +174,6 @@ export const postProperty = async (req, res) => {
             // data['features'] = [];
             // data['faq'] = [];
 
-            //   console.log("files", req.files);
               Object.keys(req.files).forEach((fieldName) => {
                 req.files[fieldName].forEach((file) => {
                   data['gallery'].push({ img_title: file.fieldname, img_type: file.mimetype, property_img_url:  `${process.env.SERVER_UPLOAD_URL || null}${file.filename}`});
@@ -277,9 +275,7 @@ export const postProperty = async (req, res) => {
         // }
 
         data['amenties'] =JSON.parse(req.body.amenties );
-        // console.log(data.amenties)
         data.amenties.map((amenety) => {
-          // console.log(amenety);
           if(! amenety.property_id) {
             return badRequestResponse(res, false, 'Validation Message', { field: 'property_id', message: 'Property id is required.'})
           }
@@ -293,7 +289,6 @@ export const postProperty = async (req, res) => {
             return badRequestResponse(res, false, 'Validation Message', { field: 'amenety_value', message: 'Amenety value is required.'})
           }
 
-          // console.log(parseInt(amenety.property_id), amenety.amenety_id);
           if(amenety.property_id && !validator.isNumeric( amenety.property_id)) {
             return badRequestResponse(res, false, 'Validation Message', { field: 'property_id', message: 'Property id is not valid.'})
           }
@@ -337,7 +332,6 @@ export const postProperty = async (req, res) => {
         
             let data = [];
             data['gallery'] = [];
-            console.log("files", req.files);
 
             Object.keys(req.files).forEach((fieldName) => {
                 req.files[fieldName].forEach((file) => {

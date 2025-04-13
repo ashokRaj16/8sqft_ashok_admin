@@ -20,7 +20,7 @@ export default function MainComponent() {
         <RecommendationComponent />
          
         </div>
-        <div className="text-center mt-6">
+        <div className="text-center">
            <StatsCard/>
         </div>
 

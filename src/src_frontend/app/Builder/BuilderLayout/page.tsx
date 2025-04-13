@@ -20,6 +20,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import propLocation from '@/public/assets/icon/Location.svg'
 import Image from "next/image";
+import TransitInfo from "./TransitInfo";
+import Link from "next/link";
 const BuilderLayout: React.FC = () => {
   const params = useParams(); // Retrieve route parameters
   const extractId = (url: any) => {
@@ -29,8 +31,7 @@ const BuilderLayout: React.FC = () => {
   };
   const id = extractId(params.id);
 
-  const propertyId = params?.id ? Number(id) : null; // Safely parse id
-  console.log("Id", propertyId);
+  const propertyId = params?.id ? Number(id) : null;
   const { data, error, isLoading } = useBuilderDetail(Number(propertyId));
   const property = data?.data;
 
@@ -61,71 +62,68 @@ const BuilderLayout: React.FC = () => {
 
 
 
-  const [activeSection, setActiveSection] = useState("overview");
-  const navRef = useRef<HTMLDivElement>(null);
-  // Create refs for each section
-  const sectionRefs: { [key: string]: React.RefObject<HTMLDivElement> } = {
-    overview: useRef(null),
-    about: useRef(null),
-    price: useRef(null),
-    amenities: useRef(null),
-    location: useRef(null),
-    rera: useRef(null),
-    similar: useRef(null),
-  };
+//   const [activeSection, setActiveSection] = useState("overview");
+//   const navRef = useRef<HTMLDivElement>(null);
+//   const sectionRefs: { [key: string]: React.RefObject<HTMLDivElement> } = {
+//     overview: useRef(null),
+//     about: useRef(null),
+//     price: useRef(null),
+//     amenities: useRef(null),
+//     location: useRef(null),
+//     rera: useRef(null),
+//     similar: useRef(null),
+//   };
 
-  // Scroll to the selected section
-  const handleScroll = (section: keyof typeof sectionRefs & string) => {
-    setActiveSection(section);
-    const sectionElement = sectionRefs[section]?.current;
-    if (sectionElement) {
-      const yOffset = -150; // Offset to prevent hiding behind navbar
-      const yPosition = sectionElement.getBoundingClientRect().top + window.scrollY + yOffset;
+//   const handleScroll = (section: keyof typeof sectionRefs & string) => {
+//     setActiveSection(section);
+//     const sectionElement = sectionRefs[section]?.current;
+//     if (sectionElement) {
+//       const yOffset = -150; 
+//       const yPosition = sectionElement.getBoundingClientRect().top + window.scrollY + yOffset;
 
-      window.scrollTo({ top: yPosition, behavior: "smooth" });
-    }
-  };
- // Detect section in viewport
- useEffect(() => {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      const visibleSection = entries.find((entry) => entry.isIntersecting);
-      if (visibleSection) {
-        setActiveSection(visibleSection.target.id);
-      }
-    },
-    { rootMargin: "-50% 0px -50% 0px", threshold: 0.1 }
-  );
+//       window.scrollTo({ top: yPosition, behavior: "smooth" });
+//     }
+//   };
+ 
+//  useEffect(() => {
+//   const observer = new IntersectionObserver(
+//     (entries) => {
+//       const visibleSection = entries.find((entry) => entry.isIntersecting);
+//       if (visibleSection) {
+//         setActiveSection(visibleSection.target.id);
+//       }
+//     },
+//     { rootMargin: "-50% 0px -50% 0px", threshold: 0.1 }
+//   );
 
-  Object.values(sectionRefs).forEach((ref) => {
-    if (ref.current) observer.observe(ref.current);
-  });
+//   Object.values(sectionRefs).forEach((ref) => {
+//     if (ref.current) observer.observe(ref.current);
+//   });
 
-  return () => {
-    Object.values(sectionRefs).forEach((ref) => {
-      if (ref.current) observer.unobserve(ref.current);
-    });
-  };
-}, []);
-
-// Scroll nav horizontally
-const scrollNav = (direction: "left" | "right") => {
-  if (navRef.current) {
-    navRef.current.scrollBy({
-      left: direction === "left" ? -200 : 200,
-      behavior: "smooth",
-    });
-  }
-};
+//   return () => {
+//     Object.values(sectionRefs).forEach((ref) => {
+//       if (ref.current) observer.unobserve(ref.current);
+//     });
+//   };
+// }, []);
 
 
-  console.log(property, 'propertyproperty')
+// const scrollNav = (direction: "left" | "right") => {
+//   if (navRef.current) {
+//     navRef.current.scrollBy({
+//       left: direction === "left" ? -200 : 200,
+//       behavior: "smooth",
+//     });
+//   }
+// };
+
+
   if (isLoading) return <p>Loading property details...</p>;
   if (error) return <p className="text-red-500">Error: {error.message}</p>;
   return (
     <>
       <div className="">
-        <div className="">
+        <div className="mx-4 lg:mx-0">
           <DetailComponent
             configration={property?.configuration}
             property_variety={property?.property_variety}
@@ -135,7 +133,7 @@ const scrollNav = (direction: "left" | "right") => {
           />
         </div>
 
-        <div className="flex space-x-4 overflow-x-auto items-center scrollbar-hide border-b border-gray-200 py-2 sticky top-20 bg-white z-20">
+        {/* <div className="flex space-x-4 overflow-x-auto items-center scrollbar-hide border-b border-gray-200 py-2 sticky top-14 lg:top-20 bg-white z-20">
           <button onClick={() => scrollNav("left")} className="p-2 absolute left-0  translate-y-[0px] z-30 bg-white">
             <ChevronLeft className="h-4 w-4 text-gray-600" />
           </button>
@@ -161,53 +159,29 @@ const scrollNav = (direction: "left" | "right") => {
           </button>
         ))}
       </div>
-        </div>
-        {/* <div className="flex space-x-4 overflow-x-auto scrollbar-hide border-b border-gray-200 mx-6 py-2 sticky top-20 bg-white z-20">
-
-          <button className="whitespace-nowrap p-2 text-gray-600 hover:text-primary text-sm" onClick={() => handleScroll("overview")}>
-            Overview
-          </button>
-          <button className="whitespace-nowrap p-2 text-gray-600 hover:text-primary text-sm" onClick={() => handleScroll("about")}>
-            About Project
-          </button>
-          <button className="whitespace-nowrap p-2 text-gray-600 hover:text-primary text-sm" onClick={() => handleScroll("price")}>
-            Price & Possession
-          </button>
-          <button className="whitespace-nowrap p-2 text-gray-600 hover:text-primary text-sm" onClick={() => handleScroll("amenities")}>
-            Amenities
-          </button>
-          <button className="whitespace-nowrap p-2 text-gray-600 hover:text-primary text-sm" onClick={() => handleScroll("location")}>
-            Location
-          </button>
-          <button className="whitespace-nowrap p-2 text-gray-600 hover:text-primary text-sm" onClick={() => handleScroll("rera")}>
-            RERA
-          </button>
-          <button className="whitespace-nowrap p-2 text-gray-600 hover:text-primary text-sm" onClick={() => handleScroll("similar")}>
-            Similar Properties
-          </button>
-
         </div> */}
+       
 
 
-        <div className="lg:flex lg:gap-6  lg:bg-white pt-4 ">
+        <div className="lg:flex lg:gap-6 pt-2 ">
           <div className="lg:w-[100%] flex flex-col gap-6">
             {/* Overview */}
 
-            <div className="flex flex-row gap-4 ">
-              <div className="col-span-2">
-                <div className="bg-white shadow-custom mb-3">
-                  <div className=" flex items-center gap-3 bg-white px-5 py-1">
+            <div className="grid lg:grid-cols-4 gap-4">
+              <div className="col-span-3">
+                <div className="shadow-custom mb-4 mt-2 mx-4 lg:mx-0 bg-white">
+                    <div className="font-semibold lg:text-lg border-b border-[#D9D9D9] py-2 mb-2 px-4 shadow-sm w-full">
+                  <div className=" flex items-center gap-3  py-1">
                     <Image src={propLocation} alt="locaion" />
-                    <div>
                       <label className="text-[#808080] text-xs lg:text-sm font-light lg:font-semibold">Property Location</label>
-                      <p className="text-[#222222] text-[10px] lg:text-sm font-normal">{property?.full_address} {`${property?.locality} ${property?.city_name}`}</p>
+                      <p className="text-[#222222] text-[10px] lg:text-sm font-normal">{property?.full_address}, {`${property?.locality}, ${property?.city_name}`}</p>
                     </div>
                   </div>
-                  <div className="flex justify-center w-full shadow-custom py-1">
-                    <p className="text-[#FC660099] lg:text-sm text-[10px] font-normal my-2 cursor-pointer" onClick={() => handleScroll("location")}>View on Map</p>
+                  <div className="flex justify-center w-full">
+                    <Link href={'#Location'} className="text-[#FC660099] lg:text-sm text-[10px] font-normal my-2 cursor-pointer">View on Map</Link>
                   </div>
                 </div>
-                <div className="" ref={sectionRefs.overview}>
+                <div className="lg:scroll-mt-32 scroll-mt-24" id="Overview">
                   <DownloadBrochure
                     title={property?.property_title}
                     projectArea={property?.project_area}
@@ -234,7 +208,7 @@ const scrollNav = (direction: "left" | "right") => {
                   />
                 </div>
 
-                <div className="w-full flex justify-center lg:hidden">
+                <div className="w-full flex justify-center lg:hidden scroll-mt-24" id="Overview">
                   <OverviewComponent
                     configration={property?.configuration?.map(config => ({
                       ...config,
@@ -250,10 +224,12 @@ const scrollNav = (direction: "left" | "right") => {
                     totalUnits={property?.total_units}
                     perSqftAmount={property?.per_sqft_amount}
                     propertyVariety={property?.property_variety}
+                    floorNumber={property?.total_floors}
+                    propertyCurrentStatus={property?.property_current_status}
                   />
                 </div>
 
-                <div className=" " ref={sectionRefs.about}>
+                <div className="lg:scroll-mt-32 scroll-mt-24 mx-4 lg:mx-0" id="About">
                   <MoreAbout
                     property_title={property?.property_title}
                     description={property?.description}
@@ -262,7 +238,7 @@ const scrollNav = (direction: "left" | "right") => {
                   />
                 </div>
 
-                <div className=" lg:block " ref={sectionRefs.price}>
+                <div className="lg:scroll-mt-32 scroll-mt-24" id="Price">
                   <PricePlotSection
                     configration={property?.configuration}
                     possession_date={property?.possession_date}
@@ -271,7 +247,7 @@ const scrollNav = (direction: "left" | "right") => {
                   />
                 </div>
 
-                <div className="my-2 mx-4 lg:mx-0" ref={sectionRefs.amenities}>
+                <div className="m-4 lg:mx-0 lg:scroll-mt-32 scroll-mt-24" id="Amenities">
                   <ProjectAmenities
                     otherAmenities={property?.other_amenities}
                     parking={property?.parking}
@@ -283,21 +259,23 @@ const scrollNav = (direction: "left" | "right") => {
                     furnishingStatus={property?.furnishing_status}
                   />
                 </div>
-                <div className=" my-2 mx-4 lg:mx-0" ref={sectionRefs.rera}>
+                <div className=" mx-4 mb-2 lg:mx-0 lg:scroll-mt-32 scroll-mt-24" id="Rera">
                   <ReraComponent reraNumber={property?.rera_number} />
                 </div>
-                <div className="my-2 mx-4 lg:mx-0" ref={sectionRefs.location}>
+                {/* <div className="my-2 mx-4 lg:mx-0" ref={sectionRefs.location}>
                   <BuilderLocation
                     lat={property?.latitude}
                     lng={property?.longitude}
                   />
-                </div>
+                </div> */}
+                    
+                
          
               </div>
 
-              {/* Right Section (30%) */}
-              <div className="hidden lg:block ">
-                <ActivityCard
+              <div className="col-span-1 hidden lg:block">
+              <div className="shadow-custom my-2 bg-white px-2">
+              <ActivityCard
                   title={"Project"}
                   shortlistedCount={property?.shortlistedCount}
                   intrestedCount={property?.intrestedCount}
@@ -309,9 +287,13 @@ const scrollNav = (direction: "left" | "right") => {
                   propertyVariety={property?.property_variety}
                   propertytype={property?.property_type}
                 />
+              </div>
 
                 {/* <ReportIssueCard  propertyId={Id?.property_id}/> */}
+                <div className="lg:sticky top-36">
                 <ReportIssueCard />
+                </div>
+
               </div>
 
 
@@ -327,23 +309,22 @@ const scrollNav = (direction: "left" | "right") => {
 
 
 
-            {/* 8SQFT Services */}
-            <div className="lg:hidden"></div>
+           
             {/* <div className="container lg:hidden">
               <ReraComponent reraNumber={property?.rera_number} />
             </div> */}
 
-            <div className="lg:hidden container" ref={sectionRefs.similar}>
+            {/* <div className="lg:hidden container" ref={sectionRefs.similar}>
               <SimilarComponent propertyId={property?.id} />
-            </div>
+            </div> */}
           </div>
 
-          <div className=" conatiner mx-4 lg:hidden">
+          {/* <div className=" conatiner mx-4 lg:hidden">
             <ContactDeveloperSection
               configration={property?.configuration}
               propertyVariety={property?.property_variety}
               propertytype={property?.property_type} />
-          </div>
+          </div> */}
         </div>
       </div>
       {/* <div className="hidden lg:block" ref={sectionRefs.similar}></div> */}

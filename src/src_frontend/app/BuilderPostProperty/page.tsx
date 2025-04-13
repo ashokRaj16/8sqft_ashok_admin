@@ -74,7 +74,7 @@ export default function BuilderPostProperty(): JSX.Element {
   }, []);
   const isMobile = useMediaQuery("(max-width: 1024px)");
   return (
-    <Tabs value={activeTab} className="w-full flex flex-col items-center">
+    <Tabs value={activeTab} className="w-full flex flex-col items-center mt-5">
       {/* Render Tab Links */}
       <TabsList className="flex flex-row lg:gap-4 w-fit shadow-md rounded-full my-2 lg:p-4">
         {Tablinks.map(({ num, title }, index) => {

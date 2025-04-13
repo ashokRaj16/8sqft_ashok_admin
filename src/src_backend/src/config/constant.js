@@ -3,6 +3,14 @@ export const constant = {
     COUNT: 'COUNT',
     EXPORT_EXCEL : 'EXCEL',
     EXPORT_PDF : 'PDF',
+    USER_TYPE : {
+        ADMIN: 'ADMIN',             // ALL ROLE
+        FRONT: 'FRONT',           // EDITING OPOTIONS    
+    },
+    TOKEN_TYPE : {
+        ACCESS: 'ACCESS',             // ALL ROLE
+        REFRESH: 'REFRESH',           // EDITING OPOTIONS    
+    },
     USER_ADMIN_ROLE : {
         SUPER_ADMIN: 'SUPER_ADMIN',             // ALL ROLE
         SYSTEM_ADMIN: 'SYSTEM_ADMIN',           // EDITING OPOTIONS

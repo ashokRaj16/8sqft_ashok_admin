@@ -1,9 +1,6 @@
 "use client";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectCoverflow, Navigation, Pagination } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/effect-coverflow";
-import "swiper/css/navigation";
 import Image from "next/image";
 import StatueImg from "@/public/assets/AboutUs/statue.svg";
 import FemaleStatueImg from "@/public/assets/AboutUs/Female_Statue.svg";

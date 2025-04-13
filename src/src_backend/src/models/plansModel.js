@@ -7,8 +7,6 @@ export const getAllPlansListAdmin = async (whereClause = null, sortColumn = "id"
       const searchQuery = `SELECT * FROM  tbl_subscription_plans tsp
                   ${whereClause} ${orderQuery}
                   LIMIT ${limit} OFFSET ${offset}`;
-  
-                  console.log(searchQuery)
       const [rows] = await pool.execute(searchQuery);
       return rows;
     } catch (error) {
@@ -27,7 +25,6 @@ export const getAllPlansCountAdmin = async ( whereClause = null ) => {
               ${whereClause}`;
     
       const [rows] = await pool.query(totalCountQuery);
-      console.log(rows);
       return rows[0].count;
   }
   catch(error) {

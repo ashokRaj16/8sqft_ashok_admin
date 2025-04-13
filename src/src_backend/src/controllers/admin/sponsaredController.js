@@ -1,15 +1,21 @@
 
+import { readRecordDb } from "../../models/commonModel.js";
+import { addGalleryImages } from "../../models/galleryModel.js";
 import { createSponsaredAdmin, deleteSponsaredAdmin, getAllSponsaredCountAdmin, getAllSponsaredListAdmin, getLastSponsaredSequenceAdmin, 
-  updateSponsaredAdmin, updateMultipleSponsaredAdmin } from "../../models/sponsaredModel.js";
+  updateSponsaredAdmin, updateMultipleSponsaredAdmin, 
+  getSponsaredDetailsById,
+  getPropertyContructionPhaseById,
+  getSponsaredImagesById} from "../../models/sponsaredModel.js";
 import {
   badRequestResponse,
   successWithDataResponse,
 } from "../../utils/response.js";
 import validator from "validator";
+import { generateSponsaredSlug } from "../../utils/slugHelper.js";
 
-  //  need work
-  //  ### add image feature for home page banner. 
-  //  ### 
+//  need work
+//  ### add image feature for home page banner. 
+//  ### 
 
 export const listSponsared = async (req, res) => {
   try {
@@ -93,30 +99,113 @@ export const listSponsared = async (req, res) => {
   }
 };
 
-// Add a new blog
+export const getSponsaredById = async (req, res) => {
+  try {
+
+    const id = req.params.id;
+    const sponsaredResult = await getSponsaredDetailsById(id);
+    const data = sponsaredResult;
+    if(sponsaredResult) {
+      if(sponsaredResult.property_id) {
+        data.construction = await getPropertyContructionPhaseById(sponsaredResult.property_id);
+      }
+      data.gallery = await getSponsaredImagesById(id);
+    }
+    
+    return successWithDataResponse(res, true, "Sponsared details.", data);
+  } catch (error) {
+    console.error(error);
+    return badRequestResponse(res, false, "Error fetching Sponsared!", error);
+  }
+};
+
+// Add a new sponsared property
 export const addSponsared = async (req, res) => {
   const {
-    property_id, categories, banner_id, sequence_no, published_date
+      sponsared_title, sponsared_description,
+      user_name, user_id, user_logo_url, user_short_description, 
+      total_site_visits, total_bookings, direct_site_visits, total_revenue,
+      background_img_url, theme_color,
+      property_id, property_title, categories, is_dedicated,
+      meta_title, meta_description,
+      sponsared_gallery,
+      sponsared_gallery_list,
+      sequence_no, published_date
   } = req.body;
 
   try {
-    const data = {
+    let updatedSponsaredGallery;
+    
+    if(sponsared_gallery) {
+      updatedSponsaredGallery = {
+        title : sponsared_gallery && sponsared_gallery?.title || null,
+        description : sponsared_gallery && sponsared_gallery?.description || null,
+        img_categories : categories || null,
+        img_url : sponsared_gallery && sponsared_gallery?.img_url || null,
+        file_type : sponsared_gallery && sponsared_gallery?.file_type || null,
+        file_size : sponsared_gallery && sponsared_gallery?.file_size || null
+      }
+    }
+      
+    // const whereCond = `property_id = ? AND categories = ?` 
+    // const whereVal = [property_id, categories]
+    // const result1 = await readRecordDb('tbl_property_sponsared', ['id'], whereCond, whereVal)
+    
+    // if(result1.length > 0) {
+    //   return badRequestResponse(res, false, "Property already added for sponsared.")
+    // }
+
+    let data = {
       property_id: property_id || null, 
       categories: categories || null, 
-      banner_id : banner_id || null,
-      sequence_no:sequence_no || null, 
+      sequence_no: sequence_no || null, 
       published_date : published_date || null, 
-      userid : req.userId
+      is_dedicated :  is_dedicated || null, 
+
+      // dedicated builder
+      sponsared_title : sponsared_title || null,
+      sponsared_description : sponsared_description || null, 
+      spotlight_slug : null,
+ 
+      user_id : user_id || null,
+      user_logo_url : user_logo_url || null, 
+      user_short_description : user_short_description || null, 
+      total_site_visits :total_site_visits || null, 
+      total_bookings : total_bookings || null, 
+      direct_site_visits : direct_site_visits || null, 
+      total_revenue : total_revenue || null,
+      background_img_url : background_img_url || null,
+      theme_color : theme_color || null,
+      meta_title : meta_title || null, 
+      meta_description : meta_description || null, 
+      sponsared_gallery : updatedSponsaredGallery || null,
+      sponsared_gallery_list : sponsared_gallery_list || null,
+      addedby : req.userId
     };
 
     const result = await createSponsaredAdmin(data);
-    return successWithDataResponse(
-      res,
-      true,
-      "Sponsared added successfully.",
-      result
-    );
+    console.log(result);
+
+    if(result.affectedRows > 0) {
+
+        let data = {
+          spotlight_slug : generateSponsaredSlug( 
+          categories === 'BUILDER SPOTLIGHT' ? user_name : property_title, 
+          categories,
+          categories === 'BUILDER SPOTLIGHT' ? user_id : property_id )
+        }
+        await updateSponsaredAdmin(result.insertId, data);
+      
+        return successWithDataResponse(
+          res,
+          true,
+          "Sponsared added successfully.",
+          result
+        );
+    }
+    return badRequestResponse(res, false, "Unable create sponsared.");
   } catch (error) {
+    console.log(error, "errr")
     return badRequestResponse(res, false, "Error creating Sponsared.", error);
   }
 };
@@ -189,12 +278,12 @@ export const getLastSquenceSponsaredNumber = async (req, res) => {
     return successWithDataResponse(
       res,
       true,
-      "Sponsared deleted successfully.",
+      "sponsared id retrived successfully.",
       result
     );
 
   } catch (error) {
-    return badRequestResponse(res, false, "Error deleting Sponsared.", error);
+    return badRequestResponse(res, false, "Error getting sponsared.", error);
   }
 };
 

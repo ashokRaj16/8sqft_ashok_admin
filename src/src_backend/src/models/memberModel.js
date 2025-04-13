@@ -8,7 +8,6 @@ export const getAllMemberListAdmin = async (whereClause = null, sortColumn = "id
                 ${whereClause} ${orderQuery}
                 LIMIT ${limit} OFFSET ${offset}`;
 
-                console.log(searchQuery)
     const [rows] = await pool.execute(searchQuery);
     return rows;
   } catch (error) {
@@ -27,7 +26,7 @@ export const getAllMemberCountAdmin = async ( whereClause = null ) => {
               ${whereClause}`;
     
       const [rows] = await pool.query(totalCountQuery);
-      console.log(rows);
+    
       return rows[0].count;
   }
   catch(error) {
@@ -41,7 +40,6 @@ export const getMemberUsersById = async (id) => {
     const query = `SELECT * FROM tbl_users where id = ? AND is_deleted = '0'`
     
     const [rows] = await pool.execute(query, [id]);
-    // console.log(rows)
     return rows;
 
   } catch (error) {
@@ -51,7 +49,7 @@ export const getMemberUsersById = async (id) => {
 };
 
 export const createMemberUser = async (data) => {
-  console.log("data: ", data)
+
   const { fname, mname, lname, email, mobile, phone } = data;
   try {
     const [result] = await pool.execute(
@@ -61,7 +59,7 @@ export const createMemberUser = async (data) => {
         (?, ?, ?,  ?, ?, ?)`,
       [fname, mname, lname, email, mobile, phone]
     );
-    console.log(result)
+
     return { id: result.insertId, result };
   } catch (error) {
     console.error('Error creating user:', error);
@@ -85,7 +83,6 @@ export const updateUser = async (id, userData) => {
 
 export const updateMemberAdmin = async (id, userData) => {
   try {
-    console.log("models",userData);
     
     let queryField = [];
     let queryParams = [];

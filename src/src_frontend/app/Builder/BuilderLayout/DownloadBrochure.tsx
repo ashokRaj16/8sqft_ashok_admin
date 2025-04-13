@@ -215,28 +215,26 @@ const DownloadBrochure = ({
 
 
   return (
-    <Card className="flex flex-col  gap-5 p-0 bg-white">
+    <Card className="flex flex-col rounded-none border-none bg-white !shadow-custom my-2">
       <CardContent className="w-full p-0">
         <div className="hidden lg:block">
           {/* Header */}
-          <div className="flex items-center px-5 py-1 shadow-sm border-b">
-            <h2 className="font-medium text-base text-[#222222]">
-              {title || "N/A"}
+            <h2 className="font-semibold lg:text-lg border-b border-[#D9D9D9] py-2 mb-2 px-4 shadow-sm capitalize line-clamp-1">
+              {`${title}, Overview` || "N/A"}
             </h2>
-          </div>
 
           {/* Property Details */}
-          <div className="flex flex-col gap-4 p-2">
+          <div className="flex flex-col gap-4 py-2 px-4">
             {propertyDetails.map((row, rowIndex) => (
               <div key={rowIndex} className="flex items-start gap-16">
                 {row.items.map((item, itemIndex) => (
                   <div key={itemIndex} className="flex flex-col gap-1 w-full">
-                    <span className="text-sm text-[#22222280] font-light">
+                    <span className="text-sm text-[#22222280]">
                       {item.label}
                     </span>
 
                     {item.label === "RERA ID" && item.value !== "N/A" ? <a href="https://maharera.maharashtra.gov.in/" target="_blank" className="text-sm text-blue font-medium">{item.value}</a> :
-                      <span className="text-sm text-black font-light">{item.value}</span>}
+                      <span className="text-sm text-black">{item.value}</span>}
 
                   </div>
                 ))}

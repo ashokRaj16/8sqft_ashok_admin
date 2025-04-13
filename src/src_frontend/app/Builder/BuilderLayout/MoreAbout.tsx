@@ -13,23 +13,28 @@ const MoreAbout = ({ description, locality, city_name,property_title }: Descript
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
-
-  const previewText = description?.slice(0, 120); // Show 120 characters initially
+const description2=' Lorem ipsum, dolor sit amet consectetur adipisicing elit. Eius, consequatur. Dolorum, illo incidunt qui, vero quis, ab in a natus obcaecati numquam accusamus temporibus. Accusamus eligendi nemo magni necessitatibus impedit! '
+  
+const previewText = description?.slice(0, 250).trim(); 
 
   return (
-    <div className="p-4 bg-gray-100 rounded-lg shadow-md">
-      <h2 className="font-semibold text-black text-base leading-[26px]">
+    <div className="shadow-custom my-4 bg-white">
+      <h2 className="font-semibold lg:text-lg border-b border-[#D9D9D9] py-2 mb-2 px-4 shadow-sm">
         More about {property_title || "N/A"}, {city_name}
       </h2>
-      <p className="text-sm text-[#7A7A7A]">
-        {isExpanded ? description : `${previewText}...`}
+    <div className="p-4">
+    <p className="text-sm text-[#7A7A7A]">
+      <div dangerouslySetInnerHTML={{ __html: isExpanded ? description ?? '' : `${previewText ?? ''}...`}} />
       </p>
-      <button
-        onClick={toggleExpand}
-        className="mt-2 text-primary text-sm font-medium hover:underline"
-      >
-        {isExpanded ? "Show Less" : "Show More About Project"}
-      </button>
+      {(description?.length ?? 0) > 250 && (
+    <button
+      onClick={toggleExpand}
+      className="mt-2 text-primary text-sm font-medium hover:underline" >
+    {isExpanded ? "Show Less" : "Show More"}
+    </button>
+      )}
+  
+    </div>
     </div>
   );
 };

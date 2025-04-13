@@ -11,6 +11,8 @@ import {
   Pagination,
 } from "swiper/modules";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { usePathname } from "next/navigation";
 export default function ReviewsComponent() {
   const reviews = [
     {
@@ -19,7 +21,7 @@ export default function ReviewsComponent() {
       rating: 4.5,
       review:
         "I purchased my flat using the 8sqft property portal, and the experience was amazing. The process was smooth, with zero brokerage fees. Everything was transparent, and I found my dream home at the best price. Highly recommended for hassle-free property buying!",
-      imgSrc: "/assets/Post_Property_latest/Image1.png",
+      imgSrc: "/assets/users/male6.svg",
     },
     {
       name: "Suraj Kamble",
@@ -27,7 +29,7 @@ export default function ReviewsComponent() {
       rating: 4,
       review:
         "8sqft made my home-buying journey simple and stress-free. The website has many property options, and I easily found the perfect flat. The best part is that there are no hidden charges or middlemen, saving me a lot of money. Excellent service!",
-      imgSrc: "/assets/Post_Property_latest/Image.png",
+      imgSrc: "/assets/users/male2.svg",
     },
     {
       name: "Akshay Patel",
@@ -35,7 +37,7 @@ export default function ReviewsComponent() {
       rating: 5,
       review:
         "I was looking for a flat for months, and 8sqft helped me find the right one quickly. Their platform is easy to use, and I got all the details I needed. No extra charges, and everything was handled professionally.",
-      imgSrc: "/assets/Post_Property_latest/Image 2.png",
+      imgSrc: "/assets/users/male3.svg",
     },
     {
       name: "Raj Kale",
@@ -43,7 +45,7 @@ export default function ReviewsComponent() {
       rating: 4.5,
       review:
         "Buying a flat through 8sqft was a great decision. The listings were genuine, and I didn’t have to deal with brokers. The team was helpful, and the entire process was seamless. I highly recommend 8sqft to anyone looking for a new home.",
-      imgSrc: "/assets/Post_Property_latest/user4.jpg",
+      imgSrc: "/assets/users/male4.svg",
     },
     {
       name: "Ajay Gore",
@@ -51,7 +53,7 @@ export default function ReviewsComponent() {
       rating: 4,
       review:
         "8sqft is the best platform for buying property. I got my flat at a reasonable price without paying brokerage. The entire process was quick, and I felt confident in my decision. If you want a trustworthy property portal, 8sqft is the right choice!",
-      imgSrc: "/assets/Post_Property_latest/Image1.png",
+      imgSrc: "/assets/users/male5.svg",
     },
     // Add more reviews as needed
   ];
@@ -65,12 +67,12 @@ export default function ReviewsComponent() {
   };
   const prevRef = useRef(null);
   const nextRef = useRef(null);
-  
+  const pathname = usePathname();
   return (
     <>
    
 
-      <section className=" lg:ml-6 bg-gray-50 mt-[10px]">
+      {pathname === "/" &&(<section className=" lg:ml-6 bg-gray-50 mt-[10px]">
         <div className=" lg:flex flex-row mx-auto lg:px-10 justify-center align-middle space-x-6">
           {/* Section Title and Navigation Buttons */}
           <div className="flex flex-col items-center  justify-between ">
@@ -101,8 +103,8 @@ export default function ReviewsComponent() {
 
           </div>
         </div>
-      </section>
-      <div className="relative px-4 lg:px-10">
+      </section>)}
+      <div className="relative">
         <Swiper
           grabCursor={true}
           centeredSlides={true}
@@ -157,7 +159,7 @@ export default function ReviewsComponent() {
         <div className="flex flex-col justify-end items-start">
           <h3 className="font-semibold">{review.name}</h3>
           <p className="text-[#636363] text-xs lg:text-base">{review.location}</p>
-          <StarRating rating={review.rating ?? 0} />
+          <StarRating  value={review.rating} readOnly />
         </div>
       </div>
       <div className="text-start">
@@ -165,7 +167,7 @@ export default function ReviewsComponent() {
           {review.review}
         </p>
         <span 
-          className="text-xs cursor-pointer hover:text-primary flex hover:underline" 
+          className="text-xs cursor-pointer text-primary flex underline text-[#222222cc]" 
           onClick={() => toggleReadMore(index)}
         >
           {readMoreStates[index] ? "Read less" : "Read more"}
@@ -177,15 +179,15 @@ export default function ReviewsComponent() {
         </Swiper>
         <button
           ref={prevRef}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-40"
+          className="hidden lg:block absolute left-2 top-1/2 transform -translate-y-1/2 z-40  shadow-md p-2 ml-2 rounded-full bg-white border-2 border-primary"
         >
-          <IoChevronBack className="text-black hover:text-white text-3xl bg-white p-1 rounded-full shadow-custom hover:bg-primary" />
+          <ArrowLeft size={18} className="text-primary" />
         </button>
         <button
           ref={nextRef}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-40"
+          className="hidden lg:block absolute right-4 top-1/2 transform -translate-y-1/2 z-40  shadow-md p-2 ml-2 rounded-full bg-white border-2 border-primary"
         >
-          <IoChevronForward  className="text-black hover:text-white text-3xl bg-white p-1 rounded-full shadow-custom hover:bg-primary" />
+        <ArrowRight size={18} className="text-primary" />
         </button>
       </div>
     </>

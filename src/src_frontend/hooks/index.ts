@@ -1,7 +1,6 @@
 import axiosOriginal from "axios";
 import axiosRetry from "axios-retry";
 
-console.log("api-url", process.env.NEXT_PUBLIC_API_URL);
 
 const axios = axiosOriginal.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.8sqft.com",

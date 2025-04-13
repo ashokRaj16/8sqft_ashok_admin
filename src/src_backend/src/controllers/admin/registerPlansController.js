@@ -6,7 +6,7 @@ export const listRegisterPlans = async (req, res) => {
   try {
     let data = {};
     const { page, limit } = req.query;
-    console.log(req.query)
+  
     const pageCount = parseInt(page) || 1;
     const limitCount = parseInt(limit) || 100;
     const offset = (page - 1) * limit;
@@ -26,8 +26,6 @@ export const listRegisterPlans = async (req, res) => {
     if (whereClauses.length > 0) {
         baseQuery = ` WHERE ` + whereClauses.join(' AND ');
     }
-
-    console.log("Request body: ", whereClauses);
     
     
     const allowedColumns = ['tpt.id', 'order_id', 'plan_title', 'fname', "created_at"];
@@ -94,7 +92,6 @@ export const createRegisterPlan = async (req, res) => {
     plan_gst_per,
   } = req.body;
 
-  console.log(req.body);
   try {
     const query = `
       INSERT INTO tbl_subscription_plans (

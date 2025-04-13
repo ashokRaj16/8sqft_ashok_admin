@@ -4,9 +4,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import "./scroll.css"
+import "./scroll.css";
 import { useAuthStore } from "@/Store/jwtTokenStore";
+import { Swiper, SwiperSlide } from "swiper/react";
 
+import { Autoplay, Navigation } from "swiper/modules";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FaBed } from "react-icons/fa";
 type Property = {
   id: number;
   property_title: string;
@@ -17,7 +21,6 @@ type Property = {
   image?: string;
   property_img_url?: string;
   washrooms?: number;
-
 };
 type cardData = {
   landmark: string;
@@ -28,42 +31,54 @@ type cardData = {
   builtup_area: number;
   rent_amount: string;
   property_title: string;
+  title_slug: string;
   id: number;
-
-}
+};
 
 export default function FeaturedComponent() {
-  const [properties, setProperties] = useState<Property[]>([]);
   const [activeTab, setActiveTab] = useState("sell");
   const [sellCardData, setSellCardData] = useState<cardData[]>([]);
   const [rentCardData, setRentCardData] = useState<cardData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
   const token = useAuthStore((state) => state.token);
-  console.log(sellCardData, 'sellCardData')
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await axios.get("https://api.8sqft.com/api/v1/front/recommendations?property_rent_buy=RENT", {
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": "A8SQFT7767",
-            Authorization: `Bearer ${token}`,
-          },
-
-        });
+        setLoading(true);
+        const response = await axios.get(
+          "https://api.8sqft.com/api/v1/front/recommendations?property_rent_buy=RENT",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": "A8SQFT7767",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const recommendations = response.data.data || [];
 
-        const sellData = recommendations.filter((property: { property_rent_buy: string }) => property.property_rent_buy === "RENT");
+        const sellData = recommendations.filter(
+          (property: { property_rent_buy: string }) =>
+            property.property_rent_buy === "RENT"
+        );
 
-        const rentData = recommendations.filter((property: { property_rent_buy: string }) => property.property_rent_buy === "RENT");
+        const rentData = recommendations.filter(
+          (property: { property_rent_buy: string }) =>
+            property.property_rent_buy === "RENT"
+        );
 
-        console.log("Recomendations", recommendations)
 
         setSellCardData(sellData);
         setRentCardData(rentData);
-
       } catch (error) {
-        console.error("Error fetching data: ", error);
+        setError("Failed to fetch properties. Please try again later.");
+      }
+      finally {
+        setLoading(false);
       }
     };
 
@@ -71,42 +86,48 @@ export default function FeaturedComponent() {
   }, [activeTab]);
 
 
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const scroll = useRef<HTMLDivElement | null>(null);
-
-  const handleScroll = (direction: "prev" | "next") => {
-    const container = scrollContainerRef.current;
-
-    // Ensure the container exists before attempting to scroll
-    if (container) {
-      const scrollAmount = 300; // Adjust scroll amount as needed
-      container.scrollBy({
-        left: direction === "next" ? scrollAmount : -scrollAmount,
-        behavior: "smooth",
-      });
+  if(loading){
+    return  <>
+    <div className=" container">
+    <p className="lg:text-2xl text-xl font-medium lg:font-semibold my-5 text-center">For Sell/ For Rent</p>
+    <div className="justify-center flex-wrap gap-4 hidden lg:flex ">
+        {[1, 2, 3].map((item) => (
+          <div key={item} className="p-4 space-y-4 w-[350px]">
+          <Skeleton className="w-full h-40 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+      
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+        ))}
+      </div>
+      <div className="flex lg:hidden justify-center">
+      <div className="p-4 space-y-4 w-[350px]">
+          <Skeleton className="w-full h-40 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+      
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+        </div>   
+    
+    </div>
+    </>
     }
-  };
-
-  const scrollReviews = (direction: string) => {
-    if (scroll.current) {
-      const scrollAmount = 300; // Adjust as needed for the scroll distance
-      const currentScroll = scroll.current.scrollLeft;
-
-      if (direction === "prev") {
-        scroll.current.scrollTo({
-          left: currentScroll - scrollAmount,
-          behavior: "smooth",
-        });
-      } else if (direction === "next") {
-        scroll.current.scrollTo({
-          left: currentScroll + scrollAmount,
-          behavior: "smooth",
-        });
+      if (error) {
+        return <div>{error}</div>;
       }
-    }
-  };
   return (
-
     <div className=" w-full h-full relative pt-5">
       <p className="lg:text-3xl text-xl font-medium lg:font-semibold my-5 text-primary lg:hidden text-center">
         Explore the Featured Properties
@@ -114,28 +135,32 @@ export default function FeaturedComponent() {
       <Tabs defaultValue="sell" onValueChange={(value) => setActiveTab(value)}>
         <div className="flex items-center justify-center relative mb-2">
           <TabsList className="flex justify-center gap-5">
-
             <TabsTrigger
               value="sell"
-              className="text-black data-[state=active]:bg-[#FFF3EB] data-[state=active]:text-primary bg-[#EFEFEF] px-6 py-3 rounded-sm w-full lg:w-auto"
+              className="text-[#22222270] data-[state=active]:bg-[#FFF3EB] data-[state=active]:text-primary bg-[#EFEFEF] px-6 py-3 rounded-sm w-full lg:w-auto"
             >
               For Sell
             </TabsTrigger>
 
-
             <TabsTrigger
               value="rent"
-              className="text-black data-[state=active]:bg-[#FFF3EB] data-[state=active]:text-primary bg-[#EFEFEF] px-6 py-3 rounded-sm w-full lg:w-auto"
+              className="text-[#22222270] data-[state=active]:bg-[#FFF3EB] data-[state=active]:text-primary bg-[#EFEFEF] px-6 py-3 rounded-sm w-full lg:w-auto"
             >
               For Rent
             </TabsTrigger>
           </TabsList>
-          <div className="z-10 lg:flex flex-row items-center absolute right-0 hidden">
-            <button className=" shadow-md p-2 rounded-full  border-2 border-primary" onClick={() => handleScroll("prev")}>
+          <div className="z-10 lg:flex flex-row items-center absolute right-3 hidden">
+            <button
+              className=" shadow-md p-2 rounded-full  border-2 border-primary"
+              ref={prevRef}
+            >
               <ArrowLeft size={18} className="text-primary" />
             </button>
 
-            <button className=" shadow-md p-2 ml-2 rounded-full  border-2 border-primary" onClick={() => handleScroll("next")}>
+            <button
+              className=" shadow-md p-2 ml-2 rounded-full  border-2 border-primary"
+              ref={nextRef}
+            >
               <ArrowRight size={18} className="text-primary" />
             </button>
           </div>
@@ -186,41 +211,115 @@ export default function FeaturedComponent() {
               </div>
             </div> */}
 
-
-
             <div className="w-full h-fit relative  ">
-              <div ref={scrollContainerRef} className="overflow-x-auto scroll-smooth flex flex-row gap-4 scrollbar-hide  ">
+              <div className=" ">
                 <TabsContent value="sell">
-                  <ReusableCarousel className="w-full">
-
-                    {sellCardData.map((data) => (
-                      <FeaturedCard
-
-                        priceType={""}
-                        title={data.property_title}
-                        location={data.landmark}
-                        imageUrl={data.property_img_url}
-                        beds={data.bed_rooms}
-                        washrooms={data.washrooms}
-                        balconies={data.balcony}
-                        area={data.builtup_area}
-                        price={data.rent_amount}
-                        key={data.id} {...data} />
+                 
+                  <Swiper
+                    spaceBetween={20}
+                    slidesPerView={1.2}
+                    speed={1000}
+                    loop={true}
+                    navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+                    autoplay={{ delay: 1500, disableOnInteraction: false,    pauseOnMouseEnter: true,
+                    }}
+                    modules={[Navigation, Autoplay]}
+                    breakpoints={{
+                      640: {
+                        slidesPerView: 1.2,
+                      },
+                      768: {
+                        slidesPerView: 2,
+                      },
+                      1024: {
+                        slidesPerView: 3,
+                      },
+                      1200: {
+                        slidesPerView: 4.5,
+                      },
+                    }}
+                    onSwiper={(swiper) => {
+                      setTimeout(() => {
+                        if (
+                          swiper?.params?.navigation &&
+                          typeof swiper?.params?.navigation !== "boolean"
+                        ) {
+                          swiper.params.navigation.prevEl = prevRef.current;
+                          swiper.params.navigation.nextEl = nextRef.current;
+                          swiper.navigation.init();
+                          swiper.navigation.update();
+                        }
+                      });
+                    }}
+                  >
+                    {sellCardData.map((data, index) => (
+                      <SwiperSlide key={index}>
+                        <FeaturedCard
+                          priceType={""}
+                          title={data.property_title}
+                          propertyIdSlug={data.title_slug}
+                          location={data.landmark}
+                          imageUrl={data.property_img_url}
+                          beds={data.bed_rooms}
+                          washrooms={data.washrooms}
+                          balconies={data.balcony}
+                          area={data.builtup_area}
+                          price={data.rent_amount}
+                          key={data.id}
+                          {...data}
+                        />
+                      </SwiperSlide>
                     ))}
-                  </ReusableCarousel>
+                  </Swiper>
                 </TabsContent>
 
-
-
                 <TabsContent value="rent">
-                  <ReusableCarousel className="lg:w-full mb-4" >
+                  
 
-                    {rentCardData.map((data) => (
-                      <FeaturedCard
-
+                  <Swiper
+                    spaceBetween={20}
+                    slidesPerView={1.2}
+                    speed={1000}
+                    loop={true}
+                    navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+                    autoplay={{ delay: 1500, disableOnInteraction: false,    pauseOnMouseEnter: true,
+                    }}
+                    modules={[Navigation, Autoplay]}
+                    breakpoints={{
+                      640: {
+                        slidesPerView: 1.2,
+                      },
+                      768: {
+                        slidesPerView: 2,
+                      },
+                      1024: {
+                        slidesPerView: 3,
+                      },
+                      1200: {
+                        slidesPerView: 4.5,
+                      },
+                    }}
+                    onSwiper={(swiper) => {
+                      setTimeout(() => {
+                        if (
+                          swiper?.params?.navigation &&
+                          typeof swiper?.params?.navigation !== "boolean"
+                        ) {
+                          swiper.params.navigation.prevEl = prevRef.current;
+                          swiper.params.navigation.nextEl = nextRef.current;
+                          swiper.navigation.init();
+                          swiper.navigation.update();
+                        }
+                      });
+                    }}
+                  >
+                    {rentCardData.map((data, index) => (
+                      <SwiperSlide key={index}>
+                         <FeaturedCard
                         className="bg-transparent"
-                        priceType={""}
+                        priceType={"Month"}
                         title={data.property_title}
+                        propertyIdSlug={data.title_slug}
                         location={data.landmark}
                         imageUrl={data.property_img_url}
                         beds={data.bed_rooms}
@@ -228,10 +327,12 @@ export default function FeaturedComponent() {
                         balconies={data.balcony}
                         area={data.builtup_area}
                         price={data.rent_amount}
-                        key={data.id} {...data} />
+                        key={data.id}
+                        {...data}
+                      />
+                      </SwiperSlide>
                     ))}
-
-                  </ReusableCarousel>
+                  </Swiper>
                 </TabsContent>
               </div>
             </div>
@@ -239,7 +340,5 @@ export default function FeaturedComponent() {
         </div>
       </Tabs>
     </div>
-
   );
 }
-

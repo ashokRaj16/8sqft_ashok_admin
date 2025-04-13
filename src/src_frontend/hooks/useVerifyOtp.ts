@@ -44,7 +44,6 @@ const useVerifyDetail = ({ onSuccess, onError }: UseVerifyOptions) => {
         "Content-Type": "application/json",
       },
     });
-    console.log("API response:", response.data);
     return response.data as useVerifyResponse;
   };
 

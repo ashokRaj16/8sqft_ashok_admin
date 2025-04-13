@@ -1,145 +1,184 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { LoadScript, GoogleMap, Marker } from "@react-google-maps/api";
-import { Button } from "@/ui/Button";
-import { Card, CardContent } from "@/ui/card";
-import { MapPinIcon } from "lucide-react";
+import React, { useState, useMemo, useCallback } from "react";
+import {
+  LoadScript,
+  GoogleMap,
+  Marker,
+  DirectionsRenderer,
+} from "@react-google-maps/api";
+import toast from "react-hot-toast";
+import { debounce } from "lodash";
+import { MdMyLocation } from "react-icons/md";
+import { IoIosClose } from "react-icons/io";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyB4mLQjyo8whkMHMHA5mpZ4Y17dS2bjgaM";
-
-interface LocationItem {
-  name: string;
-  distance: string;
-}
-
-interface LocationListProps {
-  title: string;
-  locations: LocationItem[];
-}
-
-const LocationList: React.FC<LocationListProps> = ({ title, locations }) => {
-  return (
-    <div className="p-4 bg-white rounded-md shadow-sm">
-      <div className="mt-2 space-y-3">
-        {locations.length > 0 ? (
-          locations.map((location, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center text-sm text-gray-600"
-            >
-              <span>{location.name}</span>
-              <span>{location.distance}</span>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-400 text-sm">No locations found.</p>
-        )}
-      </div>
-    </div>
-  );
-};
+const GOOGLE_MAPS_API_KEY = "AIzaSyB4mLQjyo8whkMHMHA5mpZ4Y17dS2bjgaM"; 
 
 interface PropertyLocationProps {
-  lat?: string | undefined;
-  lng?: string | undefined;
+  lat?: string;
+  lng?: string;
+}
+
+interface LocationState {
+  lat: number;
+  lng: number;
 }
 
 export default function BuilderLocation({ lat, lng }: PropertyLocationProps) {
-  const [inputValue, setInputValue] = useState("");
-  const [activeTab, setActiveTab] = useState("transit");
-  const [nearbyLocations, setNearbyLocations] = useState<LocationItem[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [address, setAddress] = useState<string>("");
+  const parsedLat = lat ? parseFloat(lat) : 19.076;
+  const parsedLng = lng ? parseFloat(lng) : 72.8777;
 
-  // Parse lat and lng as numbers
-  const parsedLat = lat ? parseFloat(lat) : null;
-  const parsedLng = lng ? parseFloat(lng) : null;
+  const [selectedLocation, setSelectedLocation] = useState<LocationState | null>(null);
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const mapCenter = useMemo(() => {
-    return {
-      lat: parsedLat || 19.076, // Default to Mumbai if lat/lng are not provided
-      lng: parsedLng || 72.8777,
-    };
-  }, [parsedLat, parsedLng]);
-
-  const mapOptions = useMemo(
-    () => ({
-      zoom: 14,
-      center: mapCenter,
-      zoomControl: true,
-    }),
-    [mapCenter]
-  );
-
-  // Geocode the location to get a human-readable address
-  useEffect(() => {
-    if (parsedLat && parsedLng) {
-      // Ensure google is available before accessing it
-      // if (window.google && window.google.maps) {
-      //   const geocoder = new window.google.maps.Geocoder(); // Access google from window
-      //   const latLng = new window.google.maps.LatLng(parsedLat, parsedLng);
-      //   geocoder.geocode({ location: latLng }, (results, status) => {
-      //     if (
-      //       status === window.google.maps.GeocoderStatus.OK &&
-      //       results &&
-      //       results[0]
-      //     ) {
-      //       setAddress(results[0].formatted_address); // Ensure results is not null
-      //     } else {
-      //       setAddress("Address not found");
-      //     }
-      //   });
-      // } else {
-      //   console.error("Google Maps API not loaded.");
-      // }
-    }
-  }, [parsedLat, parsedLng]);
+  // Memoized center config
+  const mapCenter = useMemo(() => ({ lat: parsedLat, lng: parsedLng }), [parsedLat, parsedLng]);
+  const mapOptions = useMemo(() => ({
+    zoom: 14,
+    center: mapCenter,
+    zoomControl: true,
+  }), [mapCenter]);
 
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
     if (event.latLng) {
-      const lat = event.latLng.lat();
-      const lng = event.latLng.lng();
-      setSelectedLocation({ lat, lng });
+      setSelectedLocation({
+        lat: event.latLng.lat(),
+        lng: event.latLng.lng(),
+      });
     }
   }, []);
 
+  const fetchPlaceSuggestions = useCallback(
+    debounce((query: string) => {
+      if (!query) return setSuggestions([]);
+
+      setLoading(true);
+      const service = new google.maps.places.AutocompleteService();
+
+      service.getPlacePredictions(
+        { input: query, componentRestrictions: { country: "in" } },
+        (predictions, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+            setSuggestions(predictions);
+          } else {
+            setSuggestions([]);
+          }
+          setLoading(false);
+        }
+      );
+    }, 300),
+    []
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    fetchPlaceSuggestions(value);
+  };
+
+  const handleSuggestionClick = (placeId: string) => {
+    const geocoder = new google.maps.Geocoder();
+
+    geocoder.geocode({ placeId }, (results, status) => {
+      if (status === "OK" && results?.[0].geometry?.location) {
+        const location = results[0].geometry.location;
+        setSelectedLocation({ lat: location.lat(), lng: location.lng() });
+        setSearchQuery(results[0].formatted_address);
+        setSuggestions([]);
+      } else {
+        console.error("Geocoding failed:", status);
+        toast.error("Failed to get location details. Please try again.");
+      }
+    });
+  };
+
+  const handleGetDirections = () => {
+    if (!selectedLocation) return;
+
+    const directionsService = new google.maps.DirectionsService();
+    directionsService.route(
+      {
+        origin: selectedLocation,
+        destination: { lat: parsedLat, lng: parsedLng },
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+          setDirections(result);
+        } else {
+          toast.error("Failed to fetch directions");
+          console.error("Directions error:", result);
+        }
+      }
+    );
+  };
+
   return (
     <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
-      <div className="max-w-screen mx-auto bg-white  rounded-lg">
+      <div className="shadow-custom my-2 bg-white">
         {/* Header */}
-        <h2 className="text-xl font-semibold text-black mb-4">
-          Property Location and Nearby
+        <h2 className="font-semibold lg:text-lg border-b border-[#D9D9D9] py-2 mb-2 px-4 shadow-sm">
+          Location
         </h2>
 
-        {/* Display the User Location Address */}
-        {/* <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-          <label className="text-sm text-gray-600">
-            Your Location: {address}
-          </label>
-        </div> */}
+        {/* Search Input & Button */}
+        <div className="px-4 ">
+          <div className="flex flex-row lg:gap-4 border lg:border-none rounded px-1">
+            <div className="w-full relative">
+     <div className="relative">
+     <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Type in place to get direction"
+                className="w-full p-2 lg:border rounded-md h-10 text-sm focus:outline-none"
+              />
+              {searchQuery&&(<span className="absolute lg:right-2 right-0 bg-white top-1/2 -translate-y-1/2 cursor-pointer" onClick={()=>setSearchQuery("")}><IoIosClose size={20}/></span>)}
+     </div>
+              {suggestions.length > 0 && (
+                <ul className="border rounded-md mt-1 max-h-40 overflow-y-auto bg-white shadow-lg text-sm absolute z-10 w-full">
+                  {suggestions.slice(0, 3).map((suggestion) => (
+                    <li
+                      key={suggestion.place_id}
+                      onClick={() => handleSuggestionClick(suggestion.place_id)}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      >
+                      {suggestion.description}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <button
+              onClick={handleGetDirections}
+              className="lg:text-sm lg:w-40 text-xs lg:border rounded-md hover:border-primary hover:text-primary"
+              >
+             <span className=" hidden lg:block"> Get Directions</span> <MdMyLocation className="lg:hidden block text-[#22222280]" size={20}/>
+            </button>
+          </div>
+              {loading && <p className="text-sm text-gray-500">Loading suggestions...</p>}
+        </div>
 
         {/* Map */}
-        <div className="relative h-[300px]  rounded-lg overflow-hidden border border-gray-200">
+        <div className="relative h-[350px] overflow-hidden p-2">
           <GoogleMap
             mapContainerStyle={{ height: "100%", width: "100%" }}
             options={mapOptions}
             onClick={handleMapClick}
           >
-            {/* Show a marker at the current location */}
-            {parsedLat && parsedLng && (
-              <Marker position={{ lat: parsedLat, lng: parsedLng }} />
-            )}
+            {/* Property Marker */}
+            <Marker position={{ lat: parsedLat, lng: parsedLng }} />
 
-            {/* Show a marker if the user clicks on the map */}
-            {selectedLocation && <Marker position={selectedLocation} />}
+            {/* Directions Route */}
+            {directions && <DirectionsRenderer directions={directions} />}
           </GoogleMap>
         </div>
       </div>
     </LoadScript>
   );
 }
+
 
 // {/* Tabs */}
 // <Tabs  value={activeTab} onValueChange={setActiveTab} className="hidden mb-6">
@@ -160,18 +199,18 @@ export default function BuilderLocation({ lat, lng }: PropertyLocationProps) {
 // </TabsContent>
 // </Tabs>
 {
-  /* <div className="hidden  flex-1 gap-2">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type in place to get directions"
-              className="flex-1"
-            />
-            <Button
-              variant="outline"
-              className="text-orange-500 border-orange-500"
-            >
-              Get Directions
-            </Button>
-          </div> */
+  // /* <div className="hidden  flex-1 gap-2">
+  //           <Input
+  //             value={inputValue}
+  //             onChange={(e) => setInputValue(e.target.value)}
+  //             placeholder="Type in place to get directions"
+  //             className="flex-1"
+  //           />
+  //           <Button
+  //             variant="outline"
+  //             className="text-orange-500 border-orange-500"
+  //           >
+  //             Get Directions
+  //           </Button>
+  //         </div> */
 }

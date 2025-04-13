@@ -1,5 +1,5 @@
 import pool from '../config/db.js';
-
+import { formattedDateTime } from '../utils/commonHelper.js';
 
 const insertRecordsDb = async (table, data) => {
     let connection;
@@ -15,7 +15,6 @@ const insertRecordsDb = async (table, data) => {
 
         const [result] = await connection.execute(query, values);
 
-        console.log("Data inserted: ", result);
         return result;
 
     } catch(error) {
@@ -38,8 +37,7 @@ const updateRecordDb = async (table, data, where) => {
 
         const query = `UPDATE TABLE ${table} SET ${setClause} WHERE ${where}`
         const [result] = await connection.execute(query, values);
-        
-        console.log('Update records: ', result.affectedRows);
+
         return result;
     } catch(error) {
         throw new Error('Unable to update record.', error);
@@ -58,7 +56,6 @@ const deleteRecordDb = async (table, where) => {
         const query = `DELETE FROM ${table} WHERE ${where}`;
         const [result] = connection.execute(query);
 
-        console.log("deleted count: ", result.affectedRows);
         return result;
 
     } catch(error) {
@@ -76,11 +73,9 @@ const readRecordDb = async (table, columns = ['*'], whereClause = '', whereValue
         // Prepare the query
         const query = `SELECT ${columns.join(', ')} FROM ${table} ${whereClause ? `WHERE ${whereClause}` : ''}`;
         
-        console.log("Executing query:", query, whereValues);
         // Execute the query with values
         const [rows] = await connection.execute(query, whereValues);
 
-        // console.log("Fetched rows:", rows);
         return rows;
     } catch (error) {
         console.error('Error reading record:', error.message);
@@ -90,23 +85,46 @@ const readRecordDb = async (table, columns = ['*'], whereClause = '', whereValue
     }
 };
 
-// Example usage
 
-// Create new user
-// ### await insertRecordDb('users', { name: 'Ashok', email: 'ashok@mail.com' });
+const handleOTP = async  (mobileOrEmail, otp, expirydate = null, action) => {
+        try {
+            if (!mobileOrEmail || typeof otp !== 'number' || !['store', 'verify'].includes(action)) {
+                return { success: false, message: "Invalid input parameters" };
+            }
+    
+            if (action === "store") {
+                const [existing] = await pool.query(
+                    "SELECT otp FROM tbl_auth_otp WHERE mobile_or_email = ?", 
+                    [mobileOrEmail]
+                );
+                
+                if (existing.length > 0) {
+                    await pool.query("UPDATE tbl_auth_otp SET otp = ?, expired_at = ? WHERE mobile_or_email = ?", [otp, formattedDateTime(expirydate) || null, mobileOrEmail]);
+                    return { success: true, message: "OTP updated successfully" };
+                } else {
+                    await pool.query("INSERT INTO tbl_auth_otp (mobile_or_email, otp, expired_at) VALUES (?, ?, ?)", [mobileOrEmail, otp, formattedDateTime(expirydate)]);
+                    return { success: true, message: "OTP stored successfully" };
+                }
+            }
+            
+            if (action === "verify") {
+                const [rows] = await pool.query(
+                    "SELECT otp FROM tbl_auth_otp WHERE mobile_or_email = ? AND otp = ?", 
+                    [mobileOrEmail, otp]
+                );
+                
+                if (rows.length === 0) {
+                    return { success: false, message: "Invalid OTP" };
+                }
+                
+                await pool.query("UPDATE tbl_auth_otp SET otp = '', expired_at = '' WHERE mobile_or_email = ?", [mobileOrEmail]);
+                return { success: true, message: "OTP verified and removed successfully" };
+            }
+        } catch (error) {
+            console.error("OTP Error:", error);
+            return { success: false, message: "Database error" };
+        }
+};
 
-// Read all users
-// const columns = ['id', 'name', 'email'];
-// const whereClause = 'id = ? AND status= ?';
-// const whereValues = [1, 1];
 
-// const user = await readRecordDb('users', columns, whereClause, whereValues);
-// console.log(user);
-
-// Update a user's email
-// ### await updateRecordDb('users', { email: 'ashok.ambore@mail.com' }, 'id = 1');
-
-// Delete a user
-// ### await deleteRecordDb('users', 'id = 1');
-
-export { insertRecordsDb, readRecordDb, updateRecordDb, deleteRecordDb }
+export { insertRecordsDb, readRecordDb, updateRecordDb, deleteRecordDb, handleOTP}

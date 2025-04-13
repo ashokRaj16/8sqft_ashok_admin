@@ -35,9 +35,13 @@ import SheetMenu from "@/Compound-component/sheet-menu";
 import useDialogStore from "@/Store/useDialogStore ";
 import {usejwtAuthStore}  from "@/Store/jwtTokenDecodeAllStore"
 import { jwtTokenDecodeAll } from "@/lib/jwtTokenDecodeAll";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import axios from "@/hooks/index";
 import useGetProfileDetails from "@/hooks/useGetProfileDetails";
+import Logo from '@/public/assets/logo/ForWebSiteWhite.svg'
+import LogoWhite from '@/public/assets/logo/LogoWhite.svg'
+import { hexToRgba } from "@/utils/hexToRGB";
+import useColorStore from "@/Store/colorStore";
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
@@ -47,9 +51,9 @@ function classNames(...classes: string[]) {
 const Navbar = () => {
    const router = useRouter();
   const { isDialogOpen, openDialog, closeDialog } = useDialogStore()
-
+  const pathname = usePathname();
   // Use the extracted selector
-
+  const themeColor = useColorStore((state) => state.color)
   const id = useAuthStore((state) => state.id);
   const email = useAuthStore((state) => state.email);
   const token = useAuthStore((state) => state.token);
@@ -60,7 +64,6 @@ const Navbar = () => {
   const location = useStore((state) => state.location);
   const value = token ? jwtTokenDecodeAll(token) : null;
   const name = value?.first_name 
-console.log(value,'valuevalue')
   const handleLogout = () => {
     clearProfile();
     clearAuth();
@@ -79,20 +82,42 @@ console.log(value,'valuevalue')
     }
   }, [token, fetchProfile]);
 
+  const isBuilderPropertyShowcase = pathname.startsWith('/BuilderPropertyShowcase');
 
   
+  const primaryColor=isBuilderPropertyShowcase?themeColor:'#222222';
+  
+  const [opacity, setOpacity] = useState<number>(1); 
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+
+      if (isBuilderPropertyShowcase&&scrollY > 110) {
+        setOpacity(0.7); 
+      } else {
+        setOpacity(1); 
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isBuilderPropertyShowcase]);
 
   return (
     <>
-      <div className=" w-full px-3 sm:px-5 py-3 h-18 shadow-md fixed z-50 bg-[#222222]">
+      <div className=" w-full px-3 sm:px-5 lg:py-3 py-2 h-18 shadow-md fixed z-50 transition-all duration-300 backdrop-blur-sm"   style={{  backgroundColor: primaryColor ? hexToRgba(primaryColor, opacity) : '#222222', }}>
         <div className="flex items-center justify-between">
           <div className="flex gap-1 sm:gap-3 lg:w-[40%]">
             <Link href="/">
               <Image
-                src={"/assets/logo/ForWebSiteWhite.svg"}
+                src={isBuilderPropertyShowcase?LogoWhite:Logo}
                 alt="SQFT"
                 width={130}
                 height={100}
+                className="lg:w-auto w-24"
               />
             </Link>
 
@@ -109,7 +134,7 @@ console.log(value,'valuevalue')
             <Link href="/Post-Property">
               <Button
                 variant="outline"
-                className="hidden bg-[#fff] text-primary text-sm font-thick rounded-md self-center p-2 lg:flex"
+                className="hidden bg-transparent border-primary text-primary text-sm font-thick rounded-md self-center p-2 lg:flex"
               >
                 Post Your Property
               </Button>
@@ -129,7 +154,7 @@ console.log(value,'valuevalue')
                       onClick={() => {
                         openDialog();                                                 
                       }}>
-                      <FaUser className="text-white  " />
+                      <FaUser className="text-gray  " />
                     </MenubarTrigger>
                     {/* <MenubarContent >
                     <MenubarItem>

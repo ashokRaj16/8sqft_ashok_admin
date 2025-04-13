@@ -91,7 +91,7 @@ const sortedValue = isSingleCarpetArea?.length === 1
     //   ))}
     // </div>
 
-    <div className="container w-full flex flex-row justify-center border border-blue-500  p-2">
+    <div className="container w-full flex flex-row justify-center border border-blue-500 bg-white p-2">
   {propertyDetail.map((detail, index) => (
     <div 
       key={index} 

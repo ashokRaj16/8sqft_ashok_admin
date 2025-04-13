@@ -20,6 +20,7 @@ import { BsEye } from "react-icons/bs";
 import { formatNumber } from "@/utils/priceFormatter";
 import RERA_ico from '@/public/assets/icon/rera-ico.svg'
 import User_ico from '@/public/assets/icon/user-ico.svg'
+import { Skeleton } from "@/components/ui/skeleton";
 declare global {
   interface Window {
     __sharethis__?: { initialize: () => void };
@@ -123,8 +124,8 @@ interface BuilderPropertyCardProps {
 
 function BuilderPropertyCard({ setGetTotalCount }: BuilderPropertyCardProps) {
   const searchParams = useSearchParams();
-  const selectedCityName = searchParams.get("city_name") || "this location";
-  const selectedlocality = searchParams.get("searchKeyword") || "this location";
+  const selectedCityName = searchParams.get("city_name") || "";
+  const selectedlocality = searchParams.get("searchKeyword") || "";
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const filters = useFilterStore();
 
@@ -173,6 +174,7 @@ function BuilderPropertyCard({ setGetTotalCount }: BuilderPropertyCardProps) {
     other_amenities:filters?.other_amenities,
     is_rera_number:filters?.is_rera_number,
     property_variety_type:filters?.property_variety_type,
+    property_config_type:filters?.property_config_type,
   });
 
   const properties = data?.data?.property || [];
@@ -220,7 +222,74 @@ function BuilderPropertyCard({ setGetTotalCount }: BuilderPropertyCardProps) {
     }
   }, [isVisible]);
   if (isLoading) {
-    return <div>Loading properties...</div>;
+    return <div>
+       <div className="p-4 border">
+      {/* Header Section */}
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-6 w-2/3" />
+        <Skeleton className="h-6 w-12" />
+      </div>
+      <Skeleton className="h-4 w-1/4 mt-2" />
+      
+      {/* Pricing Section */}
+      <div className="mt-4 grid grid-cols-3 gap-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      
+      {/* QR Code & Details */}
+      <div className="mt-4 flex gap-4">
+        <Skeleton className="h-32 w-32" />
+        <div className="flex flex-col gap-2 w-full">
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-8 w-2/3" />
+        </div>
+      </div>
+      
+      {/* View Details Button */}
+      <div className="mt-4 flex justify-center">
+        <Skeleton className="h-10 w-32" />
+      </div>
+      
+      {/* Share & Save */}
+      <div className="flex justify-end gap-2 mt-4">
+        <Skeleton className="h-8 w-10" />
+        <Skeleton className="h-8 w-10" />
+      </div>
+
+            {/* Pricing Section */}
+            <div className="mt-4 grid grid-cols-3 gap-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      
+      {/* QR Code & Details */}
+      <div className="mt-4 flex gap-4">
+        <Skeleton className="h-32 w-32" />
+        <div className="flex flex-col gap-2 w-full">
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-8 w-2/3" />
+        </div>
+      </div>
+      
+      {/* View Details Button */}
+      <div className="mt-4 flex justify-center">
+        <Skeleton className="h-10 w-32" />
+      </div>
+      
+      {/* Share & Save */}
+      <div className="flex justify-end gap-2 mt-4">
+        <Skeleton className="h-8 w-10" />
+        <Skeleton className="h-8 w-10" />
+      </div>
+
+
+    </div>
+    </div>;
   }
 
   if (error) {
@@ -245,7 +314,7 @@ function BuilderPropertyCard({ setGetTotalCount }: BuilderPropertyCardProps) {
       </div>
     );
   }
-
+console.log(properties,'properties')
   return (
     <Suspense fallback={<div>Loading...</div>}>
       {/* {isMobile &&

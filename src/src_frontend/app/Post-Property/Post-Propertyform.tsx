@@ -189,15 +189,15 @@ const TabsContentWrapper = ({
   options: string[];
   onChange: (value: string) => void;
 }) => (
-  <TabsContent value={propertyType} className="space-y-3">
+  <TabsContent value={propertyType} className=" my-5">
     <p>Looking to:</p>
     <Tabs defaultValue={options[0]} className="w-full" onValueChange={onChange}>
-      <TabsList className="flex gap-3">
+      <TabsList className="flex gap-3 justify-start ">
         {options.map((option) => (
           <TabsTrigger
             key={option}
             value={option}
-            className="border border-gray text-gray-700 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-primary"
+            className="border border-gray text-xs lg:text-sm text-gray-700 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-primary"
           >
             {option}
           </TabsTrigger>
@@ -316,6 +316,16 @@ console.log(isDialogOpen,'isDialogOpen')
     setCompanyName(profile?.data?.company_name || "")
     setEmailId(profile?.data?.email || "")
   }, [isDialogOpen,profile?.data])
+
+  useEffect(() => {
+   if(!token){
+    // setUserData("")
+    setWhatsappNumber( "")
+    setCompanyName( "")
+    setEmailId( "")
+   }
+  }, [token])
+  
   return (
     <form onSubmit={handleSubmit}>
       <Tabs
@@ -340,7 +350,7 @@ console.log(isDialogOpen,'isDialogOpen')
             value={type}
             className="overflow-hidden mt-0"
           >
-            <Card className="bg-white lg:w-[500px] w-auto lg:h-[400px] border-none  rounded-tl-none rounded-br-lg rounded-tr-lg">
+            <Card className="bg-white lg:w-[500px] w-auto lg:h-[320px] border-none  rounded-tl-none rounded-br-lg rounded-tr-lg">
               <CardHeader>
                 <p>
                   New to <span className="font-bold">8SQFT</span>? Let&apos;s
@@ -354,13 +364,13 @@ console.log(isDialogOpen,'isDialogOpen')
                     className="w-full"
                     onValueChange={(value) => setPropertyType(value)} // Ensure state updates properly
                   >
-                    <TabsList className="flex gap-5">
+                    <TabsList className="flex gap-2">
                       {["Residential", "Commercial", "Land/Plot"].map(
                         (propType) => (
                           <TabsTrigger
                             key={propType}
                             value={propType}
-                            className="border border-gray p-[10px] data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-primary"
+                            className="border text-xs lg:text-sm border-gray p-2 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:border-primary"
                           >
                             {propType}
                           </TabsTrigger>

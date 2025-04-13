@@ -17,7 +17,7 @@ export default function ReraComponent({ reraNumber }: ReraComponentProps) {
   // Desktop Version
   if (reraNumber) {
     return (
-      <div className="flex items-start justify-between bg-white lg:border rounded-lg lg:p-5 px-2 lg:gap-5">
+      <div className="flex items-start justify-between bg-white shadow-custom lg:p-5 px-2 lg:gap-5">
         <Image
           src="/assets/rera/RERA.svg"
           alt="RERA Icon"
@@ -25,7 +25,7 @@ export default function ReraComponent({ reraNumber }: ReraComponentProps) {
           width={28}
           height={28}
         />
-        <div className="flex flex-col gap-2 lg:gap-4  lg:w-auto w-1/2">
+        <div className="flex flex-col gap-2 lg:gap-4  lg:w-auto w-[45%]">
           {/* RERA Approved Section */}
           <div className="flex items-center gap-3">
             <Image
@@ -37,7 +37,7 @@ export default function ReraComponent({ reraNumber }: ReraComponentProps) {
             />
             <div className="font-semibold lg:text-lg text-sm">RERA Approved</div>
           </div>
-          <p className="text-xs lg:text-sm text-[#222222CC] font-light line-clamp-5 lg:line-clamp-none">
+          <p className="text-[10px] lg:text-sm text-[#222222CC] font-light line-clamp-5 lg:line-clamp-none">
             The Real Estate (Regulation and Development) Act, 2016 is an Act of
             the Parliament of India which seeks to protect buyers as well as
             help boost investments in the real estate industry. The Act came
@@ -57,7 +57,7 @@ export default function ReraComponent({ reraNumber }: ReraComponentProps) {
         </div>
 
         {/* Right Section */}
-        <div className="flex flex-col items-center gap-2 lg:gap-4 text-center lg:w-auto w-1/2">
+        <div className="flex flex-col items-center gap-1 lg:gap-4 text-center lg:w-auto w-[55%]">
           <Image
             src="/assets/rera/QRCode.png"
             alt="QR Code"
@@ -66,10 +66,10 @@ export default function ReraComponent({ reraNumber }: ReraComponentProps) {
             height={100}
           />
    
-           <p className="text-xs text-[#222222CC]">Scan this code to view Maharera website</p>
+           <p className="text-[10px] lg:text-xs text-[#222222CC]">Scan this code to view Maharera website</p>
          
    
-            <Link className="text-[#1DA5F1] text-[10px] lg:text-xs" href="https://maharerait.mahaonline.gov.in/">
+            <Link className="text-[#1DA5F1] text-[9px] lg:text-xs" href="https://maharerait.mahaonline.gov.in/">
             https://maharerait.mahaonline.gov.in/
             </Link>
         </div>

@@ -35,7 +35,6 @@ const s3 = new S3Client({
   region: process.env.AWS_REGION,
 });
 
-
 export const uploadPropertyImages = async (req, res) => {
   upload.array('images')(req, res, async (err) => {
       if (err) {
@@ -206,7 +205,6 @@ export const deletePropertyImage = async (req, res) => {
 
 export const uploadPropertyConfiguration = async (req, res) => {
   upload.array('images') (req, res, async (err) => {
-    console.log(req.file);
 
     if (err) {
       console.error("SQFT Multer error:", err);
@@ -233,7 +231,7 @@ export const uploadPropertyConfiguration = async (req, res) => {
     } = req.body;
 
     const files = req.files;
-    // console.log(files);
+   
     if(files.length <= 0) {
       return badRequestResponse(res, true, "Please select images.");  
     }
@@ -267,8 +265,6 @@ export const uploadPropertyConfiguration = async (req, res) => {
       await ensureFolderExists(propertyFolder);
       connection = await pool.getConnection();
       await connection.beginTransaction();
-      
-      console.log( files.length)
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -315,7 +311,7 @@ export const uploadPropertyConfiguration = async (req, res) => {
       await connection.commit();
 
       const data = { ["configuration"]: imageUrls };
-      console.log(data)
+  
       return successWithDataResponse(res, true, "Configuration added successfully.", data);
     } catch (error) {
       if (connection) {
@@ -556,8 +552,7 @@ export const uploadPropertyFilesWithWatermark = async (req, res) => {
 };
 
 export const getUploadProgress = (req, res) => {
-  console.log(uploadProgress)
-  console.log("test", req.headers);
+
   const sessionId = req.headers["session-id"];
   const progress = uploadProgress[sessionId] || 0;
   return res.json({ progress });

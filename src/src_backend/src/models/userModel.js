@@ -5,11 +5,12 @@ export const getAllUserListAdmin = async (whereClause = null, sortColumn = "id",
   try {
     const offset = (page - 1) * limit;
     const orderQuery = ` ORDER BY ${sortColumn} ${sortOrder}`;
-    const searchQuery = `SELECT * FROM  tbl_users_admin tu
+    const roleJoin = `LEFT JOIN tbl_user_roles tur ON tur.id = tu.role_id`
+    const searchQuery = `SELECT tu.*, tur.role_name FROM tbl_users_admin tu
+                ${roleJoin}
                 ${whereClause} ${orderQuery}
                 LIMIT ${limit} OFFSET ${offset}`;
-
-                console.log(searchQuery)
+                
     const [rows] = await pool.execute(searchQuery);
     return rows;
   } catch (error) {
@@ -28,7 +29,6 @@ export const getAllUserCountAdmin = async ( whereClause = null ) => {
               ${whereClause}`;
     
       const [rows] = await pool.query(totalCountQuery);
-      console.log(rows);
       return rows[0].count;
   }
   catch(error) {
@@ -36,12 +36,14 @@ export const getAllUserCountAdmin = async ( whereClause = null ) => {
   }
 };
 
-// *** check NR
+// *** required.
 export const getUsersById = async (id) => {
   
   try {
-    const [rows] = await pool.execute('SELECT * FROM tbl_users where id = ?', [id]);
-    console.log(rows)
+    const searchQuery = `SELECT tu.fname, tu.mname, tu.lname, tu.mobile, tu.email, tu.city_name, tu.state_name, tu.is_verified, tu.company_name, tu.company_web_url 
+        FROM tbl_users tu 
+        WHERE tu.id = ?`
+    const [rows] = await pool.execute(searchQuery, [id]);
     return rows;
 
   } catch (error) {
@@ -53,17 +55,22 @@ export const getUsersById = async (id) => {
 export const getUserAdminById = async (id) => {
   
   try {
-    let selectedColumn = ` id, fname, mname, lname, 
-      mobile, pan, email, address, city_id, 
-      img_url, created_at, phone, pincode, 
-      proof_number, proof_type, role_id, state_id, state_name, status`;
+    const roleJoin = `LEFT JOIN tbl_user_roles tur ON tur.id = tua.id`;
+    // const searchQuery = `SELECT tu.*, tur.role_name FROM 
+    //       tbl_users tu 
+    //       ${roleJoin}
+    //       where tu.id = ?`
+    let selectedColumn = ` tua.id, tua.fname, tua.mname, tua.lname, 
+      tua.mobile, tua.pan, tua.email, tua.address, tua.city_id, 
+      tua.img_url, tua.created_at, tua.phone, tua.pincode, 
+      tua.proof_number, tua.proof_type, tua.role_id, tua.state_id, tua.state_name, tua.status,
+      tur.role_name`;
 
-    let query = `SELECT ${selectedColumn} FROM tbl_users_admin where id = ?`
-    console.log(query, "wwwww")
-    const [rows] = await pool.execute(query, [id]);
-  
+    let query = `SELECT ${selectedColumn} FROM tbl_users_admin tua
+              ${roleJoin}
+              WHERE tua.id = ?`
+    const [rows] = await pool.execute(query, [id]); 
     return rows;
-
   } catch (error) {
     console.error('Error fetching user:', error);
     throw new Error('Unable to fetch user.');
@@ -72,7 +79,7 @@ export const getUserAdminById = async (id) => {
 
 export const createAdminUser = async (data) => {
   const { fname, mname, lname, email, password_hash, mobile, phone, role_id, added_by } = data;
-  // console.log(data)
+
   try {
     const inserQuery = `INSERT INTO tbl_users_admin 
       (fname, mname, lname, email, mobile, phone, password_hash, role_id, added_by) 
@@ -81,7 +88,6 @@ export const createAdminUser = async (data) => {
     const paramsData = [fname, mname, lname, email, mobile, phone, password_hash, role_id, added_by];
     const [result] = await pool.execute( inserQuery, paramsData );
 
-    console.log(result)
     return { id: result.insertId, ...data };
   } catch (error) {
     console.error('Error creating user:', error);
@@ -91,7 +97,6 @@ export const createAdminUser = async (data) => {
 
 export const updateAdminUserAdmin = async (id, userData) => {
   try {
-    console.log("models",userData);
     
     let queryField = [];
     let queryParams = [];
@@ -121,7 +126,6 @@ export const updateAdminUserAdmin = async (id, userData) => {
 export const updateMemberProfile = async (id, userData) => {
   // const { fname, lname, mname, mobile, email, company_name, profile_picture_url, address_1, city_id, state_id, pincode } = userData;
   try {
-    console.log("models",userData);
     
     let queryField = [];
     let queryParams = [];
